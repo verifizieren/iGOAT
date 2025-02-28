@@ -1,4 +1,4 @@
-#README
+# README
 
 https://openproject.mendes.dev/projects/gruppe-10/
 
