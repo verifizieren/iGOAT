@@ -9,3 +9,8 @@
 ##  <p align="center"> 27. Februar
 * Das Spielkonzept wurde verfeinert damit es präsentierbar ist und es wurde Überlegungen gemacht was für Applikationen für das Projekt gebraucht werden kann.
 * Das nächste Treffen wurde auf den Freitag, dem 28.02.2025 nach der Programmierprojektvorlesung vereinbart.
+##  <p align="center"> 28. Februar
+* Das Spielkonzept wurde aufgeschrieben und verfeinert. 
+* Eine Skizze der Spielkarte wurde erstellt.
+* Die Arbeit an der PowerPoint presentation hat angefangen.
+* Die Gruppe hat sich gedanken gemacht wie das Networking ins Spiel integriert werden kann.
