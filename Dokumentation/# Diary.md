@@ -14,3 +14,6 @@
 * Eine Skizze der Spielkarte wurde erstellt.
 * Die Arbeit an der PowerPoint presentation hat angefangen.
 * Die Gruppe hat sich gedanken gemacht wie das Networking ins Spiel integriert werden kann.
+* Das nächste Treffen wurde auf den Sonntag, dem 02.03.2025 vereinbart.
+##  <p align="center"> 2. März
+* 
