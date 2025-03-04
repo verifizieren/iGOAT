@@ -1,5 +1,8 @@
-import java.net.*;
-import java.io.*;
+package igoat.client;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.Socket;
 
 // Usage: java SocketTest <host>
 public class SocketTest {

@@ -1,4 +1,7 @@
-import java.net.*;
+package igoat.client;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 public class IpAddress {
     // Usage: java IpAddress <host>
     public static void main(String[] args) {
