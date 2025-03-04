@@ -14,6 +14,16 @@
 * Eine Skizze der Spielkarte wurde erstellt.
 * Die Arbeit an der PowerPoint presentation hat angefangen.
 * Die Gruppe hat sich gedanken gemacht wie das Networking ins Spiel integriert werden kann.
+<<<<<<< HEAD
 * Das nächste Treffen wurde auf den Sonntag, dem 02.03.2025 vereinbart.
 ##  <p align="center"> 2. März
 * 
+=======
+* Das nächste Treffen wurde auf den Sonntag, dem 02.03.2025 am Nachmittag vereinbart.
+##  <p align="center"> 03. März
+* Ein provisorischer Zeitplan wurde erstellt.
+* Die Gruppe konnte sich auf ein Gruppennamen einigen und einen Logo mithilfe von GIMP erstellen.
+* Es wurde weiter am PowerPoint gearbeitet.
+* Das nächste Treffen wurde auf den Dienstag, dem 04.03.2025 am Mittag vereinbart.
+
+>>>>>>> 032185288c4af5bc1e9c949ce7149fb75f71d4ee
