@@ -9,9 +9,9 @@ javafx {
     modules = ['javafx.controls', 'javafx.fxml', 'javafx.base']
 }
 
-group 'example'
+group 'iGOAT'
 version '0.0.1-ALPHA'
-mainClassName = 'example.HelloWorld'
+mainClassName = 'igoat.server.EchoServer'
 
 java {
     toolchain {
