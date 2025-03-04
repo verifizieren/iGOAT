@@ -1,8 +1,36 @@
 iGOAT:
 Spieleranzahl: 
 Mindestens vier Spieler; 1 Fänger(Security Guard) und 3 Flüchtige (zwei Roboterziegen und eine normale Ziege)
+
+Genre:
+2D Top-Down Perspektive; Online Co-op; PvP; Hide`n`Seek
+
 Handlung:
 Das Spiel ist inspiriert vom Kinderspiel Räuber und Bulle. Dabei handelt es sich um eine Ziege, die in ein Labor gefangen ist. Dabei kann sie und mindestens zwei Roboterziegen dank einem Stromausfall aus dem Käfig entkommen. Der Security Guard bekommt dies auch mit. Auf der Karte gibt es dabei zwei Ausgänge, mehrere Fenstern und mehrere Terminals.
-Spielkonzept: 
-Das Ziel vom Security Guard ist es, die echte Ziege wieder einzufangen, dabei hat dieser eine beschränkt Sicht weil es im Labor dunkel ist. Er orientiert sich mit einer Taschenlampe. Dabei kann er auch die Roboterziegen ausschalten. Ein Spiel geht maximal fünf Minuten, wenn die Ziegen ihr Ziel in fünf Minuten nicht erreichen, gewinnt der Security Guard. Wenn ein Terminal aktiviert wird bekommt der Security Guard dies mit, weil ein Alarm aktiviert wird.
-Das Ziel der Ziegen ist es, dass die echte Ziege aus dem Labor entkommt. Die Ziegen haben eine bessere Sicht im dunklen und können in einen Radius sehen. Damit die echte Ziege aus dem Labor entkommen kann, müssen die Roboterziegen drei Terminals aktivieren damit der Ausgang geöffnet wird. Es gibt mehrere Terminals im Labor und dabei sind die drei richtigen Terminals immer zufällig verteilt. Wenn die Roboterziege die richtigen Terminals aktiviert leuchtet dieser grün und sonst rot. Die Ziege kann auf der Karte durch verschiedene Fenster springen und sich somit auch schneller fortbewegen und sich besser vor dem Security Guard verstecken. Die Roboterziegen haben diese Funktion nicht. Wenn der Security Guard eine Roboterziege ausschaltet kann die echte Ziege diesen wiederbeleben indem sie zu einer Roboterladestation geht(es gibt zwei auf der Karte). Dort muss die Ziege fünf Sekunden lang ein Knopf drücken in dieser Zeit gehen die Lichter im Labor an und nachdem die Roboterziege wiederbelebt wurde gehen die Lichter wieder aus. Wenn die echte Ziege gefangen genommen wird gibt es ein Cool down von 30 Sekunden. Die Roboterziegen müssen die echte innerhalb dieser Zeit befreien sonst ist das Spiel fertig. Um die echte Ziege zu befreien müssen zwei Terminals bedient werden und dabei leuchtet sie blau auf. 
+
+Ziel:
+Das Ziel vom Security Guard ist es, die echte Ziege wieder einzufangen und das die Ziege nicht innerhalb des Zeitlimits(etwa fünf Minuten) entkommt. Der Security Guard gewinnt wenn er alle Ziegen einfängt oder die echte Ziege 30 Sekunden lang in Gefangenschaft ist, ausserdem gewinnt er wenn das Zeitlimit erreicht wird.
+
+Das Ziel der Ziegen ist es, dass die echte Ziege aus dem Labor entkommt, dabei helfen die Roboterziegen. Die Roboterziegen müssen nicht entkommen um zu gewinnen.
+
+Mechanik:
+Der Security Guard hat eine beschränkt Sicht weil es im Labor dunkel ist. Er orientiert sich mit einer Taschenlampe. Er sieht in einen Radius um sich herum die Karte, aber nur im Schein der Taschenlampe erkennt er Objekte wie Ziegen oder Terminals.
+Der Security Guard kann die Ziege einfangen und die Roboterziegen ausschalten. Wenn die Ziege gefangen wird, landet sie im Zimmer. Wenn die Roboterziege ausgeschaltet wird dann bleibt sie an Ort und Stelle. Wenn ein Terminal aktiviert wird bekommt er dies mit, weil ein Alarm aktiviert wird.
+
+
+Die Ziegen haben eine bessere Sicht im dunklen und können in einem Radius sehen. Damit die echte Ziege aus dem Labor entkommen kann, müssen die Roboterziegen drei Terminals aktivieren damit der Ausgang geöffnet wird. Es gibt mehrere Terminals im Labor und dabei sind die drei richtigen Terminals immer zufällig verteilt. Wenn die Roboterziege die richtigen Terminals aktiviert leuchtet dieser grün und sonst rot. 
+Wenn die echte Ziege gefangen wird,  gibt es einen Countdown  von 30 Sekunden. Die Roboterziegen müssen die echte innerhalb dieser Zeit befreien sonst ist das Spiel fertig. Um die Ziege zu befreien müssen zwei  zufällige Terminals bedient werden und dabei leuchten sie blau auf. 
+
+Nur die Ziege kann auf der Karte durch verschiedene Fenster springen und sich somit auch schneller fortbewegen und sich besser vor dem Security Guard verstecken. Wenn der Security Guard eine Roboterziege ausschaltet kann die echte Ziege diesen wiederbeleben indem sie zu einer Roboterladestation geht(es gibt zwei auf der Karte) oder zu der deaktivierten Roboterziege. Dort muss die Ziege etwa fünf Sekunden lang ein Knopf drücken in dieser Zeit gehen die Lichter im Labor an und nachdem die Roboterziege wiederbelebt wurde gehen die Lichter wieder aus. Falls beide Roboterziegen ausgeschaltet sind, kann die Ziege nur eine Roboterziege mit einen Knopfdruck reaktivieren. Für die zweite Roboterziege muss die Ziege erneut den Knopf bedienen.
+
+Spielablauf:
+Am Anfang spawnen die Ziegen am gleichen Ort. Der Security Guard startet auf der anderen Seite der Karte.
+Roboterziegen suchen nach den Terminals während die Ziege sich versteckt. Der Security Guard muss die Ziegen suchen und fangen/deaktivieren.
+Wenn die drei richtigen Terminals aktiviert sind,  gehen die Ausgänge auf und die Ziege muss durch einen Ausgang entkommen und gewinnt somit das Spiel.
+Falls die Spielzeit abläuft und die Ziege nicht entkommen konnte geht der Strom wieder an und der Security Guard gewinnt.
+ 
+
+
+
+
+
