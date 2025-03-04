@@ -1,13 +1,12 @@
-package ch.unibas.dmi.dbis.cs108.example;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+package example;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
+import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * An example test class.
@@ -18,8 +17,8 @@ public class HelloWorldTest {
     /*
      * Streams to store system.out and system.err content
      */
-    private ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-    private ByteArrayOutputStream errStream = new ByteArrayOutputStream();
+    final private ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+    final private ByteArrayOutputStream errStream = new ByteArrayOutputStream();
 
     /*
      * Here we store the previous pointers to system.out / system.err

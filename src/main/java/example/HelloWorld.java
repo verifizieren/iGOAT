@@ -1,4 +1,4 @@
-package ch.unibas.dmi.dbis.cs108.example;
+package example;
 
 /**
  * A simple HelloWorld class.
