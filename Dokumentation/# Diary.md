@@ -19,4 +19,5 @@
 * Ein provisorischer Zeitplan wurde erstellt.
 * Die Gruppe konnte sich auf ein Gruppennamen einigen und einen Logo mithilfe von GIMP erstellen.
 * Es wurde weiter am PowerPoint gearbeitet.
+* Das nächste Treffen wurde auf den Dienstag, dem 04.03.2025 am Mittag vereinbart.
 
