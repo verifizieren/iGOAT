@@ -1,0 +1,20 @@
+Client: Jonas, Marvin
+
+Server: Max, Nicolas
+
+Map design: Max
+
+Balancing: Nicolas
+
+Graphics: Jonas
+
+Diary: Marvin
+
+Project Manager: Max
+
+Unit-Test: Nicolas
+
+testing: Jonas, Marvin
+
+
+
