@@ -10,11 +10,9 @@ Graphics: Jonas
 
 Diary: Marvin
 
-Project Manager: Max
+Project Manager: Ich
 
-Unit-Test: Nicolas
-
-testing: Jonas, Marvin
+Unit-Test: Alle
 
 
 
