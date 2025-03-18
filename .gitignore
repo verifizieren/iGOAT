@@ -1,5 +1,3 @@
-.gitignore.local
-
 *.class
 *.jar
 *.war
