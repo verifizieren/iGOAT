@@ -41,3 +41,4 @@
 * Die Implementierung und Verbesserung von Client und Server wurde fortgesetzt.
 * Das nächste Treffen wurde für den Freitag, den 21.03.2025, festgelegt.
 * Die Gruppe will bis dahin ein funktionierenden Client und Server haben und diese auch testen können.
+* ToDo: Jonas - Client-Server Interaction, Marvin - Client GUI, Max & Nicolas - Server Implementation
