@@ -8,7 +8,7 @@ import java.net.Socket;
 public class SocketTest {
     public static void main(String[] args) {
         try {
-            Socket sock = new Socket(args[0], 8888);
+            Socket sock = new Socket(args[0], 9876);
             InputStream in = sock.getInputStream();
             int len;
             byte[] b = new byte[100];

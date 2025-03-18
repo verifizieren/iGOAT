@@ -9,14 +9,15 @@ import java.net.Socket;
 
 public class EchoServer {
     public static void main(String[] args) {
-        final int PORT = 9876;
+        final int PORT = 8888;
 
         try {
             try (ServerSocket server = new ServerSocket(PORT)) {
                 System.out.println("server laeuf auf Port " + PORT);
+                Socket client = server.accept();
                 
                 while (true) {
-                    try (Socket client = server.accept()) {
+                    try  {
                         BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
                         PrintWriter writer = new PrintWriter(client.getOutputStream(), true);
                         
@@ -27,6 +28,8 @@ public class EchoServer {
                         }
                         System.out.println("nachricht erhalten: " + message);
                         writer.println(message);
+                    } catch (IOException e) {
+                        System.out.println("Fehler: " + e.getMessage());
                     }
                 }
             }
