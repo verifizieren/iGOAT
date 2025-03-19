@@ -11,7 +11,7 @@ javafx {
 
 group 'iGOAT'
 version '0.0.1-ALPHA'
-mainClassName = 'igoat.server.EchoServer'
+mainClassName = 'igoat.server.Server'
 
 java {
     toolchain {
@@ -40,6 +40,11 @@ dependencies {
     This is another example - it imports the javafx-controls dependency
      */
     implementation 'org.openjfx:javafx-controls:19.0.2.1'
+    implementation 'org.openjfx:javafx-fxml:19.0.2.1'
+    
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'ch.qos.logback:logback-classic:1.4.11'
 
     // JUNIT
     /*
@@ -60,8 +65,7 @@ test {
 The following block adds both compile and runtime dependencies to the jar
  */
 jar {
-
-    duplicatesStrategy(DuplicatesStrategy.INCLUDE)
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
     manifest {
         attributes(
@@ -69,7 +73,49 @@ jar {
         )
     }
     from {
-        configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
+}
+
+task serverJar(type: Jar) {
+    group = 'igoat'
+    description = 'Erstellt das Server JAR'
+    archiveClassifier = 'server'
+    
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
+    manifest {
+        attributes(
+                'Main-Class': mainClassName
+        )
+    }
+    
+    from sourceSets.main.output
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+task buildServer {
+    group = 'igoat'
+    description = 'Builded den Server'
+    dependsOn clean, serverJar
+}
+
+task runServer(type: JavaExec) {
+    group = 'igoat'
+    description = 'Startet den Server'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = mainClassName
+}
+
+defaultTasks 'buildServer'
+
+// Stellen Sie sicher, dass die Distribution-Tasks nach serverJar laufen
+distZip.dependsOn serverJar
+distTar.dependsOn serverJar
+startScripts.dependsOn serverJar
+
+application {
+    mainClass = mainClassName
 }
