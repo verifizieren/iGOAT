@@ -7,12 +7,16 @@
 **Client:** chat (msg)
 **Server:** chat (msg) (player)
 #### Ping Pong
-**Server:** ping *check client connection*
-**Client:** pong confirm *client connection*
+**Server:** ping *check client connection max. every 100ms*
+**Client:** pong *confirm client connection*
 ### Lobby
 **Client:** lobby (code) *join lobby*
 **Server:** confirm
 **Server:** error (couldn't join lobby..)
+
+**Client:** newlobby *create new lobby*
+**Server:** confirm (lobby code) *confirm with lobby code*
+**Server:** error (errormsg)
 
 **Client:** leave *leave lobby*
 
@@ -20,7 +24,7 @@
 **Client:** confirm *confirm player list*
 
 **Client:** chat (msg) */whisper (name) client to client*
-**Server:** chat (msg) (player)
+**Server:** chat (msg) (player) *server can also send server logs using this*
 
 **Client:** name (new nickname) *change nickname*
 **Server:** confirm (adjusted nickname) *confirm name change*
@@ -31,3 +35,22 @@
 **Client:** confirm (role)
 
 ### Game
+**Server:** init (id1,id2,id3)
+**Client** confirm (i1,id2,id3)
+
+**Client:** pos (x,y,r) *position & rotational data $r\in \{ 0,1,2,3 \}$* UDP
+**Server:** pos (name1,x,y,r,name1,x,y,r,...) *player positions including the client's own* UDP
+
+**Client:** revive (name) *Server needs to check validity* 
+**Server:** revive (target) *also send server log via chat*
+
+**Client:** catch (name) *Server needs to check validity*
+**Server:** catch (target) *also send server log via chat*
+
+**Client:** term (id) *terminal (terminal-id)*
+**Server:** term (id) *terminal (id), also send server log via chat*
+
+**Server:** open *open exit gates*
+**Client:** confirm
+
+**Server:** result (boolean) *send game result*
