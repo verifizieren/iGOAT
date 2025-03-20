@@ -10,7 +10,7 @@ javafx {
 }
 
 group 'iGOAT'
-version '0.0.1-ALPHA'
+version '0.1-ALPHA'
 
 application {
     mainClass = 'igoat.Main'
