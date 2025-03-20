@@ -11,14 +11,14 @@ public class EchoServer {
     public static boolean run = true;
 
     public static void main(String[] args) {
-        final int PORT = 8888;
+        final int PORT = 8889;
 
         try {
             try (ServerSocket server = new ServerSocket(PORT)) {
                 System.out.println("server laeuf auf Port " + PORT);
                 Socket client = server.accept();
 
-                Thread ping = new Thread(() -> {pingPong(client);});
+                Thread ping = new Thread(() -> pingPong(client));
                 ping.start();
 
                 while (run) {
@@ -32,7 +32,9 @@ public class EchoServer {
                             run = false;
                         }
                         System.out.println("nachricht erhalten: " + message);
-                        writer.println(message);
+                        if (!message.equals("pong")) {
+                            writer.println(message);
+                        }
                     } catch (IOException e) {
                         System.out.println("Fehler: " + e.getMessage());
                     }

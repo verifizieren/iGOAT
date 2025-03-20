@@ -17,19 +17,12 @@ public class ServerHandler {
     private BufferedReader reader;
 
     private boolean connected = false;
-    private boolean closed = false;
     private final List<String> messageBuffer = new ArrayList<>();
     private final ReentrantLock lock = new ReentrantLock();
-    private static final int PORT = 8888;
+    private static final int PORT = 8889;
 
     public ServerHandler() {
-        log("connecting to server");
         reconnect();
-
-        Thread receiver = new Thread(this::receive);
-        receiver.start();
-        Thread pingPong = new Thread(this::pingPong);
-        pingPong.start();
     }
     /**
      * sends the connection status
@@ -38,7 +31,7 @@ public class ServerHandler {
         return connected;
     }
     /**
-     * sends a message to the server and returns whether it was successful
+     * sends a message to the server
      */
     public void send(String msg) {
         try {
@@ -65,7 +58,7 @@ public class ServerHandler {
      * close the connection
      */
     public void close() {
-        closed = true;
+        connected = false;
         try {
             socket.close();
             writer.close();
@@ -79,7 +72,7 @@ public class ServerHandler {
      * checks for received message and adds it to the buffer
      */
     private void receive() {
-        while (!closed) {
+        while (connected) {
             try {
                 String msg = reader.readLine();
                 if (msg != null) {
@@ -90,7 +83,6 @@ public class ServerHandler {
                 }
             } catch (IOException e) {
                 log("method receive " + e.toString());
-                reconnect();
             }
         }
     }
@@ -100,13 +92,12 @@ public class ServerHandler {
     private void pingPong() {
         long timer = System.currentTimeMillis();
 
-        while (!closed) {
-            if (System.currentTimeMillis() - timer > 100) {
+        while (connected) {
+            if (System.currentTimeMillis() - timer > 1100) {
                 if (checkPing()) {
                     log("pinged");
                     send("pong");
                     timer = System.currentTimeMillis();
-                    connected = true;
                 }
             }
             if (System.currentTimeMillis() - timer > 5000) {
@@ -125,12 +116,11 @@ public class ServerHandler {
         lock.lock();
         // check for pings and clear them from the buffer
         for (int i = 0; i < messageBuffer.size(); i++) {
-            if (!messageBuffer.get(i).equals("ping")) {
-                messageBuffer.remove(i);
+            if (messageBuffer.get(i).equals("ping")) {
+                System.out.println(messageBuffer.remove(i));
                 ping = true;
             }
         }
-
         lock.unlock();
         return ping;
     }
@@ -138,6 +128,8 @@ public class ServerHandler {
      * reconnects to the server
      */
     private void reconnect() {
+        connected = false;
+
         if (socket != null) {
             try {
                 socket.close();
@@ -152,6 +144,12 @@ public class ServerHandler {
             socket = new Socket("localhost", PORT);
             writer = new PrintWriter(socket.getOutputStream(), true);
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            connected = true;
+
+            Thread receiver = new Thread(this::receive);
+            Thread pingpong = new Thread(this::pingPong);
+            receiver.start();
+            pingpong.start();
         } catch (IOException e) {
             log("method reconnect, new socket " + e.toString());
         }
