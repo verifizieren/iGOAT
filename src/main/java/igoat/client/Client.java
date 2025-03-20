@@ -1,9 +1,5 @@
 package igoat.client;
 
-import igoat.server.Server;
-
-import java.io.*;
-import java.net.Socket;
 import java.util.Scanner;
 
 public class Client {
@@ -14,19 +10,18 @@ public class Client {
         server = new ServerHandler();
         Scanner scanner = new Scanner(System.in);
 
-        Thread messageHandler = new Thread(() -> {handleMessages(server);});
+        Thread messageHandler = new Thread(() -> handleMessages(server));
         messageHandler.start();
 
         String in;
 
-        while (run) {
+        while (true) {
             if (!server.isConnected()) {
                 System.out.println("Can't connect to server. Reconnect? [y/n]");
                 in = scanner.nextLine();
                 if (in.equals("y")) {
                     server.reconnect();
-                }
-                else {
+                } else {
                     server.close();
                     run = false;
                     break;
@@ -38,11 +33,14 @@ public class Client {
             if (in.equals("exit")) {
                 server.send("ciao");
                 server.close();
+                run = false;
                 break;
             }
 
             server.send(in);
         }
+
+        messageHandler.join();
     }
 
     public static void handleMessages(ServerHandler server) {
@@ -50,7 +48,7 @@ public class Client {
 
         while (run) {
             msg = server.getMessage();
-            if (!msg.isEmpty()) {
+            if (msg != null) {
                 System.out.println("Received: " + msg);
             }
         }
