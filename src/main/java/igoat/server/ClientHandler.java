@@ -40,13 +40,11 @@ public class ClientHandler implements Runnable {
             while(running && (message = in.readLine()) != null) {
                 System.out.println("Received from " + nickname + ": " + message);
                 
-                // Direkte Behandlung von "pong"
                 if (message.equals("pong")) {
                     handlePong();
                     continue;
                 }
                 
-                // Verarbeite formatierte Nachrichten
                 handleCommand(message);
             }
         } catch(IOException e) {
@@ -62,14 +60,12 @@ public class ClientHandler implements Runnable {
         while (running) {
             long currentTime = System.currentTimeMillis();
             
-            // Sende Ping alle PING_INTERVAL
             if (currentTime - lastPingSent >= PING_INTERVAL) {
                 sendMessage("ping");
                 lastPingSent = currentTime;
                 System.out.println("Ping sent to " + nickname);
             }
             
-            // Prüfe auf Timeout
             if (currentTime - lastPongTime >= TIMEOUT) {
                 System.out.println("Client " + nickname + " timed out");
                 running = false;
@@ -77,7 +73,7 @@ public class ClientHandler implements Runnable {
             }
             
             try {
-                Thread.sleep(100); // Kleine Pause um CPU-Last zu reduzieren
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;

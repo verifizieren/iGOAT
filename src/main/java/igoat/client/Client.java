@@ -7,7 +7,22 @@ public class Client {
     static boolean run = true;
 
     public static void main(String[] args) throws InterruptedException {
-        server = new ServerHandler();
+        if (args.length < 2) {
+            System.err.println("Usage: client <host> <port>");
+            System.exit(1);
+        }
+
+        String host = args[0];
+        int port;
+        try {
+            port = Integer.parseInt(args[1]);
+        } catch (NumberFormatException e) {
+            System.err.println("Error: Invalid port number");
+            System.exit(1);
+            return;
+        }
+
+        server = new ServerHandler(host, port);
         Scanner scanner = new Scanner(System.in);
 
         Thread messageHandler = new Thread(() -> handleMessages(server));
@@ -41,6 +56,7 @@ public class Client {
         }
 
         messageHandler.join();
+        scanner.close();
     }
 
     public static void handleMessages(ServerHandler server) {
@@ -49,6 +65,11 @@ public class Client {
         while (run) {
             msg = server.getMessage();
             if (msg != null) {
+                // Automatische Antwort auf Ping
+                if (msg.equals("ping")) {
+                    server.send("pong");
+                    continue;
+                }
                 System.out.println("Received: " + msg);
             }
         }

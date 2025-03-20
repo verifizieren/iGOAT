@@ -17,9 +17,13 @@ public class ServerHandler {
 
     private boolean connected = false;
     private final BlockingQueue<String> messageBuffer = new LinkedBlockingQueue<>();
-    private static final int PORT = 8888;
+    
+    private final String host;
+    private final int port;
 
-    public ServerHandler() {
+    public ServerHandler(String host, int port) {
+        this.host = host;
+        this.port = port;
         reconnect();
     }
     /**
@@ -109,16 +113,16 @@ public class ServerHandler {
         close();
         // (re)open socket and start receiver thread
         try {
-            socket = new Socket("localhost", PORT);
+            socket = new Socket(host, port);
             writer = new PrintWriter(socket.getOutputStream(), true);
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             connected = true;
 
             receiver = new Thread(this::receive);
             receiver.start();
-            log("Connected to server");
+            log("Connected to server at " + host + ":" + port);
         } catch (IOException e) {
-            log("Couldn't connect to server");
+            log("Couldn't connect to server at " + host + ":" + port);
             log(e.getMessage());
         }
     }

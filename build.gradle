@@ -1,5 +1,5 @@
 plugins {
-    id 'java-library'
+    id 'java'
     id 'application'
     id 'org.openjfx.javafxplugin' version '0.0.13'
 }
@@ -11,7 +11,10 @@ javafx {
 
 group 'iGOAT'
 version '0.0.1-ALPHA'
-mainClassName = 'igoat.server.Server'
+
+application {
+    mainClass = 'igoat.Main'
+}
 
 java {
     toolchain {
@@ -19,26 +22,11 @@ java {
     }
 }
 
-//adds maven central as a maven repository
 repositories {
     mavenCentral()
 }
 
-/* The following lines are extensively documented. Please remove the documentation when you have read and understood it. */
 dependencies {
-    // EXAMPLE: LOGGING
-    /*
-    The following adds the logging framework Apache Log4J2.
-    The statements serve as an example on how to use libraries.
-    Since these are `implementation` dependencies, they are packed in the final jar.
-    Read the documentation at https://docs.gradle.org/current/userguide/declaring_dependencies.html to learn more
-     */
-    //implementation 'org.apache.logging.log4j:log4j-api:2.+'
-    //implementation 'org.apache.logging.log4j:log4j-core:2.+'
-
-    /*
-    This is another example - it imports the javafx-controls dependency
-     */
     implementation 'org.openjfx:javafx-controls:19.0.2.1'
     implementation 'org.openjfx:javafx-fxml:19.0.2.1'
     
@@ -46,76 +34,22 @@ dependencies {
     implementation 'org.slf4j:slf4j-api:2.0.9'
     implementation 'ch.qos.logback:logback-classic:1.4.11'
 
-    // JUNIT
-    /*
-    The following dependency is required to perform JUnit tests, as for example HelloWorldTest.
-    Since it is a `testCompile` dependency, it will not be part of the final product, only during testing.
-     */
     testImplementation platform('org.junit:junit-bom:5.9.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.junit.platform:junit-platform-launcher'
-    testImplementation 'org.junit.platform:junit-platform-engine'
 }
 
 test {
     useJUnitPlatform()
 }
 
-/*
-The following block adds both compile and runtime dependencies to the jar
- */
 jar {
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-
     manifest {
-        attributes(
-                'Main-Class': mainClassName
-        )
+        attributes 'Main-Class': 'igoat.Main'
     }
+    
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
-}
-
-task serverJar(type: Jar) {
-    group = 'igoat'
-    description = 'Erstellt das Server JAR'
-    archiveClassifier = 'server'
-    
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-
-    manifest {
-        attributes(
-                'Main-Class': mainClassName
-        )
-    }
-    
-    from sourceSets.main.output
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-}
-
-task buildServer {
-    group = 'igoat'
-    description = 'Builded den Server'
-    dependsOn clean, serverJar
-}
-
-task runServer(type: JavaExec) {
-    group = 'igoat'
-    description = 'Startet den Server'
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = mainClassName
-}
-
-defaultTasks 'buildServer'
-
-// Stellen Sie sicher, dass die Distribution-Tasks nach serverJar laufen
-distZip.dependsOn serverJar
-distTar.dependsOn serverJar
-startScripts.dependsOn serverJar
-
-application {
-    mainClass = mainClassName
 }
