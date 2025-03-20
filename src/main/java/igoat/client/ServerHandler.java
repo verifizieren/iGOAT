@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static igoat.client.Client.log;
-
 public class ServerHandler {
     private Socket socket;
     private PrintWriter writer;
@@ -34,11 +32,16 @@ public class ServerHandler {
      * sends a message to the server
      */
     public void send(String msg) {
+        if (!connected) {
+            log("Server is offline");
+            return;
+        }
+
         try {
             writer.println(msg);
-            log("Sent: " + msg);
         } catch (Exception e) {
-            log("method send " + e.toString());
+            log("Couldn't send message");
+            log(e.getMessage());
         }
     }
     /**
@@ -63,9 +66,10 @@ public class ServerHandler {
             socket.close();
             writer.close();
             reader.close();
-            log("Closed.");
+            log("Connection closed.");
         } catch (IOException e) {
-            log("method close " + e.toString());
+            log("Couldn't close connection");
+            log(e.getMessage());
         }
     }
     /**
@@ -79,12 +83,14 @@ public class ServerHandler {
                     lock.lock();
                     messageBuffer.add(msg);
                     lock.unlock();
-                    log("Received: " + msg);
                 }
             } catch (IOException e) {
-                log("method receive " + e.toString());
+                log("Connection lost");
+                log(e.getMessage());
+                connected = false;
             }
         }
+        log("Receiver thread closed");
     }
     /**
      * check for pings every 100ms and respond
@@ -95,9 +101,9 @@ public class ServerHandler {
         while (connected) {
             if (System.currentTimeMillis() - timer > 1100) {
                 if (checkPing()) {
-                    log("pinged");
                     send("pong");
                     timer = System.currentTimeMillis();
+                    log("ping pong still running");
                 }
             }
             if (System.currentTimeMillis() - timer > 5000) {
@@ -107,6 +113,7 @@ public class ServerHandler {
                 break;
             }
         }
+        log("Pong thread closed");
     }
     /**
      * check if there were any incoming pings
@@ -117,7 +124,7 @@ public class ServerHandler {
         // check for pings and clear them from the buffer
         for (int i = 0; i < messageBuffer.size(); i++) {
             if (messageBuffer.get(i).equals("ping")) {
-                System.out.println(messageBuffer.remove(i));
+                messageBuffer.remove(i);
                 ping = true;
             }
         }
@@ -127,7 +134,7 @@ public class ServerHandler {
     /**
      * reconnects to the server
      */
-    private void reconnect() {
+    public void reconnect() {
         connected = false;
 
         if (socket != null) {
@@ -136,7 +143,7 @@ public class ServerHandler {
                 writer.close();
                 reader.close();
             } catch (Exception e) {
-                log("method reconnect, closing socket " + e.toString());
+                log(e.getMessage());
             }
         }
 
@@ -151,7 +158,12 @@ public class ServerHandler {
             receiver.start();
             pingpong.start();
         } catch (IOException e) {
-            log("method reconnect, new socket " + e.toString());
+            log("Couldn't connect to server");
+            log(e.getMessage());
         }
+    }
+
+    private static void log(String msg) {
+        System.out.println("[ServerHandler] " + msg);
     }
 }

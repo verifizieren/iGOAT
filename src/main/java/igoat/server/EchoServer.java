@@ -9,39 +9,42 @@ import java.net.Socket;
 
 public class EchoServer {
     public static boolean run = true;
+    static long lastMSG;
 
     public static void main(String[] args) {
         final int PORT = 8889;
 
-        try {
-            try (ServerSocket server = new ServerSocket(PORT)) {
-                System.out.println("server laeuf auf Port " + PORT);
-                Socket client = server.accept();
+        try (ServerSocket server = new ServerSocket(PORT)) {
+            System.out.println("server laeuf auf Port " + PORT);
+            Socket client = server.accept();
 
-                Thread ping = new Thread(() -> pingPong(client));
-                ping.start();
+            Thread ping = new Thread(() -> pingPong(client));
+            ping.start();
 
-                while (run) {
-                    try  {
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
-                        PrintWriter writer = new PrintWriter(client.getOutputStream(), true);
-                        
-                        String message = reader.readLine();
-                        if (message.equals("ciao")) { // Auf linux mit "echo "nachricht" | nc localhost 9876" aufrufen
-                            System.out.println("server beendet ciao 👋");
-                            run = false;
-                        }
-                        System.out.println("nachricht erhalten: " + message);
-                        if (!message.equals("pong")) {
-                            writer.println(message);
-                        }
-                    } catch (IOException e) {
-                        System.out.println("Fehler: " + e.getMessage());
+            lastMSG = System.currentTimeMillis();
+
+            while (run) {
+                try  {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
+                    PrintWriter writer = new PrintWriter(client.getOutputStream(), true);
+
+                    String message = reader.readLine();
+                    lastMSG = System.currentTimeMillis();
+                    if (message.equals("ciao")) { // Auf linux mit "echo "nachricht" | nc localhost 9876" aufrufen
+                        System.out.println("server beendet ciao 👋");
+                        run = false;
                     }
+                    System.out.println("nachricht erhalten: " + message);
+                    if (!message.equals("pong")) {
+                        writer.println(message);
+                        System.out.println("sent: " + message);
+                    }
+                } catch (IOException e) {
+                    System.out.println("Fehler: " + e.getMessage());
                 }
             }
         } catch (IOException e) {
-            System.out.println("Fehler: " + e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 
@@ -59,6 +62,9 @@ public class EchoServer {
                 } catch (IOException e) {
                     System.out.println("Fehler: " + e.getMessage());
                 }
+            }
+            if (System.currentTimeMillis() - lastMSG > 7000) {
+                run = false;
             }
         }
     }
