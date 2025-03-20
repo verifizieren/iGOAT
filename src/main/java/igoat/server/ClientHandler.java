@@ -13,11 +13,16 @@ public class ClientHandler implements Runnable {
     private BufferedReader in;
     private PrintWriter out;
     private String nickname = "unnamed";
+    private volatile boolean running = true;
+    private long lastPongTime;
+    private final static long PING_INTERVAL = 3000; // 3 Sekunden
+    private final static long TIMEOUT = 10000; // 10 Sekunden
 
     private final static List<ClientHandler> clientList = new CopyOnWriteArrayList<>();
 
     public ClientHandler(Socket clientSocket) {
         this.clientSocket = clientSocket;
+        this.lastPongTime = System.currentTimeMillis();
     }
 
     @Override
@@ -26,15 +31,57 @@ public class ClientHandler implements Runnable {
         try {
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             out = new PrintWriter(clientSocket.getOutputStream(), true);
+
+            // Starte den Ping-Thread
+            Thread pingThread = new Thread(this::runPingPong);
+            pingThread.start();
+
             String message;
-            while((message = in.readLine()) != null) {
-                System.out.println("Received: " + message);
+            while(running && (message = in.readLine()) != null) {
+                System.out.println("Received from " + nickname + ": " + message);
+                
+                // Direkte Behandlung von "pong"
+                if (message.equals("pong")) {
+                    handlePong();
+                    continue;
+                }
+                
+                // Verarbeite formatierte Nachrichten
                 handleCommand(message);
             }
         } catch(IOException e) {
             System.err.println("Problem: " + e.getMessage());
         } finally {
             disconnect();
+        }
+    }
+
+    private void runPingPong() {
+        long lastPingSent = 0;
+        
+        while (running) {
+            long currentTime = System.currentTimeMillis();
+            
+            // Sende Ping alle PING_INTERVAL
+            if (currentTime - lastPingSent >= PING_INTERVAL) {
+                sendMessage("ping");
+                lastPingSent = currentTime;
+                System.out.println("Ping sent to " + nickname);
+            }
+            
+            // Prüfe auf Timeout
+            if (currentTime - lastPongTime >= TIMEOUT) {
+                System.out.println("Client " + nickname + " timed out");
+                running = false;
+                break;
+            }
+            
+            try {
+                Thread.sleep(100); // Kleine Pause um CPU-Last zu reduzieren
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
         }
     }
 
@@ -89,7 +136,6 @@ public class ClientHandler implements Runnable {
             return;
         }
         broadcast("chat:" + this.nickname + "," + params[0]);
-        System.out.println("chat:" + this.nickname + "," + params[0]);
     }
 
     private void handleUsername(String[] params) {
@@ -97,9 +143,10 @@ public class ClientHandler implements Runnable {
             sendError("Kein Username angegeben");
             return;
         }
+        String oldNickname = this.nickname;
         this.nickname = params[0];
         sendMessage("confirm:Username gesetzt zu " + this.nickname);
-        broadcast("chat:User " + this.nickname + " hat seinen/ihren Username zu " + this.nickname + " geändert");
+        broadcast("chat:User " + oldNickname + " hat seinen/ihren Username zu " + this.nickname + " geändert");
     }
 
     private void handleLobby(String[] params) {
@@ -107,8 +154,27 @@ public class ClientHandler implements Runnable {
             sendError("Kein Lobby Code angegeben");
             return;
         }
-        // TODO: LObby implimentieren
+        // TODO: Lobby implementieren
         sendMessage("confirm:Beigetreten zu Lobby " + params[0]);
+    }
+
+    private void handlePong() {
+        lastPongTime = System.currentTimeMillis();
+        System.out.println("Pong received from " + nickname);
+    }
+
+    private void disconnect() {
+        try {
+            running = false;
+            clientList.remove(this);
+            if(in != null) in.close();
+            if(out != null) out.close();
+            if(clientSocket != null && !clientSocket.isClosed()) clientSocket.close();
+            broadcast("chat:User " + this.nickname + " hat sich abgemeldet");
+            System.out.println("Client " + nickname + " disconnected");
+        } catch(IOException e) {
+            System.err.println("Fehler beim Abmelden: " + e.getMessage());
+        }
     }
 
     private void sendError(String errorMessage) {
@@ -116,7 +182,7 @@ public class ClientHandler implements Runnable {
     }
 
     private void sendMessage(String message) {
-        if (out != null) {
+        if (out != null && !clientSocket.isClosed()) {
             out.println(message);
         }
     }
@@ -131,27 +197,15 @@ public class ClientHandler implements Runnable {
         for (ClientHandler client : clientList) {
             if (client.nickname.equals(recipient)) {
                 client.sendMessage("whisper:" + this.nickname + "," + message);
-                System.out.println("whisper:" + this.nickname + "," + message);
+                return;
             }
         }
+        sendError("User " + recipient + " nicht gefunden");
     }
 
     private void broadcast(String message) {
         for (ClientHandler client : clientList) {
             client.sendMessage(message);
-        }
-    }
-
-    private void disconnect() {
-        try {
-            clientList.remove(this);
-            if(in != null) in.close();
-            if(out != null) out.close();
-            if(clientSocket != null && !clientSocket.isClosed()) clientSocket.close();
-            broadcast("chat:User " + this.nickname + " hat sich abgemeldet");
-            System.out.println("Client " + this.nickname + " hat sich abgemeldet");
-        } catch(IOException e) {
-            System.err.println("Fehler beim Abmelden: " + e.getMessage());
         }
     }
 }

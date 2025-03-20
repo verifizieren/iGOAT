@@ -12,7 +12,7 @@ public class EchoServer {
     static long lastMSG;
 
     public static void main(String[] args) {
-        final int PORT = 8889;
+        final int PORT = 8888;
 
         try (ServerSocket server = new ServerSocket(PORT)) {
             System.out.println("server laeuf auf Port " + PORT);

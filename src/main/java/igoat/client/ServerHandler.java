@@ -17,7 +17,7 @@ public class ServerHandler {
 
     private boolean connected = false;
     private final BlockingQueue<String> messageBuffer = new LinkedBlockingQueue<>();
-    private static final int PORT = 8889;
+    private static final int PORT = 8888;
 
     public ServerHandler() {
         reconnect();
