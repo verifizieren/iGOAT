@@ -1,15 +1,79 @@
-# README
+# iGOAT
 
-https://openproject.mendes.dev/projects/gruppe-10/
-Guest User for OpenProject:
-User: guest
-Pass: password1234
+Ein Multiplayer Spiel Projekt für das Programmierprojekt an der Universität Basel.
 
-This is a readme file. It typically includes some information about your project.
-For more information about readmes, you can either [read a guide](https://github.com/18F/open-source-guide/blob/18f-pages/pages/making-readmes-readable.md) or have a look at the readmes of popular open-source projects such as [Swift by Apple](https://github.com/apple/swift) or [Tensorflow](https://github.com/tensorflow/tensorflow).
+## Projekt Links
 
-Readme files are typically formatted in Markdown.
-However, there are platform-specific flavors, so for this project, you can make full use of the [Gitlab markdown syntax](https://docs.gitlab.com/ee/user/markdown.html), for example when talking about a :bug: (bug) or if your code is slow like a :snail:.
-You can also tag people using @username and reference issues using '#1', where 1 is the issue number. For more features, consult the linked Gitlab syntax guide.
+- **OpenProject:** [Gruppe-10](https://openproject.mendes.dev/projects/gruppe-10/)
+- **Guest Zugang:**
+  - Benutzer: `guest`
+  - Passwort: `password1234`
 
-If you don't like reading documentation, [here's a cheatsheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet).
+## Schnellstart
+
+### Voraussetzungen
+
+- Java 21 oder höher
+- Gradle (optional, Wrapper ist im Projekt enthalten)
+
+### Build
+
+```bash
+# Mit Gradle Wrapper
+./gradlew clean build
+
+# Oder mit lokalem Gradle
+gradle clean build
+```
+
+### Ausführung
+
+Das Projekt erzeugt eine einzelne JAR-Datei, die sowohl Server als auch Client enthält.
+
+**Server starten:**
+```bash
+java -jar build/libs/iGOAT-0.1-ALPHA.jar server <port>
+# Beispiel:
+java -jar build/libs/iGOAT-0.1-ALPHA.jar server 8888
+```
+
+**Client starten:**
+```bash
+java -jar build/libs/iGOAT-0.1-ALPHA.jar client <host>:<port>
+# Beispiel:
+java -jar build/libs/iGOAT-0.1-ALPHA.jar client localhost:8888
+```
+
+### Server-Features
+- Mehrere gleichzeitige Client-Verbindungen
+- Automatisches Ping-Pong für Verbindungsüberwachung
+- Lobby-System für Spielorganisation
+- Chat-System mit öffentlichen und privaten Nachrichten
+
+## Technische Details
+
+### Projektstruktur
+```
+src/main/java/igoat/
+├── Main.java           # Haupteinstiegspunkt
+├── server/            
+│   ├── Server.java     # Server-Implementation
+│   └── ClientHandler.java  # Client-Verbindungshandling
+└── client/
+    ├── Client.java     # Client-Implementation
+    └── ServerHandler.java  # Server-Verbindungshandling
+```
+
+### Verwendete Technologien
+- Java 21
+- JavaFX für GUI (in Entwicklung)
+- Gradle als Build-System
+- JUnit für Tests
+
+## Team
+- Jonas
+- Max
+- Marvin
+- Nicolas
+
+---
