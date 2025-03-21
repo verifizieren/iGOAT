@@ -20,6 +20,12 @@ public class ClientHandler implements Runnable {
 
     private final static List<ClientHandler> clientList = new CopyOnWriteArrayList<>();
 
+    /**
+     * Erstellt einen neuen ClientHandler für eine Socket Verbindung.
+     * Generiert automatisch einen eindeutigen Nickname für den Client.
+     *
+     * @param clientSocket Die Socket Verbindung zum Client
+     */
     public ClientHandler(Socket clientSocket) {
         this.clientSocket = clientSocket;
         this.lastPongTime = System.currentTimeMillis();
@@ -27,6 +33,10 @@ public class ClientHandler implements Runnable {
         System.out.println("Neuer Client verbunden als: " + this.nickname);
     }
 
+    /**
+     * Hauptschleife für die Client Verbindung.
+     * Verarbeitet eingehende Nachrichten und handhabt die PingPong Verbindungsprüfung.
+     */
     @Override
     public void run() {
         clientList.add(this);
@@ -59,6 +69,10 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Führt die PingPong Verbindungsprüfung durch.
+     * Sendet periodisch Pings und überprüft Timeouts.
+     */
     private void runPingPong() {
         long lastPingSent = 0;
         
@@ -86,6 +100,12 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Verarbeitet eingehende Befehle vom Client.
+     * Format: command:param1,param2,...
+     *
+     * @param message Die empfangene Nachricht im Format "command:parameter"
+     */
     private void handleCommand(String message) {
         try {
             if (message.equals("ciao") || message.equals("logout") || message.equals("exit")) {
@@ -126,6 +146,13 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Generiert einen eindeutigen Nickname basierend auf einem Basis Nickname.
+     * Fügt _1, _2, etc. hinzu, wenn der Name bereits vergeben ist.
+     *
+     * @param baseNickname Der gewünschte Basis Nickname
+     * @return Ein eindeutiger Nickname
+     */
     private String generateUniqueNickname(String baseNickname) {
         String newNickname = baseNickname;
         int counter = 1;
@@ -138,6 +165,12 @@ public class ClientHandler implements Runnable {
         return newNickname;
     }
 
+    /**
+     * Prüft, ob ein Nickname bereits von einem anderen Client verwendet wird.
+     *
+     * @param nickname Der zu prüfende Nickname
+     * @return true wenn der Nickname bereits vergeben ist, sonst false
+     */
     private boolean isNicknameTaken(String nickname) {
         for (ClientHandler client : clientList) {
             if (client != this && client.nickname.equals(nickname)) {
@@ -147,6 +180,12 @@ public class ClientHandler implements Runnable {
         return false;
     }
 
+    /**
+     * Verarbeitet eine Connect Anfrage.
+     * Format: connect:nickname
+     *
+     * @param params Array mit Parametern, wobei params[0] der gewünschte Nickname ist
+     */
     private void handleConnect(String[] params) {
         if (params.length < 1) {
             sendError("Kein Nickname angegeben");
@@ -164,6 +203,12 @@ public class ClientHandler implements Runnable {
         broadcast("chat:User " + this.nickname + " connected");
     }
 
+    /**
+     * Verarbeitet eine Chat Nachricht.
+     * Format: chat:message
+     *
+     * @param params Array mit Parametern, wobei params[0] die Nachricht ist
+     */
     private void handleChat(String[] params) {
         if (params.length < 1) {
             sendError("Keine Nachricht angegeben");
@@ -172,6 +217,12 @@ public class ClientHandler implements Runnable {
         broadcast("chat:" + this.nickname + "," + params[0]);
     }
 
+    /**
+     * Verarbeitet eine Anfrage zur Änderung des Usernames.
+     * Format: username:newname
+     *
+     * @param params Array mit Parametern, wobei params[0] der neue Username ist
+     */
     private void handleUsername(String[] params) {
         if (params.length < 1) {
             sendError("Kein Username angegeben");
@@ -191,6 +242,12 @@ public class ClientHandler implements Runnable {
         broadcast("chat:User " + oldNickname + " hat seinen/ihren Username zu " + this.nickname + " geändert");
     }
 
+    /**
+     * Verarbeitet eine Lobbybeitritts Anfrage.
+     * Format: lobby:code
+     *
+     * @param params Array mit Parametern, wobei params[0] der Lobby Code ist
+     */
     private void handleLobby(String[] params) {
         if (params.length < 1) {
             sendError("Kein Lobby Code angegeben");
@@ -200,15 +257,27 @@ public class ClientHandler implements Runnable {
         sendMessage("confirm:Beigetreten zu Lobby " + params[0]);
     }
 
+    /**
+     * Verarbeitet eine eingehende Pong Antwort vom Client.
+     * Aktualisiert den Zeitstempel der letzten Pong Nachricht.
+     */
     private void handlePong() {
         lastPongTime = System.currentTimeMillis();
         System.out.println("Pong received from " + nickname);
     }
 
+    /**
+     * Verarbeitet einen Logout Befehl vom Client.
+     * Akzeptierte Befehle: "logout", "ciao", "exit"
+     */
     private void handleLogout() {
         running = false; 
     }
 
+    /**
+     * Trennt die Verbindung zum Client.
+     * Sendet entsprechende Broadcast Nachrichten und schließt Ressourcen.
+     */
     private void disconnect() {
         try {
             if (!running) {     
@@ -230,16 +299,33 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Sendet eine Fehlermeldung an den Client.
+     * Format: error:message
+     *
+     * @param errorMessage Die zu sendende Fehlermeldung
+     */
     private void sendError(String errorMessage) {
         sendMessage("error:" + errorMessage);
     }
 
+    /**
+     * Sendet eine Nachricht an den Client.
+     *
+     * @param message Die zu sendende Nachricht
+     */
     private void sendMessage(String message) {
         if (out != null && !clientSocket.isClosed()) {
             out.println(message);
         }
     }
 
+    /**
+     * Verarbeitet eine Whisper Nachricht an einen spezifischen Client.
+     * Format: whisper:recipient,message
+     *
+     * @param params Array mit Parametern, wobei params[0] der Empfänger und params[1] die Nachricht ist
+     */
     private void handleWhisper(String[] params) {
         if (params.length < 2) {
             sendError("Keine Whisper Nachricht angegeben");
@@ -256,6 +342,11 @@ public class ClientHandler implements Runnable {
         sendError("User " + recipient + " nicht gefunden");
     }
 
+    /**
+     * Sendet eine Nachricht an alle verbundenen Clients.
+     *
+     * @param message Die zu broadcastende Nachricht
+     */
     private void broadcast(String message) {
         for (ClientHandler client : clientList) {
             client.sendMessage(message);
