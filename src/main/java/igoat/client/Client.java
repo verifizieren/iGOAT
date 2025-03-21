@@ -46,13 +46,17 @@ public class Client {
             in = scanner.nextLine();
 
             if (in.equals("exit") || in.equals("logout")) {
-                server.send("ciao");
+                server.sendMessage("ciao");
                 server.close();
                 run = false;
                 break;
             }
+            if (in.equals("update")) {
+                System.out.println("sending udp");
+                server.sendUpdate("update");
+            }
 
-            server.send(in);
+            server.sendMessage(in);
         }
 
         messageHandler.join();
@@ -61,17 +65,18 @@ public class Client {
 
     public static void handleMessages(ServerHandler server) {
         String msg;
+        String update;
 
         while (run) {
             msg = server.getMessage();
             if (msg != null) {
-                // Automatische Antwort auf Ping
-                if (msg.equals("ping")) {
-                    server.send("pong");
-                    continue;
-                }
                 System.out.println("Received: " + msg);
             }
+            update = server.getLastUpdate();
+            if (!update.isEmpty()) {
+                System.out.println(update);
+            }
+
         }
     }
 

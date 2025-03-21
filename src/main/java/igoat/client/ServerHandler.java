@@ -1,22 +1,23 @@
 package igoat.client;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
+import java.io.*;
+import java.net.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class ServerHandler {
-    private Socket socket;
-    private PrintWriter writer;
-    private BufferedReader reader;
+    private Socket msgSocket;
+    private PrintWriter msgWriter;
+    private BufferedReader msgReader;
 
-    private Thread receiver;
+    private DatagramSocket updateSocket;
+
+    private Thread messageReceiver;
+    private Thread updateReceiver;
 
     private boolean connected = false;
     private final BlockingQueue<String> messageBuffer = new LinkedBlockingQueue<>();
+    private String lastUpdate = "";
     
     private final String host;
     private final int port;
@@ -27,7 +28,8 @@ public class ServerHandler {
         reconnect();
     }
     /**
-     * Returns the connection status
+     * Checks whether the server is still connections
+     * @return returns the connection status
      */
     public boolean isConnected() {
         return connected;
@@ -35,58 +37,115 @@ public class ServerHandler {
     /**
      * Sends a message to the server
      */
-    public void send(String msg) {
+    public void sendMessage(String msg) {
         try {
-            writer.println(msg);
+            msgWriter.println(msg);
         } catch (Exception e) {
             log("Couldn't send message");
             log(e.getMessage());
         }
     }
     /**
-     * Returns the first element from the message buffer. Returns null when the buffer is empty.
+     * Gets the first message from the message buffer
+     * @return returns the message or null if there was no message
      */
     public String getMessage() {
         return messageBuffer.poll();
     }
     /**
-     * Closes the connection
+     * Sends data to the server using UDP
+     * @param msg string to be sent to the Server
+     */
+    public void sendUpdate(String msg) {
+        try {
+            byte[] buffer = msg.getBytes();
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(host), port);
+            updateSocket.send(packet);
+        } catch (Exception e) {
+            log(e.getMessage());
+        }
+    }
+    /**
+     * Retrieves the latest update sent via UDP
+     * @return The latest message from the server
+     */
+    public String getLastUpdate() {
+        return lastUpdate;
+    }
+    /**
+     * Closes and reopens the receiver thread and the socket
+     */
+    public void reconnect() {
+        close();
+        // (re)open socket and start receiver threads
+        try {
+            msgSocket = new Socket(host, port);
+            msgWriter = new PrintWriter(msgSocket.getOutputStream(), true);
+            msgReader = new BufferedReader(new InputStreamReader(msgSocket.getInputStream()));
+
+            updateSocket = new DatagramSocket();
+            connected = true;
+
+            messageReceiver = new Thread(this::receiveMSG);
+            updateReceiver = new Thread(this::receiveUpdate);
+            messageReceiver.start();
+            updateReceiver.start();
+            log("Connected to server at " + host + ":" + port);
+        } catch (IOException e) {
+            log("Couldn't connect to server at " + host + ":" + port);
+            log(e.getMessage());
+        }
+    }
+    /**
+     * Closes the socket and receiver thread
      */
     public void close() {
         connected = false;
-        // close receiver thread
-        if (receiver != null) {
+        // close messageReceiver thread
+        if (messageReceiver != null) {
             try {
-                receiver.join();
+                messageReceiver.join();
             } catch (InterruptedException e) {
                 log(e.getMessage());
             }
         }
-        // close socket
-        if (socket != null) {
+        // close updateReceiver thread
+        if (updateReceiver != null) {
             try {
-                socket.close();
-                writer.close();
-                reader.close();
+                updateReceiver.join();
+            } catch (InterruptedException e) {
+                log(e.getMessage());
+            }
+        }
+        // close msgSocket
+        if (msgSocket != null) {
+            try {
+                msgSocket.close();
+                msgWriter.close();
+                msgReader.close();
             } catch (Exception e) {
                 log(e.getMessage());
             }
         }
+        // close updateSocket
+        if (updateSocket != null) {
+            updateSocket.close();
+        }
     }
     /**
-     * Checks for received message and adds it to the buffer. If the message was a ping, it sends a response instead
+     * Continuously checks for a received TCP message from the server and adds it to the buffer. If the message was a ping, it sends a response instead.
      */
-    private void receive() {
+    private void receiveMSG() {
         long pingTimer = System.currentTimeMillis();
         String msg;
 
         try {
             while (connected) {
-                msg = reader.readLine();
+                msg = msgReader.readLine();
 
                 switch (msg) {
                     case "ping":
-                        send("pong");
+                        sendMessage("pong");
                         pingTimer = System.currentTimeMillis();
                         break;
                     case null:
@@ -107,26 +166,21 @@ public class ServerHandler {
         }
     }
     /**
-     * reconnects to the server
+     * Continuously checks for received UDP data from the server. The received message is written to lastUpdate.
      */
-    public void reconnect() {
-        close();
-        // (re)open socket and start receiver thread
-        try {
-            socket = new Socket(host, port);
-            writer = new PrintWriter(socket.getOutputStream(), true);
-            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            connected = true;
+    private void receiveUpdate() {
+        byte[] receiveBuffer = new byte[512];
 
-            receiver = new Thread(this::receive);
-            receiver.start();
-            log("Connected to server at " + host + ":" + port);
-        } catch (IOException e) {
-            log("Couldn't connect to server at " + host + ":" + port);
+        try {
+            while (connected) {
+                DatagramPacket receivePacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
+                updateSocket.receive(receivePacket);
+                lastUpdate = new String(receivePacket.getData(), 0, receivePacket.getLength());
+            }
+        } catch (Exception e) {
             log(e.getMessage());
         }
     }
-
     private static void log(String msg) {
         System.out.println("[ServerHandler] " + msg);
     }
