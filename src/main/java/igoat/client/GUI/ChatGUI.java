@@ -1,5 +1,6 @@
 package igoat.client.GUI;
 
+import igoat.client.ServerHandler;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -19,6 +20,13 @@ public class ChatGUI implements ActionListener {
     private JTextField field;
     private JButton enter;
     private JTextArea chat;
+    private ServerHandler serverHandler;
+    private String username;
+
+    public ChatGUI(ServerHandler serverHandler, String username){
+        this.serverHandler = serverHandler;
+        this.username = username;
+    }
 
     public void guiSettings() {
         JLabel label = new JLabel("iGoat");
@@ -73,13 +81,16 @@ public class ChatGUI implements ActionListener {
     private void sendMessage(){
         String text = field.getText().trim();
         if (!text.isEmpty()) {
-            chat.append("User: " + text + "\n");
+            if(serverHandler != null && serverHandler.isConnected()){
+                serverHandler.send("chat: " + username + "," + text);
+            }
+            chat.append(username + ": " + text + "\n");
             field.setText("");
         }
     }
 
     public static void main(String[] args) {
-        ChatGUI chatGui = new ChatGUI();
+        ChatGUI chatGui = new ChatGUI(null, "TestUser");
         chatGui.guiSettings();
     }
 }

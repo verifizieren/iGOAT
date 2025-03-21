@@ -1,11 +1,17 @@
 package igoat.client.GUI;
 
+import igoat.client.ServerHandler;
+import igoat.server.Server;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class MainMenuGUI extends JFrame {
+    private ServerHandler handler;
+
+    // Store the chosen username (default empty)
+    private String username = "";
 
     public MainMenuGUI() {
         setTitle("IGOAT");
@@ -41,8 +47,14 @@ public class MainMenuGUI extends JFrame {
         usernameButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String username = JOptionPane.showInputDialog(null, "Enter your username:");
-                JOptionPane.showMessageDialog(null, "Username set to: " + username);
+                // Prompt the user for a username and store it
+                String input = JOptionPane.showInputDialog(null, "Enter your username:");
+                if (input != null && !input.trim().isEmpty()) {
+                    username = input.trim();
+                    JOptionPane.showMessageDialog(null, "Username set to: " + username);
+                } else {
+                    JOptionPane.showMessageDialog(null, "Invalid username.");
+                }
             }
         });
         panel.add(usernameButton);
@@ -54,13 +66,8 @@ public class MainMenuGUI extends JFrame {
         createServerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Server.startServer(5555);
-                    }
-                }).start();
+                // Start the server on port 5555
+                new Thread(() -> Server.startServer(5555)).start();
             }
         });
         panel.add(createServerButton);
@@ -72,8 +79,28 @@ public class MainMenuGUI extends JFrame {
         joinServerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                // Check that the user has chosen a username first
+                if(username.isEmpty()){
+                    JOptionPane.showMessageDialog(null, "Please choose a username first.");
+                    return;
+                }
+                // Prompt for the server IP
                 String serverIP = JOptionPane.showInputDialog(null, "Enter server IP:");
-                JOptionPane.showMessageDialog(null, "Joining server at: " + serverIP);
+                if(serverIP != null && !serverIP.trim().isEmpty()){
+                    new Thread(() -> {
+                        // Create a new ServerHandler to connect to the server at the given IP and port 5555
+                        handler = new ServerHandler(serverIP.trim(), 5555);
+                        if(handler.isConnected()){
+                            // Launch the ChatGUI and pass the connection and username
+                            ChatGUI chatGUI =   new ChatGUI(handler, username);
+                            chatGUI.guiSettings();
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Failed to connect to server at: " + serverIP);
+                        }
+                    }).start();
+                } else {
+                    JOptionPane.showMessageDialog(null, "Invalid server IP.");
+                }
             }
         });
         panel.add(joinServerButton);
@@ -85,8 +112,9 @@ public class MainMenuGUI extends JFrame {
         exitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                handler.close();
                 System.exit(0);
+
             }
         });
         panel.add(exitButton);
@@ -95,11 +123,6 @@ public class MainMenuGUI extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new MainMenuGUI();
-            }
-        });
+        SwingUtilities.invokeLater(() -> new MainMenuGUI());
     }
 }
