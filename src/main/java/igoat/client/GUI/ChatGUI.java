@@ -22,7 +22,7 @@ public class ChatGUI implements ActionListener {
 
     public void guiSettings() {
         JLabel label = new JLabel("iGoat");
-        label.setFont(new Font("Nordique", Font.BOLD, 30));
+        label.setFont(new Font("Times", Font.BOLD, 30));
 
         field = new JTextField();
         field.setPreferredSize(new Dimension(150, 30));
@@ -35,9 +35,10 @@ public class ChatGUI implements ActionListener {
         chat = new JTextArea(10, 30);
         chat.setFont(new Font("Arial", Font.PLAIN, 12));
         chat.setLineWrap(true);
+        chat.setEditable(false);
 
-        JScrollPane scrollchat = new JScrollPane(chat);
-        scrollchat.setPreferredSize(new Dimension(350, 200));
+        JScrollPane scrollbar = new JScrollPane(chat);
+        scrollbar.setPreferredSize(new Dimension(350, 200));
 
         field.addKeyListener(new KeyAdapter() {
             @Override
@@ -57,7 +58,7 @@ public class ChatGUI implements ActionListener {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(500, 500);
         frame.setLayout(new BorderLayout());
-        frame.add(scrollchat, BorderLayout.CENTER);
+        frame.add(scrollbar, BorderLayout.CENTER);
         frame.add(panel, BorderLayout.NORTH);
         frame.setVisible(true);
     }
