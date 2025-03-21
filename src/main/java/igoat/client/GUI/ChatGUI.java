@@ -1,6 +1,5 @@
 package igoat.client.GUI;
 
-import igoat.client.ServerHandler;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -8,20 +7,23 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.JScrollPane;
+
+import igoat.client.ServerHandler;
 
 public class ChatGUI implements ActionListener {
     private JTextField field;
     private JButton enter;
     private JTextArea chat;
     private ServerHandler serverHandler;
-    private String username;
+    private final String username;
 
     public ChatGUI(ServerHandler serverHandler, String username){
         this.serverHandler = serverHandler;
@@ -82,7 +84,7 @@ public class ChatGUI implements ActionListener {
         String text = field.getText().trim();
         if (!text.isEmpty()) {
             if(serverHandler != null && serverHandler.isConnected()){
-                serverHandler.send("chat: " + username + "," + text);
+                serverHandler.sendMessage("chat: " + username + "," + text);
             }
             chat.append(username + ": " + text + "\n");
             field.setText("");

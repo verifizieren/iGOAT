@@ -1,11 +1,21 @@
 package igoat.client.GUI;
 
-import igoat.client.ServerHandler;
-import igoat.server.Server;
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+
+import igoat.client.ServerHandler;
+import igoat.server.Server;
 
 public class MainMenuGUI extends JFrame {
     private ServerHandler handler;
@@ -112,9 +122,10 @@ public class MainMenuGUI extends JFrame {
         exitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                handler.close();
+                if (handler != null) {
+                    handler.close();
+                }
                 System.exit(0);
-
             }
         });
         panel.add(exitButton);
