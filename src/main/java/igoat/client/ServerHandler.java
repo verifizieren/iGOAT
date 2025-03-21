@@ -28,7 +28,7 @@ public class ServerHandler {
         reconnect();
     }
     /**
-     * Checks whether the server is still connections
+     * Checks whether the server is still connected
      * @return returns the connection status
      */
     public boolean isConnected() {
@@ -36,6 +36,7 @@ public class ServerHandler {
     }
     /**
      * Sends a message to the server
+     * @param msg The message that will be sent
      */
     public void sendMessage(String msg) {
         try {
@@ -133,7 +134,7 @@ public class ServerHandler {
         }
     }
     /**
-     * Continuously checks for a received TCP message from the server and adds it to the buffer. If the message was a ping, it sends a response instead.
+     * Continuously checks for a received TCP message from the server and adds it to the message buffer. If the message was a ping, it sends a response instead.
      */
     private void receiveMSG() {
         long pingTimer = System.currentTimeMillis();
