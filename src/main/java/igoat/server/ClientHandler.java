@@ -12,7 +12,7 @@ public class ClientHandler implements Runnable {
     private final Socket clientSocket;
     private BufferedReader in;
     private PrintWriter out;
-    private String nickname = "unnamed";
+    private String nickname;
     private volatile boolean running = true;
     private long lastPongTime;
     private final static long PING_INTERVAL = 3000; // 3 Sekunden
@@ -23,6 +23,8 @@ public class ClientHandler implements Runnable {
     public ClientHandler(Socket clientSocket) {
         this.clientSocket = clientSocket;
         this.lastPongTime = System.currentTimeMillis();
+        this.nickname = generateUniqueNickname("spieler");
+        System.out.println("Neuer Client verbunden als: " + this.nickname);
     }
 
     @Override
@@ -31,6 +33,9 @@ public class ClientHandler implements Runnable {
         try {
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             out = new PrintWriter(clientSocket.getOutputStream(), true);
+
+            sendMessage("info:Du bist verbunden als: " + this.nickname);
+            broadcast("chat:User " + this.nickname + " connected");
 
             // Starte den Ping-Thread
             Thread pingThread = new Thread(this::runPingPong);
@@ -121,12 +126,40 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    private String generateUniqueNickname(String baseNickname) {
+        String newNickname = baseNickname;
+        int counter = 1;
+        
+        while (isNicknameTaken(newNickname)) {
+            newNickname = baseNickname + "_" + counter;
+            counter++;
+        }
+        
+        return newNickname;
+    }
+
+    private boolean isNicknameTaken(String nickname) {
+        for (ClientHandler client : clientList) {
+            if (client != this && client.nickname.equals(nickname)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void handleConnect(String[] params) {
         if (params.length < 1) {
             sendError("Kein Nickname angegeben");
             return;
         }
-        this.nickname = params[0];
+        
+        String requestedNickname = params[0];
+        this.nickname = generateUniqueNickname(requestedNickname);
+        
+        if (!requestedNickname.equals(this.nickname)) {
+            sendMessage("info:Dein gewünschter Nickname war bereits vergeben. Neuer Nickname: " + this.nickname);
+        }
+        
         sendMessage("confirm:" + this.nickname);
         broadcast("chat:User " + this.nickname + " connected");
     }
@@ -144,8 +177,16 @@ public class ClientHandler implements Runnable {
             sendError("Kein Username angegeben");
             return;
         }
+        
         String oldNickname = this.nickname;
-        this.nickname = params[0];
+        String requestedNickname = params[0];
+        String newNickname = generateUniqueNickname(requestedNickname);
+        
+        if (!requestedNickname.equals(newNickname)) {
+            sendMessage("info:Dein gewünschter Nickname war bereits vergeben. Neuer Nickname: " + newNickname);
+        }
+        
+        this.nickname = newNickname;
         sendMessage("confirm:Username gesetzt zu " + this.nickname);
         broadcast("chat:User " + oldNickname + " hat seinen/ihren Username zu " + this.nickname + " geändert");
     }
