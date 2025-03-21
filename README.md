@@ -44,6 +44,11 @@ java -jar build/libs/iGOAT-0.1-ALPHA.jar client <host>:<port>
 java -jar build/libs/iGOAT-0.1-ALPHA.jar client localhost:8888
 ```
 
+**Main GUI Starten:**
+```bash
+java -jar build/libs/iGOAT-0.1-ALPHA.jar
+```
+
 ### Server-Features
 - Mehrere gleichzeitige Client-Verbindungen
 - Automatisches Ping-Pong für Verbindungsüberwachung
