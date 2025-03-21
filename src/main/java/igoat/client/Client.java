@@ -45,7 +45,7 @@ public class Client {
 
             in = scanner.nextLine();
 
-            if (in.equals("exit")) {
+            if (in.equals("exit") || in.equals("logout")) {
                 server.send("ciao");
                 server.close();
                 run = false;

@@ -83,6 +83,11 @@ public class ClientHandler implements Runnable {
 
     private void handleCommand(String message) {
         try {
+            if (message.equals("ciao") || message.equals("logout") || message.equals("exit")) {
+                handleLogout();
+                return;
+            }
+
             String[] parts = message.split(":");
             if (parts.length != 2) {
                 sendError("Invalides Command Format");
@@ -159,15 +164,26 @@ public class ClientHandler implements Runnable {
         System.out.println("Pong received from " + nickname);
     }
 
+    private void handleLogout() {
+        running = false; 
+    }
+
     private void disconnect() {
         try {
+            if (!running) {     
+                broadcast("chat:User " + this.nickname + " hat sich abgemeldet");
+                System.out.println("Client " + nickname + " hat sich ausgeloggt");
+            } else { 
+                broadcast("chat:User " + this.nickname + " wurde getrennt");
+                System.out.println("Client " + nickname + " wurde getrennt");
+            }
+
             running = false;
             clientList.remove(this);
+            
             if(in != null) in.close();
             if(out != null) out.close();
             if(clientSocket != null && !clientSocket.isClosed()) clientSocket.close();
-            broadcast("chat:User " + this.nickname + " hat sich abgemeldet");
-            System.out.println("Client " + nickname + " disconnected");
         } catch(IOException e) {
             System.err.println("Fehler beim Abmelden: " + e.getMessage());
         }

@@ -14,7 +14,7 @@ public class Server {
             while (running) {
                 try {
                     Socket clientSocket = server.accept();
-                    System.out.println("Neuer Client verbunden: " + clientSocket);
+                    System.out.println("Neuer Client verbunden: " + clientSocket.getInetAddress().getHostAddress());
 
                     ClientHandler handler = new ClientHandler(clientSocket);
                     new Thread(handler).start();
