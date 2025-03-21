@@ -6,7 +6,7 @@ import java.net.Socket;
 
 public class Server {
     private static volatile boolean running = true;
-    
+
     public static void startServer(int port) {
         try (ServerSocket server = new ServerSocket(port)) {
             System.out.println("Server läuft auf Port " + port);
@@ -16,6 +16,7 @@ public class Server {
                     Socket clientSocket = server.accept();
                     System.out.println("Neuer Client verbunden: " + clientSocket.getInetAddress().getHostAddress());
 
+                    // Jeder Client wird in einem eigenen Thread behandelt
                     ClientHandler handler = new ClientHandler(clientSocket);
                     new Thread(handler).start();
                 } catch (IOException e) {
@@ -29,7 +30,7 @@ public class Server {
             System.exit(1);
         }
     }
-    
+
     public static void stopServer() {
         running = false;
     }
