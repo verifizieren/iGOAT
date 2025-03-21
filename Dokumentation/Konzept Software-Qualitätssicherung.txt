@@ -1,0 +1,27 @@
+Konzept: Software-Qualitätssicherung
+Product Management:
+Für unser Projektmanagement verwenden wir OpenProject. Dort nutzen wir Timelines, um den Fortschritt zu visualisieren, und organisieren die Aufgabenteilung direkt innerhalb der Timelines. Dies stellt sicher, dass alle Teammitglieder den aktuellen Entwicklungsstand und ihre jeweiligen Aufgaben kennen.
+Zusätzlich setzen wir auf regelmäßige Meetings, um den Entwicklungsprozess effizient zu steuern und mögliche Probleme frühzeitig zu erkennen.
+
+Versionskontrolle & Code-Management:
+Unsere Code-Versionierung erfolgt über GitLab. Um eine saubere und strukturierte Entwicklung sicherzustellen, verwenden wir ein Branching-Modell (z. B. Git-Flow oder Feature-Branches). Dadurch kann jedes Teammitglied ungestört an einzelnen Features oder Bugfixes arbeiten, bevor die Änderungen in den Hauptzweig integriert werden.
+Jede Änderung wird erst nach Code-Reviews und Merge Requests in den Hauptzweig übernommen, um Fehler frühzeitig zu erkennen und die Code-Qualität zu gewährleisten.
+
+Code-Reviews & Testing
+Code-Reviews: Jedes Feature oder jeder Fix wird vor dem Merge von mindestens einem weiteren Teammitglied überprüft. Dies verbessert Code-Qualität, Lesbarkeit und Wartbarkeit.
+Automatisierte Tests: Wir planen, Unit-Tests für kritische Spielmechaniken zu implementieren, um Fehler frühzeitig zu erkennen.
+Manuelles Testing: Zusätzlich testen wir regelmäßig Gameplay, UI und Performance, um ein optimales Spielerlebnis sicherzustellen.
+
+Qualitätssicherung & Fehlerverwaltung
+Wir verwenden ein Bug-Tracking-Tool, um Fehler systematisch zu erfassen, zu priorisieren und zu beheben.
+
+Fazit
+Unser Ansatz zur Software-Qualitätssicherung kombiniert effizientes Projektmanagement, strukturierte Code-Verwaltung, regelmäßige Reviews und gezieltes Testing. Ziel ist eine stabile, performante und wartbare Software, die ein reibungsloses Spielerlebnis gewährleistet, ohne die Entwicklung unnötig zu verlangsamen.  
+
+
+
+
+
+
+
+
