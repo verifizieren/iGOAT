@@ -28,6 +28,11 @@ public class Client {
         Thread messageHandler = new Thread(() -> handleMessages(server));
         messageHandler.start();
 
+        // Send initial connect with default username
+        if (server.isConnected()) {
+            server.sendMessage("connect:user");
+        }
+
         String in;
 
         while (true) {
@@ -36,6 +41,9 @@ public class Client {
                 in = scanner.nextLine();
                 if (in.equals("y")) {
                     server.reconnect();
+                    if (server.isConnected()) {
+                        server.sendMessage("connect:user");
+                    }
                 } else {
                     server.close();
                     run = false;
@@ -51,12 +59,16 @@ public class Client {
                 run = false;
                 break;
             }
-            if (in.equals("update")) {
-                System.out.println("sending udp");
-                server.sendUpdate("update");
+            if (in.startsWith("/nick ")) {
+                server.sendMessage("username:" + in.substring(6));
+            } else if (in.startsWith("/whisper ")) {
+                String[] parts = in.substring(9).split(" ", 2);
+                if (parts.length == 2) {
+                    server.sendMessage("whisper:" + parts[0] + "," + parts[1]);
+                }
+            } else {
+                server.sendMessage("chat:" + in);
             }
-
-            server.sendMessage(in);
         }
 
         messageHandler.join();

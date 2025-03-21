@@ -7,6 +7,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -15,6 +17,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import igoat.client.ServerHandler;
 
@@ -24,6 +27,8 @@ public class ChatGUI implements ActionListener {
     private JTextArea chat;
     private ServerHandler serverHandler;
     private final String username;
+    private volatile boolean running = true;
+    private Thread messageReceiverThread;
 
     public ChatGUI(ServerHandler serverHandler, String username){
         this.serverHandler = serverHandler;
@@ -65,28 +70,110 @@ public class ChatGUI implements ActionListener {
         panel.add(enter);
 
         JFrame frame = new JFrame("Chat Menu");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setSize(500, 500);
         frame.setLayout(new BorderLayout());
         frame.add(scrollbar, BorderLayout.CENTER);
         frame.add(panel, BorderLayout.NORTH);
+        
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                running = false;
+                if (serverHandler != null) {
+                    serverHandler.sendMessage("ciao");
+                    serverHandler.close();
+                }
+            }
+        });
+        
         frame.setVisible(true);
+        
+        if (serverHandler != null && serverHandler.isConnected()) {
+            serverHandler.sendMessage("connect:" + username);
+        }
+        
+        startMessageReceiver();
+    }
+
+    private void startMessageReceiver() {
+        messageReceiverThread = new Thread(() -> {
+            while (running && serverHandler != null && serverHandler.isConnected()) {
+                String message = serverHandler.getMessage();
+                if (message != null && !message.isEmpty()) {
+                    String[] parts = message.split(":");
+                    if (parts.length == 2) {
+                        String type = parts[0];
+                        String content = parts[1];
+                        
+                        switch (type) {
+                            case "chat":
+                                String[] chatParts = content.split(",", 2);
+                                if (chatParts.length == 2) {
+                                    appendToChatArea(chatParts[0] + ": " + chatParts[1]);
+                                } else {
+                                    appendToChatArea(content);
+                                }
+                                break;
+                            case "error":
+                                appendToChatArea("Error: " + content);
+                                break;
+                            case "info":
+                                appendToChatArea("Info: " + content);
+                                break;
+                            case "whisper":
+                                String[] whisperParts = content.split(",", 2);
+                                if (whisperParts.length == 2) {
+                                    appendToChatArea("(Whisper from " + whisperParts[0] + "): " + whisperParts[1]);
+                                }
+                                break;
+                            case "confirm":
+                                if (content.startsWith("Username gesetzt zu ")) {
+                                    appendToChatArea("Info: " + content);
+                                }
+                                break;
+                        }
+                    }
+                }
+                
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    running = false;
+                    break;
+                }
+            }
+        });
+        messageReceiverThread.start();
+    }
+
+    private void appendToChatArea(String message) {
+        SwingUtilities.invokeLater(() -> {
+            chat.append(message + "\n");
+            chat.setCaretPosition(chat.getDocument().getLength());
+        });
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == enter) {
             sendMessage();
-
         }
     }
+
     private void sendMessage(){
         String text = field.getText().trim();
         if (!text.isEmpty()) {
             if(serverHandler != null && serverHandler.isConnected()){
-                serverHandler.sendMessage("chat: " + username + "," + text);
+                if (text.startsWith("/whisper ")) {
+                    String[] parts = text.substring(9).split(" ", 2);
+                    if (parts.length == 2) {
+                        serverHandler.sendMessage("whisper:" + parts[0] + "," + parts[1]);
+                    }
+                } else {
+                    serverHandler.sendMessage("chat:" + text);
+                }
             }
-            chat.append(username + ": " + text + "\n");
             field.setText("");
         }
     }

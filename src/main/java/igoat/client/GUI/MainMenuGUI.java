@@ -124,6 +124,7 @@ public class MainMenuGUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if (handler != null) {
                     handler.close();
+                    System.exit(0);
                 }
                 System.exit(0);
             }
