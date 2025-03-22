@@ -62,6 +62,10 @@ public class MainMenuGUI extends JFrame {
                 if (input != null && !input.trim().isEmpty()) {
                     username = input.trim();
                     JOptionPane.showMessageDialog(null, "Username set to: " + username);
+
+                    if (handler != null) {
+                        handler.sendMessage("username: " + username);
+                    }
                 } else {
                     JOptionPane.showMessageDialog(null, "Invalid username.");
                 }
@@ -91,8 +95,7 @@ public class MainMenuGUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 // Check that the user has chosen a username first
                 if(username.isEmpty()){
-                    JOptionPane.showMessageDialog(null, "Please choose a username first.");
-                    return;
+                    username = getSystemName();
                 }
                 // Prompt for the server IP
                 String serverIP = JOptionPane.showInputDialog(null, "Enter server IP:");
@@ -132,6 +135,14 @@ public class MainMenuGUI extends JFrame {
         panel.add(exitButton);
 
         setVisible(true);
+    }
+    /**
+     * Retrieves the system's username
+     * @return System username
+     */
+    public static String getSystemName() {
+        String userName = System.getProperty("user.name");
+        return userName;
     }
 
     public static void main(String[] args) {

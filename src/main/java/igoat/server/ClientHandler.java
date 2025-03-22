@@ -358,7 +358,6 @@ public class ClientHandler implements Runnable {
         }
         sendError("User " + recipient + " nicht gefunden");
     }
-
     /**
      * Sendet eine Nachricht an alle verbundenen Clients.
      *
