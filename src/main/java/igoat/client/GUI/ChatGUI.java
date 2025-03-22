@@ -20,6 +20,8 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 import igoat.client.ServerHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The ChatGUI class is responsible for creating and managing a graphical user interface
@@ -30,6 +32,8 @@ import igoat.client.ServerHandler;
  * such as clicking the send button or pressing Enter.
  */
 public class ChatGUI implements ActionListener {
+
+    private static final Logger log = LoggerFactory.getLogger(ChatGUI.class);
     private JTextField field;
     private JButton enter;
     private JTextArea chat;
@@ -124,8 +128,9 @@ public class ChatGUI implements ActionListener {
         if (serverHandler != null && serverHandler.isConnected()) {
             serverHandler.sendMessage("connect:" + username);
         }
-        
-        startMessageReceiver();
+
+        messageReceiverThread = new Thread(this::startMessageReceiver);
+        messageReceiverThread.start();
     }
 
     /**
@@ -162,54 +167,55 @@ public class ChatGUI implements ActionListener {
      *
      */
     private void startMessageReceiver() {
-        messageReceiverThread = new Thread(() -> {
-            while (running && serverHandler != null && serverHandler.isConnected()) {
-                String message = serverHandler.getMessage();
-                if (message != null && !message.isEmpty()) {
-                    String[] parts = message.split(":");
-                    if (parts.length == 2) {
-                        String type = parts[0];
-                        String content = parts[1];
-                        
-                        switch (type) {
-                            case "chat":
-                                String[] chatParts = content.split(",", 2);
-                                if (chatParts.length == 2) {
-                                    appendToChatArea(chatParts[0] + ": " + chatParts[1]);
-                                } else {
-                                    appendToChatArea(content);
-                                }
-                                break;
-                            case "error":
-                                appendToChatArea("Error: " + content);
-                                break;
-                            case "info":
-                                appendToChatArea("Info: " + content);
-                                break;
-                            case "whisper":
-                                String[] whisperParts = content.split(",", 2);
-                                if (whisperParts.length == 2) {
-                                    appendToChatArea("(Whisper from " + whisperParts[0] + "): " + whisperParts[1]);
-                                }
-                                break;
-                            case "confirm":
-                                if (content.startsWith("Username gesetzt zu ")) {
-                                    appendToChatArea("Info: " + content);
-                                }
-                                break;
-                        }
-                    }
-                }
-                
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    running = false;
-                    break;
-                }
+        while (running && serverHandler != null && serverHandler.isConnected()) {
+            String message = serverHandler.getMessage();
+
+            if (message == null || message.isEmpty()) {
+                continue;
             }
-        });
-        messageReceiverThread.start();
+
+            String[] parts = message.split(":");
+
+            if (parts.length != 2) {
+                continue;
+            }
+
+            String type = parts[0];
+            String content = parts[1];
+
+            switch (type) {
+                case "chat":
+                    String[] chatParts = content.split(",", 2);
+                    if (chatParts.length == 2) {
+                        appendToChatArea(chatParts[0] + ": " + chatParts[1]);
+                    } else {
+                        appendToChatArea(content);
+                    }
+                    break;
+                case "error":
+                    appendToChatArea("Error: " + content);
+                    break;
+                case "info":
+                    appendToChatArea("Info: " + content);
+                    break;
+                case "whisper":
+                    String[] whisperParts = content.split(",", 2);
+                    if (whisperParts.length == 2) {
+                        appendToChatArea("(Whisper from " + whisperParts[0] + "): " + whisperParts[1]);
+                    }
+                    break;
+                case "confirm":
+                    if (content.startsWith("Username gesetzt zu ")) {
+                        appendToChatArea("Info: " + content);
+                    }
+                    break;
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                System.out.println(e.getMessage());
+            }
+        }
     }
 
     /**
