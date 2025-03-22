@@ -12,6 +12,7 @@ public class ClientHandler implements Runnable {
     private final Socket clientSocket;
     private BufferedReader in;
     private PrintWriter out;
+    private Thread pingThread;
     private String nickname;
     private volatile boolean running = true;
     private long lastPongTime;
@@ -48,7 +49,7 @@ public class ClientHandler implements Runnable {
             broadcast("chat:User " + this.nickname + " connected");
 
             // Starte den Ping-Thread
-            Thread pingThread = new Thread(this::runPingPong);
+            pingThread = new Thread(this::runPingPong);
             pingThread.start();
 
             String message;
@@ -290,6 +291,13 @@ public class ClientHandler implements Runnable {
 
             running = false;
             clientList.remove(this);
+
+            // close pingPong thread
+            try {
+                pingThread.join();
+            } catch (InterruptedException e) {
+                System.out.println(e.getMessage());
+            }
             
             if(in != null) in.close();
             if(out != null) out.close();
