@@ -40,9 +40,6 @@ public class ChatGUI implements ActionListener {
     private ServerHandler serverHandler;
     private final String username;
     private volatile boolean running = true;
-    private Thread messageReceiverThread;
-
-
     /**
      * Constructs an instance of the ChatGUI.
      *
@@ -129,8 +126,7 @@ public class ChatGUI implements ActionListener {
             serverHandler.sendMessage("connect:" + username);
         }
 
-        messageReceiverThread = new Thread(this::startMessageReceiver);
-        messageReceiverThread.start();
+        startMessageReceiver();
     }
 
     /**
