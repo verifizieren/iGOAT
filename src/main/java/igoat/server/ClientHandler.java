@@ -16,7 +16,7 @@ public class ClientHandler implements Runnable {
     private String nickname;
     private volatile boolean running = true;
     private long lastPongTime;
-    private final static long PING_INTERVAL = 3000; // 3 Sekunden
+    private final static long PING_INTERVAL = 2000; // 3 Sekunden
     private final static long TIMEOUT = 10000; // 10 Sekunden
 
     private final static List<ClientHandler> clientList = new CopyOnWriteArrayList<>();
