@@ -21,6 +21,7 @@ public class ServerHandler {
     
     private final String host;
     private final int port;
+    private final int TIMEOUT = 3000;
 
     public ServerHandler(String host, int port) {
         this.host = host;
@@ -155,7 +156,7 @@ public class ServerHandler {
                         messageBuffer.add(msg);
                 }
 
-                if (System.currentTimeMillis() - pingTimer > 3000) {
+                if (System.currentTimeMillis() - pingTimer > TIMEOUT) {
                     log("Connection timed out");
                     break;
                 }

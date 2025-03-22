@@ -16,8 +16,8 @@ public class ClientHandler implements Runnable {
     private String nickname;
     private volatile boolean running = true;
     private long lastPongTime;
-    private final static long PING_INTERVAL = 2000; // 3 Sekunden
-    private final static long TIMEOUT = 10000; // 10 Sekunden
+    private final static long PING_INTERVAL = 2000; // 2 Sekunden
+    private final static long TIMEOUT = 3000; // 3 Sekunden
 
     private final static List<ClientHandler> clientList = new CopyOnWriteArrayList<>();
 
@@ -45,7 +45,7 @@ public class ClientHandler implements Runnable {
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             out = new PrintWriter(clientSocket.getOutputStream(), true);
 
-            sendMessage("info:Du bist verbunden als: " + this.nickname);
+            sendMessage("chat:Du bist verbunden als: " + this.nickname);
             broadcast("chat:User " + this.nickname + " connected");
 
             // Starte den Ping-Thread
@@ -133,6 +133,8 @@ public class ClientHandler implements Runnable {
                 case "lobby":
                     handleLobby(params);
                     break;
+                case "newlobby":
+                    handleNewLobby();
                 case "username":
                     handleUsername(params);
                     break;
@@ -197,7 +199,7 @@ public class ClientHandler implements Runnable {
         this.nickname = generateUniqueNickname(requestedNickname);
         
         if (!requestedNickname.equals(this.nickname)) {
-            sendMessage("info:Dein gewünschter Nickname war bereits vergeben. Neuer Nickname: " + this.nickname);
+            sendMessage("chat:Dein gewünschter Nickname war bereits vergeben. Neuer Nickname: " + this.nickname);
         }
         
         sendMessage("confirm:" + this.nickname);
@@ -235,7 +237,7 @@ public class ClientHandler implements Runnable {
         String newNickname = generateUniqueNickname(requestedNickname);
         
         if (!requestedNickname.equals(newNickname)) {
-            sendMessage("info:Dein gewünschter Nickname war bereits vergeben. Neuer Nickname: " + newNickname);
+            sendMessage("chat:Dein gewünschter Nickname war bereits vergeben. Neuer Nickname: " + newNickname);
         }
         
         this.nickname = newNickname;
@@ -255,9 +257,16 @@ public class ClientHandler implements Runnable {
             return;
         }
         // TODO: Lobby implementieren
-        sendMessage("confirm:Beigetreten zu Lobby " + params[0]);
+        sendMessage("lobby:" + params[0]);
+        sendMessage("chat:Beigetreten zu Lobby " + params[0]);
     }
 
+    private void handleNewLobby() {
+        // TODO: Lobby Creation
+        int lobbyCode = 1984;
+        sendMessage("lobby:" + lobbyCode);
+        sendMessage("chat:Beigetreten zu Lobby " + lobbyCode);
+    }
     /**
      * Verarbeitet eine eingehende Pong Antwort vom Client.
      * Aktualisiert den Zeitstempel der letzten Pong Nachricht.
@@ -343,7 +352,7 @@ public class ClientHandler implements Runnable {
         String message = params[1];
         for (ClientHandler client : clientList) {
             if (client.nickname.equals(recipient)) {
-                client.sendMessage("whisper:" + this.nickname + "," + message);
+                client.sendMessage("chat:[" + this.nickname + "  whispered] " + message);
                 return;
             }
         }

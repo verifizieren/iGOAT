@@ -191,9 +191,6 @@ public class ChatGUI implements ActionListener {
                 case "error":
                     appendToChatArea("Error: " + content);
                     break;
-                case "info":
-                    appendToChatArea("Info: " + content);
-                    break;
                 case "whisper":
                     String[] whisperParts = content.split(",", 2);
                     if (whisperParts.length == 2) {
@@ -205,6 +202,9 @@ public class ChatGUI implements ActionListener {
                         appendToChatArea("Info: " + content);
                     }
                     break;
+                case "lobby":
+                    // todo: implement lobby
+                    System.out.println("joined lobby " + content);
             }
             try {
                 Thread.sleep(100);
