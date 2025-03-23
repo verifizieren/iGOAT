@@ -25,6 +25,7 @@ The following list contains the commands used in the protocol.
 | Server | lobby:[code]             | confirm that player joined lobby. (Code 0 stands for no lobby and is used when the player can't join or was kicked.) | lobby:1312                   | TCP      |
 | Client | newlobby                 | create new lobby and automatically join it                                                                           | newlobby                     | TCP      |
 | Client | username:[name]          | changing the username, server will react with confirm                                                                | username:notbob              | TCP      |
+| Client | exit          | terminates the connection                                                                | exit              | TCP      |
 #### To be implemented
 ---
 

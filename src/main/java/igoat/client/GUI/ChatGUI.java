@@ -87,7 +87,7 @@ public class ChatGUI implements ActionListener {
                 @Override
                 public void keyPressed(KeyEvent enter) {
                     if (enter.getKeyCode() == KeyEvent.VK_ENTER) {
-                        sendMessage();
+                        sendChat();
                     }
                 }
             });
@@ -110,7 +110,7 @@ public class ChatGUI implements ActionListener {
                 public void windowClosing(WindowEvent e) {
                     running = false;
                     if (serverHandler != null) {
-                        serverHandler.sendMessage("ciao");
+                        serverHandler.sendMessage("exit");
                         serverHandler.close();
                     }
                 }
@@ -204,7 +204,7 @@ public class ChatGUI implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == enter) {
-            sendMessage();
+            sendChat();
         }
     }
 
@@ -212,7 +212,7 @@ public class ChatGUI implements ActionListener {
      * Processes and sends the message from the input field. Handles both regular chat messages and
      * whisper commands.
      */
-    private void sendMessage() {
+    private void sendChat() {
         String text = field.getText().trim();
         if (!text.isEmpty()) {
             if (serverHandler != null && serverHandler.isConnected()) {

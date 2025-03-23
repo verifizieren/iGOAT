@@ -41,7 +41,7 @@ public class Server {
                 }
             }
         } catch (IOException e) {
-            System.out.println("ServerFehler: " + e.getMessage());
+            System.out.println("Serverfehler: " + e.getMessage());
             System.exit(1);
         }
     }

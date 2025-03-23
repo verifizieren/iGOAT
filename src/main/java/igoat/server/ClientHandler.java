@@ -58,6 +58,10 @@ public class ClientHandler implements Runnable {
                     handlePong();
                     continue;
                 }
+                else if (message.equals("exit")) {
+                    running = false;
+                    break;
+                }
 
                 handleCommand(message);
             }
@@ -105,17 +109,11 @@ public class ClientHandler implements Runnable {
      */
     private void handleCommand(String message) {
         try {
-            if (message.equals("ciao") || message.equals("logout") || message.equals("exit")) {
-                handleLogout();
-                return;
-            }
-
             int colonIndex = message.indexOf(':');
             if (colonIndex == -1) {
                 sendError("Ungültige Befehlsformatierung - fehlender Doppelpunkt");
                 return;
             }
-
             String command = message.substring(0, colonIndex).toLowerCase();
             String params = message.substring(colonIndex + 1);
 
@@ -287,7 +285,7 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     * Processes a logout command from the client. Accepted commands: "logout", "ciao", "exit"
+     * Processes a logout command from the client.
      */
     private void handleLogout() {
         running = false;
