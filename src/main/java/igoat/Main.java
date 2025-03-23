@@ -1,6 +1,5 @@
 package igoat;
 
-import igoat.client.Client;
 import igoat.client.GUI.MainMenuGUI;
 import igoat.server.Server;
 
@@ -34,21 +33,8 @@ public class Main {
         }
         int port = Integer.parseInt(args[1]);
         Server.startServer(port);
-      } else if (args[0].equals("client")) {
-        if (args.length < 4) {
-          System.out.println("Usage: client <host> <port> <username>");
-          return;
-        }
-        String host = args[1];
-        int port = Integer.parseInt(args[2]);
-        String username = args[3];
-        try {
-          Client.main(new String[] {host, String.valueOf(port)});
-        } catch (InterruptedException e) {
-          System.err.println("Client wurde unterbrochen: " + e.getMessage());
-        }
       } else {
-        System.out.println("Unbekannte Befehle. Benutze 'client' oder 'server'");
+        System.out.println("Unbekannte Befehle. Benutze 'server'");
       }
     }
   }
