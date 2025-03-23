@@ -39,6 +39,16 @@
 * Die Gruppe erstellte ein Entwurf vom Netzwerkprotokoll.
 * Es wurde ein funktionierender EchoServer und EchoClient gemacht.
 * Die Implementierung und Verbesserung von Client und Server wurde fortgesetzt.
-* Das nächste Treffen wurde für den Freitag, den 21.03.2025, festgelegt.
+* Das nächste Treffen wurde für den Freitag, den 22.03.2025, festgelegt.
 * Die Gruppe will bis dahin ein funktionierenden Client und Server haben und diese auch testen können.
 * ToDo: Jonas - Client-Server Interaction, Marvin - Client GUI, Max & Nicolas - Server Implementation
+## <p align ="center"> 22. März
+* Die Gruppe traf sich zusammen und testeten den Chat, die PingPong Funktion und machten sich Gedanken was noch für den zweiten Meilenstein fehlt.
+* Die Gruppe kam zum Entschluss, der Chat funktioniert und ist präsentabel. Die PingPong Funktion ist auch aussreichend.
+* ToDo: Jonas, Max - Netzwerkprotokoll verfeinern, Nicolas, Marvin - verfeinert und verbessert den Chat
+* Das nächste Treffen wurde für den Sonntag, den 23.03.2025, festgelegt.
+## <p align ="center"> 23. März
+* Die Gruppe traf sich auf Discord und gingen die einzelnen Punkte für den Meilenstein durch und testeten den Chat nochmals.
+* Wenige Bugfixes sind noch für den zweiten Meilenstein nötig, sonst war alles in Ordnung.
+* ToDo: Jonas - Grafikimplementation, Marvin - Map-Design und Placeholder Graphics, Max - Udp-Implementation und Testing, Nicolas - Protokollimplementation
+* Das nächste Treffen wurde für den Freitag, den 28.03.2025, festgelegt.
