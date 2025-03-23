@@ -1,3 +1,4 @@
+// THIS IS ONLY USED FOR TESTING PURPOSES
 package igoat.client;
 
 import java.util.Scanner;
