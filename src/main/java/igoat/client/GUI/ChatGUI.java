@@ -128,20 +128,21 @@ public class ChatGUI implements ActionListener {
         continue;
       }
 
-      String[] parts = message.split(":");
-
-      if (parts.length != 2) {
+      int colonIndex = message.indexOf(':');
+      if (colonIndex == -1) {
         continue;
       }
 
-      String type = parts[0];
-      String content = parts[1];
+      String type = message.substring(0, colonIndex);
+      String content = message.substring(colonIndex + 1);
 
       switch (type) {
         case "chat":
-          String[] chatParts = content.split(",", 2);
-          if (chatParts.length == 2) {
-            appendToChatArea(chatParts[0] + ": " + chatParts[1]);
+          int commaIndex = content.indexOf(',');
+          if (commaIndex != -1) {
+            String sender = content.substring(0, commaIndex);
+            String chatMessage = content.substring(commaIndex + 1);
+            appendToChatArea(sender + ": " + chatMessage);
           } else {
             appendToChatArea(content);
           }

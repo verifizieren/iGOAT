@@ -102,9 +102,9 @@ public class ClientHandler implements Runnable {
   }
 
   /**
-   * Processes incoming commands from the client. Format: command:param1,param2,...
+   * Processes incoming commands from the client. Format: command:message
    *
-   * @param message The received message in the format "command:parameter"
+   * @param message The received message
    */
   private void handleCommand(String message) {
     try {
@@ -113,38 +113,46 @@ public class ClientHandler implements Runnable {
         return;
       }
 
-      String[] parts = message.split(":");
-      if (parts.length != 2) {
-        sendError("Invalides Command Format");
+      int colonIndex = message.indexOf(':');
+      if (colonIndex == -1) {
+        sendError("Ungültige Befehlsformatierung - fehlender Doppelpunkt");
         return;
       }
 
-      String command = parts[0];
-      String[] params = parts[1].split(",");
+      String command = message.substring(0, colonIndex).toLowerCase();
+      String params = message.substring(colonIndex + 1);
 
-      switch (command.toLowerCase()) {
+      switch (command) {
         case "connect":
-          handleConnect(params);
+          handleConnect(new String[]{params.trim()});
           break;
         case "chat":
-          handleChat(params);
+          handleChat(new String[]{params});
           break;
         case "lobby":
-          handleLobby(params);
+          handleLobby(new String[]{params.trim()});
           break;
         case "newlobby":
           handleNewLobby();
+          break;
         case "username":
-          handleUsername(params);
+          handleUsername(new String[]{params.trim()});
           break;
         case "whisper":
-          handleWhisper(params);
+          int commaIndex = params.indexOf(',');
+          if (commaIndex != -1) {
+            String recipient = params.substring(0, commaIndex).trim();
+            String whisperMessage = params.substring(commaIndex + 1);
+            handleWhisper(new String[]{recipient, whisperMessage});
+          } else {
+            sendError("Ungültige Whisper Nachricht. Nutze: whisper:recipient,message");
+          }
           break;
         default:
-          sendError("Unbekanntes Command: " + command);
+          sendError("Unbekannter Befehl: " + command);
       }
     } catch (Exception e) {
-      sendError("Fehler beim Verarbeiten des Commands: " + e.getMessage());
+      sendError("Fehler beim Verarbeiten des Befehls: " + e.getMessage());
     }
   }
 
@@ -206,12 +214,12 @@ public class ClientHandler implements Runnable {
   }
 
   /**
-   * Processes a chat message. Format: chat:message
+   * Processes a chat message.
    *
    * @param params Array of parameters, where params[0] is the message
    */
   private void handleChat(String[] params) {
-    if (params.length < 1) {
+    if (params.length < 1 || params[0].isEmpty()) {
       sendError("Keine Nachricht angegeben");
       return;
     }
