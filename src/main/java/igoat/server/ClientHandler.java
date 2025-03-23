@@ -31,8 +31,6 @@ public class ClientHandler implements Runnable {
   public ClientHandler(Socket clientSocket) {
     this.clientSocket = clientSocket;
     this.lastPongTime = System.currentTimeMillis();
-    this.nickname = generateUniqueNickname("player");
-    System.out.println("New client connected as: " + this.nickname);
   }
 
   /**
@@ -45,9 +43,6 @@ public class ClientHandler implements Runnable {
     try {
       in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
       out = new PrintWriter(clientSocket.getOutputStream(), true);
-
-      sendMessage("chat:Du bist verbunden als: " + this.nickname);
-      broadcast("chat:User " + this.nickname + " connected");
 
       // Starte den Ping-Thread
       pingThread = new Thread(this::runPingPong);
