@@ -28,7 +28,7 @@ gradle clean build
 
 ### Ausführung
 
-Das Projekt erzeugt eine einzelne JAR-Datei, die sowohl Server als auch Client enthält.
+Das Projekt erzeugt eine einzelne JAR-Datei, die sowohl Server als auch Client enthält. Der Server kann auch vom Client gestartet werden und muss nicht zwingend separat ausgeführt werden.
 
 **Server starten:**
 ```bash
@@ -49,12 +49,6 @@ java -jar build/libs/iGOAT-0.1-ALPHA.jar client localhost:8888
 java -jar build/libs/iGOAT-0.1-ALPHA.jar
 ```
 
-### Server-Features
-- Mehrere gleichzeitige Client-Verbindungen
-- Automatisches Ping-Pong für Verbindungsüberwachung
-- Lobby-System für Spielorganisation
-- Chat-System mit öffentlichen und privaten Nachrichten
-
 ## Technische Details
 
 ### Projektstruktur
@@ -65,7 +59,8 @@ src/main/java/igoat/
 │   ├── Server.java     # Server-Implementation
 │   └── ClientHandler.java  # Client-Verbindungshandling
 └── client/
-    ├── Client.java     # Client-Implementation
+    ├── MainMenuGUI.java  # Menu-Implementation
+    ├── ChatGUI.java  # Chat-Implementation
     └── ServerHandler.java  # Server-Verbindungshandling
 ```
 
