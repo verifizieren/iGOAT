@@ -10,42 +10,43 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class EchoClient {
-    public static void main(String[] args) {
-        try {
-            Socket socket = new Socket("localhost", 8888);
-            OutputStream output = socket.getOutputStream();
-            PrintWriter writer = new PrintWriter(output, true);
 
-            InputStream input = socket.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+  public static void main(String[] args) {
+    try {
+      Socket socket = new Socket("localhost", 8888);
+      OutputStream output = socket.getOutputStream();
+      PrintWriter writer = new PrintWriter(output, true);
 
-            Scanner scanner = new Scanner(System.in);
-            String in;
-            String out;
+      InputStream input = socket.getInputStream();
+      BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 
-            while (true) {
-                in = scanner.nextLine();
+      Scanner scanner = new Scanner(System.in);
+      String in;
+      String out;
 
-                if (in.equals("bye")) {
-                    writer.println("ciao");
-                    break;
-                }
+      while (true) {
+        in = scanner.nextLine();
 
-                if (!in.isEmpty()) {
-                    writer.println(in);
-                }
-
-                out = reader.readLine();
-                System.out.println("Received from server: " + out);
-            }
-
-            System.out.println("server exit");
-            scanner.close();
-            socket.close();
-
-        } catch (IOException e) {
-            System.err.println(e.toString());
-            System.exit(1);
+        if (in.equals("bye")) {
+          writer.println("ciao");
+          break;
         }
+
+        if (!in.isEmpty()) {
+          writer.println(in);
+        }
+
+        out = reader.readLine();
+        System.out.println("Received from server: " + out);
+      }
+
+      System.out.println("server exit");
+      scanner.close();
+      socket.close();
+
+    } catch (IOException e) {
+      System.err.println(e.toString());
+      System.exit(1);
     }
+  }
 }
