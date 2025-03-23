@@ -1,7 +1,13 @@
 package igoat.client;
 
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -70,8 +76,8 @@ public class ServerHandler {
   public void sendUpdate(String msg) {
     try {
       byte[] buffer = msg.getBytes();
-      DatagramPacket packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(host),
-          port);
+      DatagramPacket packet =
+          new DatagramPacket(buffer, buffer.length, InetAddress.getByName(host), port);
       updateSocket.send(packet);
     } catch (Exception e) {
       log(e.getMessage());
@@ -87,9 +93,7 @@ public class ServerHandler {
     return lastUpdate;
   }
 
-  /**
-   * Closes and reopens the receiver thread and the socket
-   */
+  /** Closes and reopens the receiver thread and the socket */
   public void reconnect() {
     close();
     // (re)open socket and start receiver threads
@@ -112,9 +116,7 @@ public class ServerHandler {
     }
   }
 
-  /**
-   * Closes the socket and receiver thread
-   */
+  /** Closes the socket and receiver thread */
   public void close() {
     connected = false;
     // close messageReceiver thread

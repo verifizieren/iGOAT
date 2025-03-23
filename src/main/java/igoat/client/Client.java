@@ -89,7 +89,6 @@ public class Client {
       if (!update.isEmpty()) {
         System.out.println(update);
       }
-
     }
   }
 

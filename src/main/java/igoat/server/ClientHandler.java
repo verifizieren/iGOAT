@@ -17,10 +17,10 @@ public class ClientHandler implements Runnable {
   private String nickname;
   private volatile boolean running = true;
   private long lastPongTime;
-  private final static long PING_INTERVAL = 2000; // 2 Sekunden
-  private final static long TIMEOUT = 3000; // 3 Sekunden
+  private static final long PING_INTERVAL = 2000; // 2 Sekunden
+  private static final long TIMEOUT = 3000; // 3 Sekunden
 
-  private final static List<ClientHandler> clientList = new CopyOnWriteArrayList<>();
+  private static final List<ClientHandler> clientList = new CopyOnWriteArrayList<>();
 
   /**
    * Erstellt einen neuen ClientHandler für eine Socket Verbindung. Generiert automatisch einen
@@ -240,8 +240,12 @@ public class ClientHandler implements Runnable {
 
     this.nickname = newNickname;
     sendMessage("confirm:Username gesetzt zu " + this.nickname);
-    broadcast("chat:User " + oldNickname + " hat seinen/ihren Username zu " + this.nickname
-        + " geändert");
+    broadcast(
+        "chat:User "
+            + oldNickname
+            + " hat seinen/ihren Username zu "
+            + this.nickname
+            + " geändert");
   }
 
   /**
@@ -275,9 +279,7 @@ public class ClientHandler implements Runnable {
     System.out.println("Pong received from " + nickname);
   }
 
-  /**
-   * Verarbeitet einen Logout Befehl vom Client. Akzeptierte Befehle: "logout", "ciao", "exit"
-   */
+  /** Verarbeitet einen Logout Befehl vom Client. Akzeptierte Befehle: "logout", "ciao", "exit" */
   private void handleLogout() {
     running = false;
   }
@@ -345,7 +347,7 @@ public class ClientHandler implements Runnable {
    * whisper:recipient,message
    *
    * @param params Array mit Parametern, wobei params[0] der Empfänger und params[1] die Nachricht
-   *               ist
+   *     ist
    */
   private void handleWhisper(String[] params) {
     if (params.length < 2) {
@@ -374,4 +376,3 @@ public class ClientHandler implements Runnable {
     }
   }
 }
-

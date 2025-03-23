@@ -1,10 +1,11 @@
 package igoat.client.GUI;
 
+import igoat.client.ServerHandler;
+import igoat.server.Server;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -13,9 +14,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-
-import igoat.client.ServerHandler;
-import igoat.server.Server;
 
 public class MainMenuGUI extends JFrame {
 
@@ -43,96 +41,105 @@ public class MainMenuGUI extends JFrame {
 
     JButton startButton = new JButton("Start");
     startButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-    startButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        JOptionPane.showMessageDialog(null, "Starting game...");
-      }
-    });
+    startButton.addActionListener(
+        new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            JOptionPane.showMessageDialog(null, "Starting game...");
+          }
+        });
     panel.add(startButton);
 
     panel.add(Box.createVerticalStrut(15));
 
     JButton usernameButton = new JButton("Choose Username");
     usernameButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-    usernameButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        // Prompt the user for a username and store it
-        String input = JOptionPane.showInputDialog(null, "Enter your username:");
-        if (input != null && !input.trim().isEmpty()) {
-          username = input.trim();
-          JOptionPane.showMessageDialog(null, "Username set to: " + username);
+    usernameButton.addActionListener(
+        new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            // Prompt the user for a username and store it
+            String input = JOptionPane.showInputDialog(null, "Enter your username:");
+            if (input != null && !input.trim().isEmpty()) {
+              username = input.trim();
+              JOptionPane.showMessageDialog(null, "Username set to: " + username);
 
-          if (handler != null) {
-            handler.sendMessage("username: " + username);
+              if (handler != null) {
+                handler.sendMessage("username: " + username);
+              }
+            } else {
+              JOptionPane.showMessageDialog(null, "Invalid username.");
+            }
           }
-        } else {
-          JOptionPane.showMessageDialog(null, "Invalid username.");
-        }
-      }
-    });
+        });
     panel.add(usernameButton);
 
     panel.add(Box.createVerticalStrut(15));
 
     JButton createServerButton = new JButton("Create Server");
     createServerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-    createServerButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        // Start the server on port 5555
-        new Thread(() -> Server.startServer(5555)).start();
-      }
-    });
+    createServerButton.addActionListener(
+        new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            // Start the server on port 5555
+            new Thread(() -> Server.startServer(5555)).start();
+          }
+        });
     panel.add(createServerButton);
 
     panel.add(Box.createVerticalStrut(15));
 
     JButton joinServerButton = new JButton("Join Server");
     joinServerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-    joinServerButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        // Check that the user has chosen a username first
-        if (username.isEmpty()) {
-          username = getSystemName();
-        }
-        // Prompt for the server IP
-        String serverIP = JOptionPane.showInputDialog(null, "Enter server IP:");
-        if (serverIP != null && !serverIP.trim().isEmpty()) {
-          new Thread(() -> {
-            // Create a new ServerHandler to connect to the server at the given IP and port 5555
-            handler = new ServerHandler(serverIP.trim(), 5555);
-            if (handler.isConnected()) {
-              // Launch the ChatGUI and pass the connection and username
-              ChatGUI chatGUI = new ChatGUI(handler, username);
-              chatGUI.guiSettings();
-            } else {
-              JOptionPane.showMessageDialog(null, "Failed to connect to server at: " + serverIP);
+    joinServerButton.addActionListener(
+        new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            // Check that the user has chosen a username first
+            if (username.isEmpty()) {
+              username = getSystemName();
             }
-          }).start();
-        } else {
-          JOptionPane.showMessageDialog(null, "Invalid server IP.");
-        }
-      }
-    });
+            // Prompt for the server IP
+            String serverIP = JOptionPane.showInputDialog(null, "Enter server IP:");
+            if (serverIP != null && !serverIP.trim().isEmpty()) {
+              new Thread(
+                      () -> {
+                        // Create a new ServerHandler to connect to the server at the given IP and
+                        // port 5555
+                        handler = new ServerHandler(serverIP.trim(), 5555);
+                        if (handler.isConnected()) {
+                          // Launch the ChatGUI and pass the connection and username
+                          ChatGUI chatGUI = new ChatGUI(handler, username);
+                          chatGUI.guiSettings();
+                        } else {
+                          JOptionPane.showMessageDialog(
+                              null, "Failed to connect to server at: " + serverIP);
+                        }
+                      })
+                  .start();
+            } else {
+              JOptionPane.showMessageDialog(null, "Invalid server IP.");
+            }
+          }
+        });
     panel.add(joinServerButton);
 
     panel.add(Box.createVerticalStrut(15));
 
     JButton exitButton = new JButton("Exit");
     exitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-    exitButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (handler != null) {
-          handler.close();
-          System.exit(0);
-        }
-        System.exit(0);
-      }
-    });
+    exitButton.addActionListener(
+        new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            if (handler != null) {
+              handler.close();
+              System.exit(0);
+            }
+            System.exit(0);
+          }
+        });
     panel.add(exitButton);
 
     setVisible(true);

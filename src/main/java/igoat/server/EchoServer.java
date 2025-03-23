@@ -26,8 +26,8 @@ public class EchoServer {
 
       while (run) {
         try {
-          BufferedReader reader = new BufferedReader(
-              new InputStreamReader(client.getInputStream()));
+          BufferedReader reader =
+              new BufferedReader(new InputStreamReader(client.getInputStream()));
           PrintWriter writer = new PrintWriter(client.getOutputStream(), true);
 
           String message = reader.readLine();

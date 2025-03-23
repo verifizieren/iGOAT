@@ -28,7 +28,7 @@ public class Main {
         int port = Integer.parseInt(args[2]);
         String username = args[3];
         try {
-          Client.main(new String[]{host, String.valueOf(port)});
+          Client.main(new String[] {host, String.valueOf(port)});
         } catch (InterruptedException e) {
           System.err.println("Client wurde unterbrochen: " + e.getMessage());
         }
@@ -37,4 +37,4 @@ public class Main {
       }
     }
   }
-} 
+}
