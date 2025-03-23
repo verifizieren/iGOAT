@@ -31,6 +31,8 @@ public class ClientHandler implements Runnable {
     public ClientHandler(Socket clientSocket) {
         this.clientSocket = clientSocket;
         this.lastPongTime = System.currentTimeMillis();
+        this.nickname = generateUniqueNickname("player");
+        System.out.println("New client connected as: " + this.nickname);
     }
 
     /**
