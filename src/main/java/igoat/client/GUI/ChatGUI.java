@@ -25,8 +25,23 @@ import org.slf4j.LoggerFactory;
 import igoat.client.ServerHandler;
 
 /**
- * GUI implementation for the chat client.
- * Handles user input and displays messages in a window interface.
+ * Graphical user interface for the iGoat chat client.
+ * Provides a window-based interface for sending and receiving chat messages,
+ * handling whispers, and managing server connections.
+ * 
+ * Features:
+ * - Real-time chat message display
+ * - Support for whisper commands (/whisper username message)
+ * - Automatic server connection management
+ * - Message history in scrollable text area
+ * 
+ * Message Format:
+ * - Regular chat: chat:message
+ * - Whisper: whisper:recipient,message
+ * - Server commands: command:parameters
+ * 
+ * @see ServerHandler For the underlying network communication
+ * @see ActionListener For handling button events
  */
 public class ChatGUI implements ActionListener {
 
