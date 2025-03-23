@@ -36,7 +36,7 @@ public class MainMenuGUI extends JFrame {
      * action listeners.
      */
     public MainMenuGUI() {
-        setTitle("IGOAT");
+        setTitle("iGOAT");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(400, 350);
         setLocationRelativeTo(null);
@@ -46,7 +46,7 @@ public class MainMenuGUI extends JFrame {
         add(panel);
 
         // Title
-        JLabel titleLabel = new JLabel("IGOAT");
+        JLabel titleLabel = new JLabel("iGOAT");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         panel.add(titleLabel);
