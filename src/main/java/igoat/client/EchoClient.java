@@ -1,3 +1,5 @@
+// THIS IS USED FOR TESTING PURPOSES
+
 package igoat.client;
 
 import java.io.BufferedReader;

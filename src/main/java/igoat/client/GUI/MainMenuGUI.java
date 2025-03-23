@@ -15,13 +15,22 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+/**
+ * Main menu GUI for the iGoat application.
+ * Provides options for starting the game, setting username, creating/joining servers, and exiting.
+ */
 public class MainMenuGUI extends JFrame {
 
+  /** Handler for server communications */
   private ServerHandler handler;
 
-  // Store the chosen username (default empty)
+  /** Current username for the client */
   private String username = "";
 
+  /**
+   * Creates and initializes the main menu window.
+   * Sets up all UI components and their respective action listeners.
+   */
   public MainMenuGUI() {
     setTitle("IGOAT");
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -32,6 +41,7 @@ public class MainMenuGUI extends JFrame {
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     add(panel);
 
+    // Title
     JLabel titleLabel = new JLabel("IGOAT");
     titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
     titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -39,6 +49,7 @@ public class MainMenuGUI extends JFrame {
 
     panel.add(Box.createVerticalStrut(20));
 
+    // Start Game Button
     JButton startButton = new JButton("Start");
     startButton.setAlignmentX(Component.CENTER_ALIGNMENT);
     startButton.addActionListener(
@@ -52,13 +63,13 @@ public class MainMenuGUI extends JFrame {
 
     panel.add(Box.createVerticalStrut(15));
 
+    // Username Button
     JButton usernameButton = new JButton("Choose Username");
     usernameButton.setAlignmentX(Component.CENTER_ALIGNMENT);
     usernameButton.addActionListener(
         new ActionListener() {
           @Override
           public void actionPerformed(ActionEvent e) {
-            // Prompt the user for a username and store it
             String input = JOptionPane.showInputDialog(null, "Enter your username:");
             if (input != null && !input.trim().isEmpty()) {
               username = input.trim();
@@ -76,13 +87,13 @@ public class MainMenuGUI extends JFrame {
 
     panel.add(Box.createVerticalStrut(15));
 
+    // Create Server Button
     JButton createServerButton = new JButton("Create Server");
     createServerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
     createServerButton.addActionListener(
         new ActionListener() {
           @Override
           public void actionPerformed(ActionEvent e) {
-            // Start the server on port 5555
             new Thread(() -> Server.startServer(5555)).start();
           }
         });
@@ -90,26 +101,22 @@ public class MainMenuGUI extends JFrame {
 
     panel.add(Box.createVerticalStrut(15));
 
+    // Join Server Button
     JButton joinServerButton = new JButton("Join Server");
     joinServerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
     joinServerButton.addActionListener(
         new ActionListener() {
           @Override
           public void actionPerformed(ActionEvent e) {
-            // Check that the user has chosen a username first
             if (username.isEmpty()) {
               username = getSystemName();
             }
-            // Prompt for the server IP
             String serverIP = JOptionPane.showInputDialog(null, "Enter server IP:");
             if (serverIP != null && !serverIP.trim().isEmpty()) {
               new Thread(
                       () -> {
-                        // Create a new ServerHandler to connect to the server at the given IP and
-                        // port 5555
                         handler = new ServerHandler(serverIP.trim(), 5555);
                         if (handler.isConnected()) {
-                          // Launch the ChatGUI and pass the connection and username
                           ChatGUI chatGUI = new ChatGUI(handler, username);
                           chatGUI.guiSettings();
                         } else {
@@ -127,6 +134,7 @@ public class MainMenuGUI extends JFrame {
 
     panel.add(Box.createVerticalStrut(15));
 
+    // Exit Button
     JButton exitButton = new JButton("Exit");
     exitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
     exitButton.addActionListener(
@@ -146,15 +154,20 @@ public class MainMenuGUI extends JFrame {
   }
 
   /**
-   * Retrieves the system's username
+   * Retrieves the system's username as a fallback when no username is set.
    *
-   * @return System username
+   * @return The system username from system properties
    */
   public static String getSystemName() {
-    String userName = System.getProperty("user.name");
-    return userName;
+    return System.getProperty("user.name");
   }
 
+  /**
+   * Entry point of the application.
+   * Creates and displays the main menu in the Event Dispatch Thread.
+   *
+   * @param args Command line arguments (not used)
+   */
   public static void main(String[] args) {
     SwingUtilities.invokeLater(() -> new MainMenuGUI());
   }

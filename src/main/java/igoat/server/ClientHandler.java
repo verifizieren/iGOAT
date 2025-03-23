@@ -17,27 +17,27 @@ public class ClientHandler implements Runnable {
   private String nickname;
   private volatile boolean running = true;
   private long lastPongTime;
-  private static final long PING_INTERVAL = 2000; // 2 Sekunden
-  private static final long TIMEOUT = 3000; // 3 Sekunden
+  private static final long PING_INTERVAL = 2000; // 2 seconds
+  private static final long TIMEOUT = 3000; // 3 seconds
 
   private static final List<ClientHandler> clientList = new CopyOnWriteArrayList<>();
 
   /**
-   * Erstellt einen neuen ClientHandler für eine Socket Verbindung. Generiert automatisch einen
-   * eindeutigen Nickname für den Client.
+   * Creates a new ClientHandler for a socket connection. Automatically generates a unique
+   * nickname for the client.
    *
-   * @param clientSocket Die Socket Verbindung zum Client
+   * @param clientSocket The socket connection to the client
    */
   public ClientHandler(Socket clientSocket) {
     this.clientSocket = clientSocket;
     this.lastPongTime = System.currentTimeMillis();
-    this.nickname = generateUniqueNickname("spieler");
-    System.out.println("Neuer Client verbunden als: " + this.nickname);
+    this.nickname = generateUniqueNickname("player");
+    System.out.println("New client connected as: " + this.nickname);
   }
 
   /**
-   * Hauptschleife für die Client Verbindung. Verarbeitet eingehende Nachrichten und handhabt die
-   * PingPong Verbindungsprüfung.
+   * Main loop for the client connection. Processes incoming messages and handles the
+   * PingPong connection check.
    */
   @Override
   public void run() {
@@ -72,7 +72,7 @@ public class ClientHandler implements Runnable {
   }
 
   /**
-   * Führt die PingPong Verbindungsprüfung durch. Sendet periodisch Pings und überprüft Timeouts.
+   * Performs the PingPong connection check. Sends periodic pings and checks for timeouts.
    */
   private void runPingPong() {
     long lastPingSent = 0;
@@ -102,9 +102,9 @@ public class ClientHandler implements Runnable {
   }
 
   /**
-   * Verarbeitet eingehende Befehle vom Client. Format: command:param1,param2,...
+   * Processes incoming commands from the client. Format: command:param1,param2,...
    *
-   * @param message Die empfangene Nachricht im Format "command:parameter"
+   * @param message The received message in the format "command:parameter"
    */
   private void handleCommand(String message) {
     try {
@@ -149,11 +149,11 @@ public class ClientHandler implements Runnable {
   }
 
   /**
-   * Generiert einen eindeutigen Nickname basierend auf einem Basis Nickname. Fügt _1, _2, etc.
-   * hinzu, wenn der Name bereits vergeben ist.
+   * Generates a unique nickname based on a base nickname. Adds _1, _2, etc.
+   * if the name is already taken.
    *
-   * @param baseNickname Der gewünschte Basis Nickname
-   * @return Ein eindeutiger Nickname
+   * @param baseNickname The desired base nickname
+   * @return A unique nickname
    */
   private String generateUniqueNickname(String baseNickname) {
     String newNickname = baseNickname;
@@ -168,10 +168,10 @@ public class ClientHandler implements Runnable {
   }
 
   /**
-   * Prüft, ob ein Nickname bereits von einem anderen Client verwendet wird.
+   * Checks if a nickname is already being used by another client.
    *
-   * @param nickname Der zu prüfende Nickname
-   * @return true wenn der Nickname bereits vergeben ist, sonst false
+   * @param nickname The nickname to check
+   * @return true if the nickname is already taken, false otherwise
    */
   private boolean isNicknameTaken(String nickname) {
     for (ClientHandler client : clientList) {
@@ -183,9 +183,9 @@ public class ClientHandler implements Runnable {
   }
 
   /**
-   * Verarbeitet eine Connect Anfrage. Format: connect:nickname
+   * Processes a connect request. Format: connect:nickname
    *
-   * @param params Array mit Parametern, wobei params[0] der gewünschte Nickname ist
+   * @param params Array of parameters, where params[0] is the desired nickname
    */
   private void handleConnect(String[] params) {
     if (params.length < 1) {
@@ -206,9 +206,9 @@ public class ClientHandler implements Runnable {
   }
 
   /**
-   * Verarbeitet eine Chat Nachricht. Format: chat:message
+   * Processes a chat message. Format: chat:message
    *
-   * @param params Array mit Parametern, wobei params[0] die Nachricht ist
+   * @param params Array of parameters, where params[0] is the message
    */
   private void handleChat(String[] params) {
     if (params.length < 1) {
@@ -219,9 +219,9 @@ public class ClientHandler implements Runnable {
   }
 
   /**
-   * Verarbeitet eine Anfrage zur Änderung des Usernames. Format: username:newname
+   * Processes a username change request. Format: username:newname
    *
-   * @param params Array mit Parametern, wobei params[0] der neue Username ist
+   * @param params Array of parameters, where params[0] is the new username
    */
   private void handleUsername(String[] params) {
     if (params.length < 1) {
@@ -249,9 +249,9 @@ public class ClientHandler implements Runnable {
   }
 
   /**
-   * Verarbeitet eine Lobbybeitritts Anfrage. Format: lobby:code
+   * Processes a lobby join request. Format: lobby:code
    *
-   * @param params Array mit Parametern, wobei params[0] der Lobby Code ist
+   * @param params Array of parameters, where params[0] is the lobby code
    */
   private void handleLobby(String[] params) {
     if (params.length < 1) {
@@ -271,22 +271,21 @@ public class ClientHandler implements Runnable {
   }
 
   /**
-   * Verarbeitet eine eingehende Pong Antwort vom Client. Aktualisiert den Zeitstempel der letzten
-   * Pong Nachricht.
+   * Processes an incoming pong response from the client. Updates the timestamp of the last
+   * pong message.
    */
   private void handlePong() {
     lastPongTime = System.currentTimeMillis();
     System.out.println("Pong received from " + nickname);
   }
 
-  /** Verarbeitet einen Logout Befehl vom Client. Akzeptierte Befehle: "logout", "ciao", "exit" */
+  /** Processes a logout command from the client. Accepted commands: "logout", "ciao", "exit" */
   private void handleLogout() {
     running = false;
   }
 
   /**
-   * Trennt die Verbindung zum Client. Sendet entsprechende Broadcast Nachrichten und schließt
-   * Ressourcen.
+   * Disconnects the client. Sends appropriate broadcast messages and closes resources.
    */
   private void disconnect() {
     try {
@@ -323,18 +322,18 @@ public class ClientHandler implements Runnable {
   }
 
   /**
-   * Sendet eine Fehlermeldung an den Client. Format: error:message
+   * Sends an error message to the client. Format: error:message
    *
-   * @param errorMessage Die zu sendende Fehlermeldung
+   * @param errorMessage The error message to send
    */
   private void sendError(String errorMessage) {
     sendMessage("error:" + errorMessage);
   }
 
   /**
-   * Sendet eine Nachricht an den Client.
+   * Sends a message to the client.
    *
-   * @param message Die zu sendende Nachricht
+   * @param message The message to send
    */
   private void sendMessage(String message) {
     if (out != null && !clientSocket.isClosed()) {
@@ -343,11 +342,9 @@ public class ClientHandler implements Runnable {
   }
 
   /**
-   * Verarbeitet eine Whisper Nachricht an einen spezifischen Client. Format:
-   * whisper:recipient,message
+   * Processes a whisper message to a specific client. Format: whisper:recipient,message
    *
-   * @param params Array mit Parametern, wobei params[0] der Empfänger und params[1] die Nachricht
-   *     ist
+   * @param params Array of parameters, where params[0] is the recipient and params[1] is the message
    */
   private void handleWhisper(String[] params) {
     if (params.length < 2) {
@@ -366,9 +363,9 @@ public class ClientHandler implements Runnable {
   }
 
   /**
-   * Sendet eine Nachricht an alle verbundenen Clients.
+   * Sends a message to all connected clients.
    *
-   * @param message Die zu broadcastende Nachricht
+   * @param message The message to broadcast
    */
   private void broadcast(String message) {
     for (ClientHandler client : clientList) {
