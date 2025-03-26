@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import javax.swing.JOptionPane;
 
 public class ClientHandler implements Runnable {
 
@@ -21,6 +22,12 @@ public class ClientHandler implements Runnable {
     private static final long TIMEOUT = 3000; // 3 seconds
 
     private static final List<ClientHandler> clientList = new CopyOnWriteArrayList<>();
+
+    private static final List<Lobby> lobbyList = new CopyOnWriteArrayList<>();
+    private Lobby currentLobby;
+    private static int nextLobbyCode = 1000;
+
+
 
     /**
      * Creates a new ClientHandler for a socket connection. Automatically generates a unique
@@ -261,18 +268,74 @@ public class ClientHandler implements Runnable {
     private void handleLobby(String[] params) {
         if (params.length < 1) {
             sendError("Kein Lobby Code angegeben");
+            sendMessage("lobby:0");
             return;
         }
-        // TODO: Lobby implementieren
-        sendMessage("lobby:" + params[0]);
-        sendMessage("chat:Beigetreten zu Lobby " + params[0]);
+
+        int code;
+        try{
+            code = Integer.parseInt(params[0]);
+        } catch(NumberFormatException e){
+            sendError("Ungültiger Code angegeben");
+            sendMessage("lobby:0");
+            return;
+        }
+
+        if (code == 0) {
+            leaveCurrentLobby();
+            sendMessage("lobby:0");
+            return;
+        }
+
+        Lobby lobbyToJoin = null;
+        for (Lobby lobby : lobbyList) {
+            if (lobby.getCode() == code) {
+                lobbyToJoin = lobby;
+                break;
+            }
+        }
+
+        if (lobbyToJoin == null) {
+            sendError("lobby mit Code " + code + " nicht gefunden");
+            sendMessage("lobby:0");
+            return;
+        }
+
+        leaveCurrentLobby();
+
+        currentLobby = lobbyToJoin;
+        currentLobby.addMember(this);
+
+        sendMessage("lobby:" + code);
+        currentLobby.broadcastToLobby("chat:" + nickname + " ist der Lobby " + code + " beigetreten");
     }
 
+
     private void handleNewLobby() {
-        // TODO: Lobby Creation
-        int lobbyCode = 1984;
-        sendMessage("lobby:" + lobbyCode);
-        sendMessage("chat:Beigetreten zu Lobby " + lobbyCode);
+        int code = nextLobbyCode++;
+        Lobby newLobby = new Lobby(code);
+        lobbyList.add(newLobby);
+
+        leaveCurrentLobby();
+
+        currentLobby = newLobby;
+        currentLobby.addMember(this);
+
+        sendMessage("lobby:" + code);
+        currentLobby.broadcastToLobby("chat:" + nickname + " hat eine neue Lobby erstellt (" + code + ")");
+    }
+
+    private void leaveCurrentLobby() {
+        if (currentLobby != null) {
+            currentLobby.removeMember(this);
+            currentLobby.broadcastToLobby(("chat:" + nickname + " hat die Lobby verlassen"));
+
+            if (currentLobby.getMembers().isEmpty()) {
+                lobbyList.remove(currentLobby);
+            }
+
+            currentLobby = null;
+        }
     }
 
     /**
@@ -296,6 +359,8 @@ public class ClientHandler implements Runnable {
      */
     private void disconnect() {
         try {
+            leaveCurrentLobby();
+
             if (!running) {
                 broadcast("chat:User " + this.nickname + " hat sich abgemeldet");
                 System.out.println("Client " + nickname + " hat sich ausgeloggt");
@@ -342,7 +407,7 @@ public class ClientHandler implements Runnable {
      *
      * @param message The message to send
      */
-    private void sendMessage(String message) {
+    void sendMessage(String message) {
         if (out != null && !clientSocket.isClosed()) {
             out.println(message);
         }

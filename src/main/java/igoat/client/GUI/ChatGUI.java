@@ -172,8 +172,12 @@ public class ChatGUI implements ActionListener {
                     }
                     break;
                 case "lobby":
-                    // todo: implement lobby
-                    System.out.println("joined lobby " + content);
+                    if (content.equals("0")) {
+                        appendToChatArea("Info: Du hast die Lobby verlassen.");
+                    } else {
+                        appendToChatArea("Info: Du bist Lobby " + content + " beigetreten.");
+                    }
+                    break;
             }
             try {
                 Thread.sleep(100);
