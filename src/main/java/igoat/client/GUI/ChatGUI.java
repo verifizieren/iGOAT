@@ -178,6 +178,10 @@ public class ChatGUI implements ActionListener {
                         appendToChatArea("Info: Du bist Lobby " + content + " beigetreten.");
                     }
                     break;
+                case "role":
+                    appendToChatArea("Info: Du hast Rolle " + roleName(content) + " erhalten.");
+                    serverHandler.sendMessage("role:" + content);
+                    break;
             }
             try {
                 Thread.sleep(100);
@@ -231,6 +235,15 @@ public class ChatGUI implements ActionListener {
             }
             field.setText("");
         }
+    }
+
+    private String roleName(String roleId) {
+        return switch (roleId) {
+            case "0" -> "Goat";
+            case "1" -> "iGOAT";
+            case "2" -> "Guard";
+            default -> "Unbekannt";
+        };
     }
 
     /**

@@ -137,6 +137,12 @@ public class ClientHandler implements Runnable {
                 case "newlobby":
                     handleNewLobby();
                     break;
+                case "ready":
+                    handleReady();
+                    break;
+                case "role":
+                    handleRoleConfirmation(params.trim());
+                    break;
                 case "username":
                     handleUsername(new String[]{params.trim()});
                     break;
@@ -335,6 +341,37 @@ public class ClientHandler implements Runnable {
             }
 
             currentLobby = null;
+        }
+    }
+
+    private void handleReady() {
+        if (currentLobby == null) {
+            sendError("Du bist in keiner Lobby");
+            return;
+        }
+
+        appendToLobbyChat("Player " + nickname + " ist bereit.");
+
+        int assignRole = assignRole();
+        sendMessage("role:" + assignRole);
+    }
+
+    private int assignRole() {
+        return (int) (Math.random() * 3);
+    }
+
+    private void handleRoleConfirmation(String roleString) {
+        try {
+            int role = Integer.parseInt(roleString);
+            appendToLobbyChat("Player " + nickname + " hat Rolle " + role + " erhalten");
+        } catch (NumberFormatException e){
+            sendError("Ungültige Rolle");
+        }
+    }
+
+    private void appendToLobbyChat(String message) {
+        if (currentLobby != null) {
+            currentLobby.broadcastToLobby("chat:" + nickname + " " + message);
         }
     }
 
