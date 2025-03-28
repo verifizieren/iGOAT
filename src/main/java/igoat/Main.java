@@ -2,6 +2,7 @@ package igoat;
 
 import igoat.client.GUI.MainMenuGUI;
 import igoat.server.Server;
+import javafx.application.Application;
 
 /**
  * Main entry point for the iGoat application. Handles command-line arguments to start either the
@@ -20,7 +21,7 @@ public class Main {
     public static void main(String[] args) {
         if (args.length == 0) {
             // No arguments - launch GUI
-            javax.swing.SwingUtilities.invokeLater(() -> new MainMenuGUI());
+            Application.launch(MainMenuGUI.class, args);
         } else {
             // Handle existing client/server logic
             if (args[0].equals("server")) {
