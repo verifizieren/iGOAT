@@ -42,7 +42,7 @@ public class Client {
             return;
         }
 
-        server = new ServerHandler(host, port);
+        ServerHandler server = new ServerHandler(host, port);
         Scanner scanner = new Scanner(System.in);
 
         Thread messageHandler = new Thread(() -> handleMessages(server));

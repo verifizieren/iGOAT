@@ -10,47 +10,28 @@ import java.net.Socket;
  */
 public class Server {
 
-    /**
-     * Flag to control the server's running state
-     */
-    private static volatile boolean running = true;
+    private static final int DEFAULT_PORT = 61000;
 
-    /**
-     * Starts the server on the specified port. Creates a new thread for each connecting client.
-     *
-     * @param port The port number to listen on
-     */
-    public static void startServer(int port) {
-        try (ServerSocket server = new ServerSocket(port)) {
-            System.out.println("Server läuft auf Port " + port);
-
-            while (running) {
-                try {
-                    Socket clientSocket = server.accept();
-                    System.out.println(
-                        "Neuer Client verbunden: " + clientSocket.getInetAddress()
-                            .getHostAddress());
-
-                    // Each client is handled in its own thread
-                    ClientHandler handler = new ClientHandler(clientSocket);
-                    new Thread(handler).start();
-                } catch (IOException e) {
-                    if (running) {
-                        System.out.println("Fehler: " + e.getMessage());
-                    }
-                }
+    public static void main(String[] args) {
+        int port = args.length > 0 ? Integer.parseInt(args[0]) : DEFAULT_PORT;
+        
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            System.out.println("Server started on port " + port);
+            
+            ClientHandler.startUdpListener();
+            
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("New connection from " + clientSocket.getInetAddress().getHostAddress());
+                
+                ClientHandler handler = new ClientHandler(clientSocket);
+                new Thread(handler).start();
             }
         } catch (IOException e) {
-            System.out.println("Serverfehler: " + e.getMessage());
-            System.exit(1);
+            System.err.println("Could not listen on port " + port);
+            System.err.println(e.getMessage());
+        } finally {
+            ClientHandler.stopUdpListener();
         }
-    }
-
-    /**
-     * Stops the server gracefully. Sets the running flag to false, which will terminate the main
-     * server loop.
-     */
-    public static void stopServer() {
-        running = false;
     }
 }

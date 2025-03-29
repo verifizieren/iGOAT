@@ -33,4 +33,17 @@ public class Lobby {
             member.sendMessage(message);
         }
     }
+
+    /**
+     * Broadcasts a UDP update message to all members of the lobby.
+     * It calls the sendUpdate method on each ClientHandler.
+     *
+     * @param message The UDP message to broadcast.
+     */
+    public void broadcastUpdateToLobby(String message) {
+        System.out.println("Broadcasting UDP update to lobby " + code + ": '" + message + "'");
+        for (ClientHandler member : members) {
+            member.sendUpdate(message);
+        }
+    }
 }

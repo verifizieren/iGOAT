@@ -13,6 +13,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class ServerHandler {
 
+    private static final int SERVER_UDP_LISTENING_PORT = 61001;
+    private static final String UDP_REGISTRATION_PREFIX = "register_udp:";
+    private static final String NICKNAME_CONFIRM_PREFIX = "confirm:";
+
     private Socket msgSocket;
     private PrintWriter msgWriter;
     private BufferedReader msgReader;
@@ -25,6 +29,7 @@ public class ServerHandler {
     private boolean connected = false;
     private final BlockingQueue<String> messageBuffer = new LinkedBlockingQueue<>();
     private String lastUpdate = "";
+    private String confirmedNickname = null;
 
     private final String host;
     private final int port;
@@ -167,15 +172,21 @@ public class ServerHandler {
             while (connected) {
                 msg = msgReader.readLine();
 
-                switch (msg) {
-                    case "ping":
-                        sendMessage("pong");
-                        pingTimer = System.currentTimeMillis();
-                        break;
-                    case null:
-                        break;
-                    default:
-                        messageBuffer.add(msg);
+                if (msg == null) {
+                    log("Server disconnected (read null).");
+                    break;
+                }
+
+                if ("ping".equals(msg)) {
+                    sendMessage("pong");
+                    pingTimer = System.currentTimeMillis();
+                } else if (msg.startsWith(NICKNAME_CONFIRM_PREFIX)) {
+                    this.confirmedNickname = msg.substring(NICKNAME_CONFIRM_PREFIX.length());
+                    log("Nickname confirmed by server: " + this.confirmedNickname);
+                    sendUdpRegistrationPacket();
+                    messageBuffer.add(msg);
+                } else {
+                    messageBuffer.add(msg);
                 }
 
                 if (System.currentTimeMillis() - pingTimer > TIMEOUT) {
@@ -202,10 +213,47 @@ public class ServerHandler {
                 DatagramPacket receivePacket = new DatagramPacket(receiveBuffer,
                     receiveBuffer.length);
                 updateSocket.receive(receivePacket);
-                lastUpdate = new String(receivePacket.getData(), 0, receivePacket.getLength());
+                String receivedMsg = new String(receivePacket.getData(), 0, receivePacket.getLength());
+                
+                if (!receivedMsg.startsWith("udp_ack:")) {
+                    lastUpdate = receivedMsg;
+                    log("[UDP] " + receivedMsg);
+                }
             }
         } catch (Exception e) {
-            log(e.getMessage());
+            if (connected && updateSocket != null && !updateSocket.isClosed()) {
+                log(e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Sends the UDP registration packet to the server's known listening port.
+     * This should be called after the nickname is confirmed.
+     */
+    private void sendUdpRegistrationPacket() {
+        if (this.confirmedNickname == null) {
+            log("Cannot send UDP registration: Nickname not confirmed yet.");
+            return;
+        }
+        if (updateSocket == null || updateSocket.isClosed()) {
+            log("Cannot send UDP registration: Update socket is not available.");
+            return;
+        }
+
+        try {
+            String registrationMsg = UDP_REGISTRATION_PREFIX + this.confirmedNickname;
+            byte[] buffer = registrationMsg.getBytes();
+            InetAddress serverAddress = InetAddress.getByName(host);
+            int localUdpPort = updateSocket.getLocalPort();
+
+            DatagramPacket registrationPacket = new DatagramPacket(buffer, buffer.length, serverAddress, SERVER_UDP_LISTENING_PORT);
+
+            updateSocket.send(registrationPacket);
+            log("Sent UDP registration for nickname '" + this.confirmedNickname + "' from local port " + localUdpPort + " to server port " + SERVER_UDP_LISTENING_PORT);
+
+        } catch (IOException e) {
+            log("Failed to send UDP registration packet: " + e.getMessage());
         }
     }
 

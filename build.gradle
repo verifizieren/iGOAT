@@ -64,7 +64,10 @@ test {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'igoat.Main'
+        attributes(
+            'Main-Class': 'igoat.Main',
+            'Class-Path': configurations.runtimeClasspath.collect { it.name }.join(' ')
+        )
     }
     
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -72,4 +75,17 @@ jar {
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
+}
+
+// Create a task to build a fat/uber jar with all dependencies
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': 'igoat.Main'
+    }
+    archiveClassifier = 'fat'
+    from { 
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    with jar
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

@@ -4,12 +4,20 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import javax.swing.JOptionPane;
 
 public class ClientHandler implements Runnable {
+
+    // Constants for UDP Auto-Registration
+    public static final int SERVER_UDP_LISTENING_PORT = 61001; // Fixed port server listens on for UDP registration
+    private static final String UDP_REGISTRATION_PREFIX = "register_udp:";
+    private static final int UDP_BUFFER_SIZE = 512;
 
     private final Socket clientSocket;
     private BufferedReader in;
@@ -20,6 +28,7 @@ public class ClientHandler implements Runnable {
     private long lastPongTime;
     private static final long PING_INTERVAL = 2000; // 2 seconds
     private static final long TIMEOUT = 3000; // 3 seconds
+    private int udpPort = -1; // Port the client is listening on for UDP updates
 
     private static final List<ClientHandler> clientList = new CopyOnWriteArrayList<>();
 
@@ -27,7 +36,140 @@ public class ClientHandler implements Runnable {
     private Lobby currentLobby;
     private static int nextLobbyCode = 1000;
 
+    private static DatagramSocket serverUpdateSocket;
 
+    private static DatagramSocket udpListeningSocket;
+    private static volatile boolean udpListenerRunning = false;
+    private static Thread udpListenerThread;
+
+    static {
+        try {
+            serverUpdateSocket = new DatagramSocket();
+            System.out.println("Server UDP sending socket created on port: " + serverUpdateSocket.getLocalPort());
+        } catch (SocketException e) {
+            System.err.println("FATAL: Could not create server UDP sending socket: " + e.getMessage());
+            serverUpdateSocket = null;
+        }
+    }
+
+    /**
+     * Starts the static UDP listener thread if it's not already running.
+     * Should be called once during server initialization.
+     */
+    public static synchronized void startUdpListener() {
+        if (udpListenerRunning || udpListenerThread != null) {
+            System.out.println("UDP Listener is already running or was not properly stopped.");
+            return;
+        }
+        try {
+            udpListeningSocket = new DatagramSocket(SERVER_UDP_LISTENING_PORT);
+            udpListenerRunning = true;
+            udpListenerThread = new Thread(ClientHandler::runUdpListenerLoop);
+            udpListenerThread.setName("Server-UDP-Listener");
+            udpListenerThread.setDaemon(true);
+            udpListenerThread.start();
+            System.out.println("Server UDP Listener started on port: " + SERVER_UDP_LISTENING_PORT);
+        } catch (SocketException e) {
+            System.err.println("FATAL: Could not start UDP Listener on port " + SERVER_UDP_LISTENING_PORT + ": " + e.getMessage());
+            udpListenerRunning = false;
+            udpListeningSocket = null;
+            udpListenerThread = null;
+        }
+    }
+
+    /**
+     * Stops the static UDP listener thread.
+     * Should be called once during server shutdown.
+     */
+    public static synchronized void stopUdpListener() {
+        if (!udpListenerRunning) {
+            System.out.println("UDP Listener is not running.");
+            return;
+        }
+        udpListenerRunning = false;
+        if (udpListeningSocket != null && !udpListeningSocket.isClosed()) {
+            udpListeningSocket.close();
+        }
+        if (udpListenerThread != null) {
+            try {
+                udpListenerThread.join(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        System.out.println("Server UDP Listener stopped.");
+        udpListeningSocket = null;
+        udpListenerThread = null;
+    }
+
+    /**
+     * The main loop for the UDP listener thread.
+     * Receives UDP packets and processes registration requests.
+     */
+    private static void runUdpListenerLoop() {
+        byte[] buffer = new byte[UDP_BUFFER_SIZE];
+        while (udpListenerRunning && udpListeningSocket != null && !udpListeningSocket.isClosed()) {
+            try {
+                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+                udpListeningSocket.receive(packet);
+
+                InetAddress clientIp = packet.getAddress();
+                int clientUdpPort = packet.getPort();
+                String message = new String(packet.getData(), 0, packet.getLength()).trim();
+
+                if (message.startsWith(UDP_REGISTRATION_PREFIX)) {
+                    String clientNickname = message.substring(UDP_REGISTRATION_PREFIX.length());
+                    registerClientUdpPort(clientIp, clientNickname, clientUdpPort);
+                }
+
+            } catch (SocketException se) {
+                if (udpListenerRunning) {
+                    System.err.println("UDP Listener SocketException (might be expected on shutdown): " + se.getMessage());
+                }
+            } catch (IOException e) {
+                if (udpListenerRunning) {
+                    System.err.println("UDP Listener IOException: " + e.getMessage());
+                }
+            }
+        }
+        System.out.println("UDP Listener thread exiting.");
+    }
+
+    /**
+     * Finds the ClientHandler associated with the given IP and nickname and updates its UDP port.
+     *
+     * @param clientIp The IP address of the client.
+     * @param nickname The nickname reported by the client.
+     * @param clientUdpPort The source UDP port from the registration packet.
+     */
+    private static void registerClientUdpPort(InetAddress clientIp, String nickname, int clientUdpPort) {
+        boolean found = false;
+        for (ClientHandler handler : clientList) {
+            if (handler.clientSocket != null && !handler.clientSocket.isClosed() &&
+                handler.clientSocket.getInetAddress().equals(clientIp) &&
+                handler.nickname.equals(nickname)) {
+
+                handler.udpPort = clientUdpPort;
+                found = true;
+                System.out.println("UDP registered for " + nickname);
+
+                if (serverUpdateSocket != null) {
+                    try {
+                        String ackMsg = "udp_ack:";
+                        byte[] ackBuf = ackMsg.getBytes();
+                        DatagramPacket ackPacket = new DatagramPacket(ackBuf, ackBuf.length, clientIp, clientUdpPort);
+                        serverUpdateSocket.send(ackPacket);
+                    } catch (IOException e) {
+                        // Silently handle ack sending failures
+                    }
+                }
+                break;
+            }
+        }
+        if (!found) {
+            System.err.println("UDP registration failed for " + nickname);
+        }
+    }
 
     /**
      * Creates a new ClientHandler for a socket connection. Automatically generates a unique
@@ -154,6 +296,14 @@ public class ClientHandler implements Runnable {
                         handleWhisper(new String[]{recipient, whisperMessage});
                     } else {
                         sendError("Ungültige Whisper Nachricht. Nutze: whisper:recipient,message");
+                    }
+                    break;
+                case "udp_bcast":
+                    if (currentLobby != null) {
+                        currentLobby.broadcastUpdateToLobby("UDP Broadcast Test: " + params);
+                        sendMessage("chat:Sent UDP broadcast to lobby " + currentLobby.getCode());
+                    } else {
+                        sendError("You are not in a lobby to broadcast UDP.");
                     }
                     break;
                 default:
@@ -480,6 +630,30 @@ public class ClientHandler implements Runnable {
     private void broadcast(String message) {
         for (ClientHandler client : clientList) {
             client.sendMessage(message);
+        }
+    }
+
+    /**
+     * Sends a UDP update message to this specific client.
+     * Assumes the client has already sent its UDP listening port via the 'udp_port' command.
+     *
+     * @param message The message string to send.
+     */
+    public void sendUpdate(String message) {
+        if (serverUpdateSocket == null || udpPort == -1 || 
+            clientSocket == null || clientSocket.isClosed()) {
+            return;
+        }
+
+        try {
+            byte[] buffer = message.getBytes();
+            InetAddress clientAddress = clientSocket.getInetAddress();
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, clientAddress, this.udpPort);
+            serverUpdateSocket.send(packet);
+        } catch (IOException e) {
+            if (running) {
+                System.err.println("UDP send failed to " + nickname + ": " + e.getMessage());
+            }
         }
     }
 }
