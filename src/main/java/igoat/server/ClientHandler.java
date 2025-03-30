@@ -36,6 +36,11 @@ public class ClientHandler implements Runnable {
     private Lobby currentLobby;
     private static int nextLobbyCode = 1000;
 
+    private boolean isDown = false;
+    private boolean isCaught = false;
+
+    private int role;
+
     private static DatagramSocket serverUpdateSocket;
 
     private static DatagramSocket udpListeningSocket;
@@ -285,6 +290,12 @@ public class ClientHandler implements Runnable {
                 case "role":
                     handleRoleConfirmation(params.trim());
                     break;
+                case "catch":
+                    handleCatch(params.trim());
+                    break;
+                case "revive":
+                    handleRevive(params.trim());
+                    break;
                 case "username":
                     handleUsername(new String[]{params.trim()});
                     break;
@@ -512,7 +523,8 @@ public class ClientHandler implements Runnable {
 
     private void handleRoleConfirmation(String roleString) {
         try {
-            int role = Integer.parseInt(roleString);
+            int parsedRole = Integer.parseInt(roleString);
+            this.role = parsedRole;
             appendToLobbyChat("Player " + nickname + " hat Rolle " + role + " erhalten");
         } catch (NumberFormatException e){
             sendError("Ungültige Rolle");
@@ -523,6 +535,92 @@ public class ClientHandler implements Runnable {
         if (currentLobby != null) {
             currentLobby.broadcastToLobby("chat:" + nickname + " " + message);
         }
+    }
+
+    private void handleCatch(String targetName) {
+        ClientHandler target = findPlayer(targetName);
+        if (target == null) {
+            sendError("Spieler " + targetName + " nicht gefunden.");
+            return;
+        }
+
+        if (this.role != 2) {
+            sendError("Nur Wächter dürfen fangen.");
+            return;
+        }
+
+        if (!isInRange(this, target)) {
+            sendError("Spieler " + targetName + " nicht in reichweite.");
+            return;
+        }
+
+        if (target.isCaught()) {
+            sendError("Spieler " + targetName + " ist bereits gefangen");
+            return;
+        }
+
+        target.setCaught(true);
+        broadcast("catch:" + targetName);
+    }
+
+    private  void handleRevive(String targetName) {
+        ClientHandler target = findPlayer(targetName);
+        if (target == null) {
+            sendError("Spieler " + targetName + " nicht gefunden.");
+            return;
+        }
+
+        if (this.role != 0) {
+            sendError("Nur Ziegen dürfen Roboter neu starten.");
+            return;
+        }
+
+        if (target.getRole() != 1 || !target.isDown()) {
+            sendError("Ziel ist kein ausgeschalltener ");
+            return;
+        }
+
+        if (!isInRange(this, target)) {
+            sendError("Spieler " + targetName + " nicht in reichweite.");
+            return;
+        }
+
+        target.setDown(false);
+        broadcast("revive:" + targetName);
+    }
+
+    public boolean isCaught() {
+        return isCaught;
+    }
+
+    public void setCaught(boolean caught) {
+        this.isCaught = isCaught;
+    }
+
+    public boolean isDown() {
+        return isDown;
+    }
+
+    public void setDown(boolean down) {
+        this.isDown = isDown;
+    }
+
+    public int getRole() {
+        return role;
+    }
+
+    private ClientHandler findPlayer(String name) {
+        for (ClientHandler client : clientList) {
+            if (client.nickname.equals(name)) {
+                return client;
+            }
+        }
+        return null;
+    }
+
+    private boolean isInRange(ClientHandler client, ClientHandler target) {
+        // to be implemented
+        return true;
     }
 
     /**

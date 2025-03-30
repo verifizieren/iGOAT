@@ -182,6 +182,14 @@ public class ChatGUI implements ActionListener {
                     appendToChatArea("Info: Du hast Rolle " + roleName(content) + " erhalten.");
                     serverHandler.sendMessage("role:" + content);
                     break;
+                case "catch":
+                    appendToChatArea(content + " wurde gefangen");
+                    break;
+                case "reviveGoat":
+                    appendToChatArea(content + " wurde befreit");
+                    break;
+                case "reviveRobot":
+                    appendToChatArea(content + " wurde neu gestartet");
             }
             try {
                 Thread.sleep(100);
