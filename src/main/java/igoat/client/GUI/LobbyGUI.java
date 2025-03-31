@@ -66,13 +66,13 @@ public class LobbyGUI {
         sendButton = new Button("Send");
         sendButton.setDisable(true);
 
-        chatModeLabel = new Label("Chat Mode: Lobby Chat");
+        chatModeLabel = new Label("Lobby Chat");
         toggleChatButton = new Button("Switch to Global Chat");
 
         toggleChatButton.setOnAction(e -> {
             isGlobalChat = !isGlobalChat;
             toggleChatButton.setText(isGlobalChat ? "Switch to Lobby Chat" : "Switch to Global Chat");
-            chatModeLabel.setText("Chat Mode: " + (isGlobalChat ? "Global Chat" : "Lobby Chat"));
+            chatModeLabel.setText(isGlobalChat ? "Global Chat" : "Lobby Chat");
             appendToMessageArea("Now chatting in " + (isGlobalChat ? "Global Chat" : "Lobby Chat"));
         });
 
@@ -159,10 +159,10 @@ public class LobbyGUI {
             leaveLobbyButton,
             nameButton,
             exitButton,
+            chatModeLabel,
             messageArea,
             chatInput,
             sendButton,
-            chatModeLabel,
             toggleChatButton
         );
 
