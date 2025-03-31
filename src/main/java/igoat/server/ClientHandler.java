@@ -471,6 +471,12 @@ public class ClientHandler implements Runnable {
             return;
         }
 
+        if (lobbyToJoin.isFull()) {
+            sendError("Die Lobby " + code + " ist voll");
+            sendMessage("lobby:0");
+            return;
+        }
+
         leaveCurrentLobby();
 
         currentLobby = lobbyToJoin;
@@ -516,7 +522,10 @@ public class ClientHandler implements Runnable {
 
         StringBuilder sb = new StringBuilder();
         for (Lobby lobby : lobbyList) {
-            sb.append(lobby.getCode()).append(",");
+            sb.append(lobby.getCode())
+                .append("=")
+                .append(lobby.getMembers().size())
+                .append(",");
         }
 
         if (sb.length() > 0) {

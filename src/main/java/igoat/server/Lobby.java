@@ -6,6 +6,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class Lobby {
     private final int code;
     private final List<ClientHandler> members;
+    private static int MAX_PLAYERS = 4;
 
     public Lobby(int code) {
         this.code = code;
@@ -18,6 +19,10 @@ public class Lobby {
 
     public List<ClientHandler> getMembers() {
         return members;
+    }
+
+    public boolean isFull(){
+        return members.size() >= MAX_PLAYERS;
     }
 
     public void addMember(ClientHandler client) {

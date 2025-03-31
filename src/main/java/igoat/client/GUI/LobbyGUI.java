@@ -26,7 +26,8 @@ public class LobbyGUI {
     private Button sendButton;
     private ListView<String> lobbyListView;
 
-    private int lobbyRefreshTime = 3000;
+    private final int MAX_PLAYERS = 4;
+    private final int lobbyRefreshTime = 3000;
 
     public static void setServerHandler(ServerHandler handler) {
         serverHandler = handler;
@@ -42,7 +43,6 @@ public class LobbyGUI {
         messageArea.setPrefHeight(200);
 
         lobbyCodeField = new TextField();
-        lobbyCodeField.setPromptText("Enter Lobby Code");
         lobbyCodeField.setVisible(false);
         lobbyCodeField.setManaged(false);
 
@@ -69,9 +69,10 @@ public class LobbyGUI {
         });
 
         startButton.setOnAction(event -> {
-            String code = lobbyListView.getSelectionModel().getSelectedItem();
-            if (code != null && !code.isEmpty() && serverHandler != null && serverHandler.isConnected()) {
-                serverHandler.sendMessage("lobby:" + code.trim());
+            String selected = lobbyListView.getSelectionModel().getSelectedItem();
+            if (selected != null && !selected.isEmpty() && serverHandler != null && serverHandler.isConnected()) {
+                String code = selected.split(" ")[0];
+                serverHandler.sendMessage("lobby:" + code);
             }
         });
 
@@ -114,8 +115,9 @@ public class LobbyGUI {
             if (event.getClickCount() == 2) {
                 String selectedLobby = lobbyListView.getSelectionModel().getSelectedItem();
                 if (selectedLobby != null && !selectedLobby.isEmpty() && serverHandler != null && serverHandler.isConnected()) {
-                    serverHandler.sendMessage("lobby:" + selectedLobby.trim());
-                    appendToMessageArea("Joining lobby " + selectedLobby + "...");
+                    String code = selectedLobby.split(" ")[0];
+                    serverHandler.sendMessage("lobby:" + code);
+                    appendToMessageArea("Joining lobby " + code + "...");
                 }
             }
         });
@@ -241,8 +243,24 @@ public class LobbyGUI {
                     break;
                 case "lobbies":
                     Platform.runLater(() -> {
+                        if (content.isBlank()) {
+                            lobbyListView.getItems().clear();
+                            return;
+                        }
+
                         String[] lobbies = content.split(",");
-                        lobbyListView.getItems().setAll(lobbies);
+                        lobbyListView.getItems().clear();
+
+                        for (String entry : lobbies) {
+                            String[] parts = entry.split("=");
+                            if (parts.length == 2) {
+                                String code = parts[0];
+                                String playerCount = parts[1];
+                                lobbyListView.getItems().add(code + " (" + playerCount + "/" + MAX_PLAYERS + ")");
+                            } else {
+                                lobbyListView.getItems().add(entry);
+                            }
+                        }
                     });
                     break;
                 default:
