@@ -46,9 +46,13 @@
 * Die Gruppe traf sich zusammen und testeten den Chat, die PingPong Funktion und machten sich Gedanken was noch für den zweiten Meilenstein fehlt.
 * Die Gruppe kam zum Entschluss, der Chat funktioniert und ist präsentabel. Die PingPong Funktion ist auch aussreichend.
 * ToDo: Jonas, Max - Netzwerkprotokoll verfeinern, Nicolas, Marvin - verfeinert und verbessert den Chat
-* Das nächste Treffen wurde für den Sonntag, den 23.03.2025, festgelegt.
+* Das nächste Treffen wurde für den Sonntag, den 23.03.2025 festgelegt.
 ## <p align ="center"> 23. März
 * Die Gruppe traf sich auf Discord und gingen die einzelnen Punkte für den Meilenstein durch und testeten den Chat nochmals.
 * Wenige Bugfixes sind noch für den zweiten Meilenstein nötig, sonst war alles in Ordnung.
 * ToDo: Jonas - Grafikimplementation, Marvin - Map-Design und Placeholder Graphics, Max - Udp-Implementation und Testing, Nicolas - Protokollimplementation
 * Das nächste Treffen wurde für den Freitag, den 28.03.2025, festgelegt.
+## <p align ="center"> 28. März
+* Die Gruppe testete die Ergebnisse ihrer Arbeit. Leider wurde klar, dass es nicht möglich war, wie geplant OpenGL für das Spiel zu verwenden, da keine funktionierenden Möglichkeiten für die Implementation des GUIs gefunden wurden. Da OpenGL nicht einfach mit JavaFX kompatibel ist, wurde entschieden, die bisherige Implementation komplett auf JavaFX zu porten. Auch wenn dies viel Zeit kosten würde, war es die einzige Option.
+* ToDo: Jonas - Gameimplementation JavaFX, Marvin & Nicolas: Lobby und Chat GUI, Max: UDP
+* Das nächste Treffen wurde für den Montag, den 31.03.2025 festgelegt.
