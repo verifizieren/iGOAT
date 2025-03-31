@@ -22,13 +22,16 @@ public class LobbyGUI {
     private TextField lobbyCodeField;
     private Button startButton;
     private Button createButton;
+    private Button leaveLobbyButton;
     private TextField chatInput;
     private Button sendButton;
+    private Button toggleChatButton;
+    private Label chatModeLabel;
     private ListView<String> lobbyListView;
 
+    private boolean isGlobalChat = false;
     private final int MAX_PLAYERS = 4;
     private final int lobbyRefreshTime = 3000;
-    private boolean isGlobalChat = false;
 
     public static void setServerHandler(ServerHandler handler) {
         serverHandler = handler;
@@ -49,6 +52,7 @@ public class LobbyGUI {
 
         startButton = new Button("Start Game");
         createButton = new Button("Create Lobby");
+        leaveLobbyButton = new Button("Exit Lobby");
         Button exitButton = new Button("Exit");
         Button nameButton = new Button("Change Name");
 
@@ -62,21 +66,22 @@ public class LobbyGUI {
         sendButton = new Button("Send");
         sendButton.setDisable(true);
 
+        chatModeLabel = new Label("Chat Mode: Lobby Chat");
+        toggleChatButton = new Button("Switch to Global Chat");
+
+        toggleChatButton.setOnAction(e -> {
+            isGlobalChat = !isGlobalChat;
+            toggleChatButton.setText(isGlobalChat ? "Switch to Lobby Chat" : "Switch to Global Chat");
+            chatModeLabel.setText("Chat Mode: " + (isGlobalChat ? "Global Chat" : "Lobby Chat"));
+            appendToMessageArea("Now chatting in " + (isGlobalChat ? "Global Chat" : "Lobby Chat"));
+        });
+
         sendButton.setOnAction(e -> sendChatMessage());
         chatInput.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
                 sendChatMessage();
             }
         });
-
-        Button toggleChatButton = new Button("Switch to Global Chat");
-
-        toggleChatButton.setOnAction(e -> {
-            isGlobalChat = !isGlobalChat;
-            toggleChatButton.setText(isGlobalChat ? "Switch to Lobby Chat" : "Switch to Global Chat");
-            appendToMessageArea("Now chatting in " + (isGlobalChat ? "Global Chat" : "Lobby Chat"));
-        });
-
 
         startButton.setOnAction(event -> {
             String selected = lobbyListView.getSelectionModel().getSelectedItem();
@@ -90,6 +95,13 @@ public class LobbyGUI {
             if (serverHandler != null && serverHandler.isConnected()) {
                 serverHandler.sendMessage("newlobby:");
                 System.out.println("Sent: newlobby:");
+            }
+        });
+
+        leaveLobbyButton.setOnAction(e -> {
+            if (serverHandler != null && serverHandler.isConnected()) {
+                serverHandler.sendMessage("lobby:0");
+                appendToMessageArea("You have left the lobby.");
             }
         });
 
@@ -144,18 +156,20 @@ public class LobbyGUI {
             lobbyCodeField,
             startButton,
             createButton,
+            leaveLobbyButton,
             nameButton,
             exitButton,
             messageArea,
             chatInput,
             sendButton,
+            chatModeLabel,
             toggleChatButton
         );
 
         HBox mainLayout = new HBox(10, leftPanel, rightPanel);
         mainLayout.setPadding(new Insets(10));
 
-        Scene scene = new Scene(mainLayout, 650, 500);
+        Scene scene = new Scene(mainLayout, 700, 520);
         primaryStage.setTitle("Lobby Menu");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -193,6 +207,7 @@ public class LobbyGUI {
         if (!text.isEmpty()) {
             if (serverHandler != null && serverHandler.isConnected()) {
                 String prefix = isGlobalChat ? "chat:" : "lobbychat:";
+
                 if (text.startsWith("/whisper ")) {
                     String[] parts = text.substring(9).split(" ", 2);
                     if (parts.length == 2) {
@@ -207,7 +222,6 @@ public class LobbyGUI {
             chatInput.setText("");
         }
     }
-
 
     private void startMessageReceiver() {
         while (running && serverHandler != null && serverHandler.isConnected()) {
