@@ -1,49 +1,126 @@
 package igoat.client.GUI;
 
+import igoat.client.ServerHandler;
+import igoat.server.Server;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
+import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 public class MainMenuGUI extends Application {
 
+    private ServerHandler handler;
+    private String username = System.getProperty("user.name");
+
     @Override
     public void start(Stage primaryStage) {
-        // Placeholder for the game name
-        Text gameName = new Text("iGOAT");
-        gameName.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;");
+        primaryStage.setTitle("iGOAT");
 
-        // Create buttons
+        VBox root = new VBox(15);
+        root.setAlignment(Pos.CENTER);
+        root.setPadding(new Insets(20));
+
+        Label titleLabel = new Label("iGOAT");
+        titleLabel.setFont(new Font("Arial", 24));
+
         Button startButton = new Button("Start");
-        Button settingsButton = new Button("Settings");
+        startButton.setOnAction(e -> showAlert(Alert.AlertType.INFORMATION, "Starting game..."));
+
+        Button usernameButton = new Button("Choose Username");
+        usernameButton.setOnAction(e -> {
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setTitle("Choose Username");
+            dialog.setHeaderText(null);
+            dialog.setContentText("Enter your username:");
+
+            dialog.showAndWait().ifPresent(input -> {
+                if (!input.trim().isEmpty()) {
+                    username = input.trim();
+                    showAlert(Alert.AlertType.INFORMATION, "Username set to: " + username);
+                    if (handler != null) {
+                        handler.sendMessage("username: " + username);
+                    }
+                } else {
+                    showAlert(Alert.AlertType.ERROR, "Invalid username.");
+                }
+            });
+        });
+
+        Button createServerButton = new Button("Create Server");
+        createServerButton.setOnAction(e -> new Thread(() -> Server.startServer(5555)).start());
+
+        Button joinServerButton = new Button("Join Server");
+        joinServerButton.setOnAction(e -> {
+            if (username.isEmpty()) {
+                username = getSystemName();
+            }
+            TextInputDialog ipDialog = new TextInputDialog();
+            ipDialog.setTitle("Join Server");
+            ipDialog.setHeaderText(null);
+            ipDialog.setContentText("Enter server IP:");
+
+            ipDialog.showAndWait().ifPresent(serverIP -> {
+                if (!serverIP.trim().isEmpty()) {
+                    new Thread(() -> {
+                        handler = new ServerHandler(serverIP.trim(), 5555);
+                        if (handler.isConnected()) {
+                            Platform.runLater(() -> {
+                                try {
+                                    LobbyGUI.setServerHandler(handler);
+                                    LobbyGUI lobby = new LobbyGUI();
+                                    lobby.show(new Stage());
+                                    ((Stage) joinServerButton.getScene().getWindow()).close();
+                                } catch (Exception ex) {
+                                    ex.printStackTrace();
+                                }
+                            });
+                        } else {
+                            Platform.runLater(() ->
+                                showAlert(Alert.AlertType.ERROR, "Failed to connect to server at: " + serverIP)
+                            );
+                        }
+                    }).start();
+                } else {
+                    showAlert(Alert.AlertType.ERROR, "Invalid server IP.");
+                }
+            });
+        });
+
         Button exitButton = new Button("Exit");
+        exitButton.setOnAction(e -> {
+            if (handler != null) {
+                handler.close();
+            }
+            Platform.exit();
+        });
 
-        // Set button actions (for demonstration purposes)
-        startButton.setOnAction(event -> System.out.println("Start button clicked"));
-        settingsButton.setOnAction(event -> System.out.println("Settings button clicked"));
-        exitButton.setOnAction(event -> primaryStage.close()); // Close the application
+        root.getChildren().addAll(
+            titleLabel,
+            startButton,
+            usernameButton,
+            createServerButton,
+            joinServerButton,
+            exitButton
+        );
 
-        // Create a VBox to arrange elements vertically
-        VBox menuLayout = new VBox(20); // Spacing between elements
-        menuLayout.setAlignment(Pos.CENTER);
-        menuLayout.setPadding(new Insets(50)); // Padding around the menu
-
-        // Add elements to the layout
-        menuLayout.getChildren().addAll(gameName, startButton, settingsButton, exitButton);
-
-        // Create the scene
-        Scene scene = new Scene(menuLayout, 400, 300); // Width and height of the window
-
-        // Set the title of the stage
-        primaryStage.setTitle("Game Menu");
-
-        // Set the scene and show the stage
+        Scene scene = new Scene(root, 400, 350);
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    private void showAlert(Alert.AlertType type, String message) {
+        Alert alert = new Alert(type, message, ButtonType.OK);
+        alert.setHeaderText(null);
+        alert.showAndWait();
+    }
+
+    public static String getSystemName() {
+        return System.getProperty("user.name");
     }
 
     public static void main(String[] args) {

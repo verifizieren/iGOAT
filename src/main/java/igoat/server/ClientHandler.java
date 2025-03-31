@@ -284,6 +284,9 @@ public class ClientHandler implements Runnable {
                 case "newlobby":
                     handleNewLobby();
                     break;
+                case "getlobbies":
+                    handleGetLobbies();
+                    break;
                 case "ready":
                     handleReady();
                     break;
@@ -504,6 +507,25 @@ public class ClientHandler implements Runnable {
             currentLobby = null;
         }
     }
+
+    private void handleGetLobbies() {
+        if (lobbyList.isEmpty()) {
+            sendMessage("lobbies:");
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (Lobby lobby : lobbyList) {
+            sb.append(lobby.getCode()).append(",");
+        }
+
+        if (sb.length() > 0) {
+            sb.setLength(sb.length() - 1);
+        }
+
+        sendMessage("lobbies:" + sb.toString());
+    }
+
 
     private void handleReady() {
         if (currentLobby == null) {
