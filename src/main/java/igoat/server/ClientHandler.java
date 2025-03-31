@@ -287,6 +287,13 @@ public class ClientHandler implements Runnable {
                 case "getlobbies":
                     handleGetLobbies();
                     break;
+                case "lobbychat":
+                    if (currentLobby != null) {
+                        currentLobby.broadcastToLobby("chat:" + nickname + " " + params);
+                    } else {
+                        sendError("Du bist in keiner Lobby");
+                    }
+                    break;
                 case "ready":
                     handleReady();
                     break;

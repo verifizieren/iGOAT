@@ -28,6 +28,7 @@ public class LobbyGUI {
 
     private final int MAX_PLAYERS = 4;
     private final int lobbyRefreshTime = 3000;
+    private boolean isGlobalChat = false;
 
     public static void setServerHandler(ServerHandler handler) {
         serverHandler = handler;
@@ -67,6 +68,15 @@ public class LobbyGUI {
                 sendChatMessage();
             }
         });
+
+        Button toggleChatButton = new Button("Switch to Global Chat");
+
+        toggleChatButton.setOnAction(e -> {
+            isGlobalChat = !isGlobalChat;
+            toggleChatButton.setText(isGlobalChat ? "Switch to Lobby Chat" : "Switch to Global Chat");
+            appendToMessageArea("Now chatting in " + (isGlobalChat ? "Global Chat" : "Lobby Chat"));
+        });
+
 
         startButton.setOnAction(event -> {
             String selected = lobbyListView.getSelectionModel().getSelectedItem();
@@ -138,7 +148,8 @@ public class LobbyGUI {
             exitButton,
             messageArea,
             chatInput,
-            sendButton
+            sendButton,
+            toggleChatButton
         );
 
         HBox mainLayout = new HBox(10, leftPanel, rightPanel);
@@ -181,6 +192,7 @@ public class LobbyGUI {
         String text = chatInput.getText().trim();
         if (!text.isEmpty()) {
             if (serverHandler != null && serverHandler.isConnected()) {
+                String prefix = isGlobalChat ? "chat:" : "lobbychat:";
                 if (text.startsWith("/whisper ")) {
                     String[] parts = text.substring(9).split(" ", 2);
                     if (parts.length == 2) {
@@ -189,12 +201,13 @@ public class LobbyGUI {
                         appendToMessageArea("Usage: /whisper <user> <message>");
                     }
                 } else {
-                    serverHandler.sendMessage("chat:" + text);
+                    serverHandler.sendMessage(prefix + text);
                 }
             }
             chatInput.setText("");
         }
     }
+
 
     private void startMessageReceiver() {
         while (running && serverHandler != null && serverHandler.isConnected()) {
