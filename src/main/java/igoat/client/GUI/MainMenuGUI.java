@@ -1,6 +1,5 @@
 package igoat.client.GUI;
 
-import igoat.client.Game;
 import igoat.client.ServerHandler;
 import igoat.server.Server;
 import javafx.application.Application;
@@ -32,38 +31,6 @@ public class MainMenuGUI extends Application {
 
         Label titleLabel = new Label("iGOAT");
         titleLabel.setFont(new Font("Arial", 24));
-
-        Button startButton = new Button("Start");
-        startButton.setOnAction(e -> {
-            try {
-                Game game = new Game();
-                Stage gameStage = new Stage();
-                game.start(gameStage);
-                ((Stage) startButton.getScene().getWindow()).close();
-            } catch (Exception ex) {
-                showAlert(Alert.AlertType.ERROR, "Failed to start game: " + ex.getMessage());
-            }
-        });
-
-        Button usernameButton = new Button("Choose Username");
-        usernameButton.setOnAction(e -> {
-            TextInputDialog dialog = new TextInputDialog();
-            dialog.setTitle("Choose Username");
-            dialog.setHeaderText(null);
-            dialog.setContentText("Enter your username:");
-
-            dialog.showAndWait().ifPresent(input -> {
-                if (!input.trim().isEmpty()) {
-                    username = input.trim();
-                    showAlert(Alert.AlertType.INFORMATION, "Username set to: " + username);
-                    if (handler != null) {
-                        handler.sendMessage("username: " + username);
-                    }
-                } else {
-                    showAlert(Alert.AlertType.ERROR, "Invalid username.");
-                }
-            });
-        });
 
         Button createServerButton = new Button("Create Server");
         createServerButton.setOnAction(e -> new Thread(() -> Server.startServer(5555)).start());
@@ -115,14 +82,12 @@ public class MainMenuGUI extends Application {
 
         root.getChildren().addAll(
             titleLabel,
-            startButton,
-            usernameButton,
             createServerButton,
             joinServerButton,
             exitButton
         );
 
-        Scene scene = new Scene(root, 400, 350);
+        Scene scene = new Scene(root, 400, 300);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
