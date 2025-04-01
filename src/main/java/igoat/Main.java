@@ -4,6 +4,7 @@ import igoat.client.Client;
 import igoat.client.GUI.MainMenuGUI;
 import igoat.server.Server;
 import javafx.application.Application;
+import javafx.application.Platform;
 
 /**
  * Main entry point for the iGoat application. Handles command-line arguments to start either the
@@ -24,8 +25,13 @@ public class Main {
      */
     public static void main(String[] args) {
         if (args.length == 0) {
-            // No arguments - launch GUI
-            Application.launch(MainMenuGUI.class, args);
+            try {
+                Platform.startup(() -> {});
+                Application.launch(MainMenuGUI.class, args);
+            } catch (Exception e) {
+                System.err.println("Error launching GUI: " + e.getMessage());
+                System.exit(1);
+            }
         } else {
             switch (args[0].toLowerCase()) {
                 case "server":

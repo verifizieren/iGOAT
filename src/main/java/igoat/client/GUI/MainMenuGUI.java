@@ -1,5 +1,6 @@
 package igoat.client.GUI;
 
+import igoat.client.Game;
 import igoat.client.ServerHandler;
 import igoat.server.Server;
 import javafx.application.Application;
@@ -7,7 +8,11 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
@@ -29,7 +34,16 @@ public class MainMenuGUI extends Application {
         titleLabel.setFont(new Font("Arial", 24));
 
         Button startButton = new Button("Start");
-        startButton.setOnAction(e -> showAlert(Alert.AlertType.INFORMATION, "Starting game..."));
+        startButton.setOnAction(e -> {
+            try {
+                Game game = new Game();
+                Stage gameStage = new Stage();
+                game.start(gameStage);
+                ((Stage) startButton.getScene().getWindow()).close();
+            } catch (Exception ex) {
+                showAlert(Alert.AlertType.ERROR, "Failed to start game: " + ex.getMessage());
+            }
+        });
 
         Button usernameButton = new Button("Choose Username");
         usernameButton.setOnAction(e -> {
