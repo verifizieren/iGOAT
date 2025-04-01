@@ -168,37 +168,32 @@ public class ServerHandler {
         long pingTimer = System.currentTimeMillis();
         String msg;
 
-        try {
-            while (connected) {
+        while (connected) {
+            try {
                 msg = msgReader.readLine();
-
-                if (msg == null) {
-                    log("Server disconnected (read null).");
-                    break;
-                }
-
-                if ("ping".equals(msg)) {
-                    sendMessage("pong");
-                    pingTimer = System.currentTimeMillis();
-                } else if (msg.startsWith(NICKNAME_CONFIRM_PREFIX)) {
-                    this.confirmedNickname = msg.substring(NICKNAME_CONFIRM_PREFIX.length());
-                    log("Nickname confirmed by server: " + this.confirmedNickname);
-                    sendUdpRegistrationPacket();
-                    messageBuffer.add(msg);
-                } else {
-                    messageBuffer.add(msg);
-                }
-
-                if (System.currentTimeMillis() - pingTimer > TIMEOUT) {
-                    log("Connection timed out");
-                    break;
-                }
+            } catch (IOException e) {
+                msg = "";
             }
-        } catch (IOException e) {
-            log(e.getMessage());
-        } finally {
-            connected = false;
+
+            if ("ping".equals(msg)) {
+                sendMessage("pong");
+                pingTimer = System.currentTimeMillis();
+            } else if (msg.startsWith(NICKNAME_CONFIRM_PREFIX)) {
+                this.confirmedNickname = msg.substring(NICKNAME_CONFIRM_PREFIX.length());
+                log("Nickname confirmed by server: " + this.confirmedNickname);
+                sendUdpRegistrationPacket();
+                messageBuffer.add(msg);
+            } else if (!msg.isEmpty()) {
+                messageBuffer.add(msg);
+            }
+
+            if (System.currentTimeMillis() - pingTimer > TIMEOUT) {
+                log("Connection timed out");
+                messageBuffer.add("Connection timed out");
+                break;
+            }
         }
+        connected = false;
     }
 
     /**

@@ -224,9 +224,13 @@ public class LobbyGUI {
     }
 
     private void startMessageReceiver() {
-        while (running && serverHandler != null && serverHandler.isConnected()) {
+        while (running && serverHandler != null) {
             String message = serverHandler.getMessage();
             if (message == null || message.isEmpty()) continue;
+
+            if (!serverHandler.isConnected()) {
+                appendToMessageArea(message);
+            }
 
             int colonIndex = message.indexOf(':');
             if (colonIndex == -1) continue;
