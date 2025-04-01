@@ -1,8 +1,6 @@
 package igoat.client;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javafx.animation.AnimationTimer;
@@ -11,33 +9,23 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
-/**
- * A simple 2D game implementation using JavaFX.
- * The game features a player (represented by a blue circle) that can move around
- * using WASD or arrow keys, with collision detection against walls.
- */
+
 public class Game extends Application {
-    /** The radius of the player circle in pixels */
-    private static final double PLAYER_RADIUS = 10;
-    /** The movement speed of the player in pixels per second */
+
+    private static final double PLAYER_WIDTH = 32;
+    private static final double PLAYER_HEIGHT = 32;
     private static final double MOVEMENT_SPEED = 300;
-    /** The thickness of all walls in pixels */
-    private static final double WALL_THICKNESS = 20;
+    private static final double CAMERA_ZOOM = 4.0;
     
-    /** The player character represented as a circle */
-    private Circle player;
-    /** List of all walls in the game */
-    private List<Rectangle> walls;
-    /** The main game pane containing all game elements */
     private Pane gamePane;
-    /** Set of currently pressed keys */
     private Set<KeyCode> activeKeys;
-    /** Timestamp of the last update for delta time calculation */
     private long lastUpdate;
+    
+    private Player player;
+    private Map gameMap;
+    private Camera activeCamera;
     
     /**
      * Initializes and starts the game.
@@ -48,26 +36,58 @@ public class Game extends Application {
      */
     @Override
     public void start(Stage primaryStage) {
+        primaryStage.setFullScreen(true);
+        primaryStage.setFullScreenExitHint("");
+        
+        gameMap = new Map();
+        
         gamePane = new Pane();
+        gamePane.setPrefSize(gameMap.getWidth(), gameMap.getHeight());
+        gamePane.setMinSize(gameMap.getWidth(), gameMap.getHeight());
+        gamePane.setMaxSize(gameMap.getWidth(), gameMap.getHeight());
         gamePane.setStyle("-fx-background-color: #f0f0f0;");
         
-        player = new Circle(PLAYER_RADIUS, Color.BLUE);
-        player.setCenterX(50);  
-        player.setCenterY(50);  
-        gamePane.getChildren().add(player);
-        
-        walls = new ArrayList<>();
-        createWalls();
-        
-        Scene scene = new Scene(gamePane, 800, 600);
+        Scene scene = new Scene(gamePane);
         primaryStage.setTitle("iGoat Game");
         primaryStage.setScene(scene);
+        
         primaryStage.show();
         
-        activeKeys = new HashSet<>();
+        for (javafx.scene.Node wall : gameMap.getVisualWalls()) {
+            gamePane.getChildren().add(wall);
+        }
         
+        double startX = 100;
+        double startY = 100;
+        
+        player = new Player(gamePane, scene.getWidth(), scene.getHeight(), CAMERA_ZOOM,
+                          (int)startX, (int)startY, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, Color.RED);
+        
+        gamePane.getChildren().add(player.getVisualRepresentation());
+        
+        player.setSpectated(true);
+        activeCamera = player.getCamera();
+        
+        scene.widthProperty().addListener((obs, oldVal, newVal) -> {
+            activeCamera.updateViewport(newVal.doubleValue(), scene.getHeight());
+        });
+        
+        scene.heightProperty().addListener((obs, oldVal, newVal) -> {
+            activeCamera.updateViewport(scene.getWidth(), newVal.doubleValue());
+        });
+        
+        primaryStage.fullScreenProperty().addListener((obs, oldVal, newVal) -> {
+            javafx.application.Platform.runLater(() -> {
+                activeCamera.updateViewport(scene.getWidth(), scene.getHeight());
+            });
+        });
+        
+        activeKeys = new HashSet<>();
         scene.setOnKeyPressed(event -> {
             activeKeys.add(event.getCode());
+            if (event.getCode() == KeyCode.ESCAPE) {
+                primaryStage.setFullScreen(false);
+            }
         });
         
         scene.setOnKeyReleased(event -> {
@@ -81,9 +101,8 @@ public class Game extends Application {
         new AnimationTimer() {
             @Override
             public void handle(long now) {
-                double deltaTime = (now - lastUpdate) / 1_000_000_000.0; 
+                double deltaTime = (now - lastUpdate) / 1_000_000_000.0;
                 lastUpdate = now;
-                
                 update(deltaTime);
             }
         }.start();
@@ -96,8 +115,8 @@ public class Game extends Application {
      * @param deltaTime The time elapsed since the last update in seconds
      */
     private void update(double deltaTime) {
-        double newX = player.getCenterX();
-        double newY = player.getCenterY();
+        double newX = player.getVisualRepresentation().getX();
+        double newY = player.getVisualRepresentation().getY();
         
         double dx = 0;
         double dy = 0;
@@ -115,63 +134,37 @@ public class Game extends Application {
             dx += MOVEMENT_SPEED * deltaTime;
         }
 
-        newX += dx;
-        newY += dy;
-        
-        if (!checkCollision(newX, newY)) {
-            player.setCenterX(newX);
-            player.setCenterY(newY);
-        }
-    }
-    
-    /**
-     * Creates and initializes all walls in the game.
-     * Sets up the boundary walls and some obstacle walls in the middle of the game area.
-     */
-    private void createWalls() {
-        Rectangle topWall = new Rectangle(0, 0, 800, WALL_THICKNESS);
-        Rectangle bottomWall = new Rectangle(0, 580, 800, WALL_THICKNESS);
-        Rectangle leftWall = new Rectangle(0, 0, WALL_THICKNESS, 600);
-        Rectangle rightWall = new Rectangle(780, 0, WALL_THICKNESS, 600);
-        
-        Rectangle wall1 = new Rectangle(200, 200, WALL_THICKNESS, 200);
-        Rectangle wall2 = new Rectangle(400, 300, 200, WALL_THICKNESS);
-        
-        Color wallColor = Color.GRAY;
-        topWall.setFill(wallColor);
-        bottomWall.setFill(wallColor);
-        leftWall.setFill(wallColor);
-        rightWall.setFill(wallColor);
-        wall1.setFill(wallColor);
-        wall2.setFill(wallColor);
-        
-        walls.add(topWall);
-        walls.add(bottomWall);
-        walls.add(leftWall);
-        walls.add(rightWall);
-        walls.add(wall1);
-        walls.add(wall2);
-        
-        gamePane.getChildren().addAll(walls);
-    }
-    
-    /**
-     * Checks if the player would collide with any wall at the given position.
-     *
-     * @param newX The x-coordinate to check for collision
-     * @param newY The y-coordinate to check for collision
-     * @return true if there would be a collision, false otherwise
-     */
-    private boolean checkCollision(double newX, double newY) {
-        Circle tempPlayer = new Circle(newX, newY, PLAYER_RADIUS);
-        
-        for (Rectangle wall : walls) {
-            if (tempPlayer.getBoundsInParent().intersects(wall.getBoundsInParent())) {
-                return true;
+        if (dx != 0) {
+            double testX = newX + dx;
+            boolean canMove = true;
+            for (Wall wall : gameMap.getCollisionWalls()) {
+                if (player.collidesWithWall((int)testX, (int)newY, wall)) {
+                    canMove = false;
+                    break;
+                }
+            }
+            
+            if (canMove) {
+                newX = testX;
             }
         }
         
-        return false;
+        if (dy != 0) {
+            double testY = newY + dy;
+            boolean canMove = true;
+            for (Wall wall : gameMap.getCollisionWalls()) {
+                if (player.collidesWithWall((int)newX, (int)testY, wall)) {
+                    canMove = false;
+                    break;
+                }
+            }
+            
+            if (canMove) {
+                newY = testY;
+            }
+        }
+        
+        player.updatePosition(newX, newY);
     }
     
     /**
