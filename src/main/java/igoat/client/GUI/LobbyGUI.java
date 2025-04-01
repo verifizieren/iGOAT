@@ -245,8 +245,12 @@ public class LobbyGUI {
                             String[] parts = entry.split("=");
                             if (parts.length == 2) {
                                 String code = parts[0];
-                                String playerCount = parts[1];
-                                lobbyListView.getItems().add(code + " (" + playerCount + "/" + MAX_PLAYERS + ")");
+                                String[] infoParts = parts[1].split(" ", 2);
+                                if (infoParts.length == 2) {
+                                    String playerCount = infoParts[0];
+                                    String state = infoParts[1];
+                                    lobbyListView.getItems().add(code + " (" + playerCount + ") " + state);
+                                }
                             }
                         }
                     });

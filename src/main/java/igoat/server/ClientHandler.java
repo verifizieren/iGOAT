@@ -538,8 +538,13 @@ public class ClientHandler implements Runnable {
             sb.append(lobby.getCode())
                 .append("=")
                 .append(lobby.getMembers().size())
-                .append(",");
+                .append("/")
+                .append(Lobby.MAX_PLAYERS)
+                .append(" [")
+                .append(lobby.getState().toString().toLowerCase())
+                .append("],");
         }
+
 
         if (sb.length() > 0) {
             sb.setLength(sb.length() - 1);
