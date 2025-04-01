@@ -56,3 +56,8 @@
 * Die Gruppe testete die Ergebnisse ihrer Arbeit. Leider wurde klar, dass es nicht möglich war, wie geplant OpenGL für das Spiel zu verwenden, da keine funktionierenden Möglichkeiten für die Implementation des GUIs gefunden wurden. Da OpenGL nicht einfach mit JavaFX kompatibel ist, wurde entschieden, die bisherige Implementation komplett auf JavaFX zu porten. Auch wenn dies viel Zeit kosten würde, war es die einzige Option.
 * ToDo: Jonas - Gameimplementation JavaFX, Marvin & Nicolas: Lobby und Chat GUI, Max: UDP
 * Das nächste Treffen wurde für den Montag, den 31.03.2025 festgelegt.
+## <p align ="center"> 31.03.2025
+* Die Gruppe sammelten die bisherigen Ergebnisse zusammen und testeten diese auch.
+* Die Ergebnisse waren zufriedenstellend.
+* ToDo: Meilenstein drei fertigstellen.
+* Das nächste wurde für den Sonntag, den 06.04.2025 festgelegt.
