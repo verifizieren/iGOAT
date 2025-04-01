@@ -19,15 +19,13 @@ public class LobbyGUI {
     private volatile boolean running = true;
 
     private TextArea messageArea;
-    private TextField lobbyCodeField;
-    private Button startButton;
-    private Button createButton;
-    private Button leaveLobbyButton;
     private TextField chatInput;
     private Button sendButton;
     private Button toggleChatButton;
     private Label chatModeLabel;
     private ListView<String> lobbyListView;
+    private ListView<String> playerListView;
+    private Label playerListLabel;
 
     private boolean isGlobalChat = false;
     private final int MAX_PLAYERS = 4;
@@ -38,26 +36,39 @@ public class LobbyGUI {
     }
 
     public void show(Stage primaryStage) {
-        Label label = new Label("Lobby");
-        label.setFont(new Font("Arial", 30));
+        Label lobbyListLabel = new Label("Available Lobbies");
+        lobbyListLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
+
+        lobbyListView = new ListView<>();
+        lobbyListView.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                String selected = lobbyListView.getSelectionModel().getSelectedItem();
+                if (selected != null && !selected.isEmpty()) {
+                    String code = selected.split(" ")[0];
+                    serverHandler.sendMessage("lobby:" + code);
+                }
+            }
+        });
+
+        playerListLabel = new Label("Players");
+        playerListLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+
+        playerListView = new ListView<>();
+        playerListView.setPrefHeight(150);
+
+        VBox leftPanel = new VBox(10);
+        leftPanel.getChildren().addAll(lobbyListLabel, lobbyListView, playerListLabel, playerListView);
+        leftPanel.setPadding(new Insets(10));
+        leftPanel.setAlignment(Pos.TOP_LEFT);
+        leftPanel.setPrefWidth(200);
+
+        chatModeLabel = new Label("Lobby Chat");
+        chatModeLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
 
         messageArea = new TextArea();
         messageArea.setEditable(false);
         messageArea.setWrapText(true);
         messageArea.setPrefHeight(200);
-
-        lobbyCodeField = new TextField();
-        lobbyCodeField.setVisible(false);
-        lobbyCodeField.setManaged(false);
-
-        startButton = new Button("Start Game");
-        createButton = new Button("Create Lobby");
-        leaveLobbyButton = new Button("Exit Lobby");
-        Button exitButton = new Button("Exit");
-        Button nameButton = new Button("Change Name");
-
-        startButton.setDisable(true);
-        createButton.setDisable(true);
 
         chatInput = new TextField();
         chatInput.setPromptText("Type a message...");
@@ -66,22 +77,29 @@ public class LobbyGUI {
         sendButton = new Button("Send");
         sendButton.setDisable(true);
 
-        chatModeLabel = new Label("Lobby Chat");
-        toggleChatButton = new Button("Switch to Global Chat");
-
-        toggleChatButton.setOnAction(e -> {
-            isGlobalChat = !isGlobalChat;
-            toggleChatButton.setText(isGlobalChat ? "Switch to Lobby Chat" : "Switch to Global Chat");
-            chatModeLabel.setText(isGlobalChat ? "Global Chat" : "Lobby Chat");
-            appendToMessageArea("Now chatting in " + (isGlobalChat ? "Global Chat" : "Lobby Chat"));
-        });
-
         sendButton.setOnAction(e -> sendChatMessage());
         chatInput.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
                 sendChatMessage();
             }
         });
+
+        toggleChatButton = new Button("Switch to Global Chat");
+        toggleChatButton.setOnAction(e -> {
+            isGlobalChat = !isGlobalChat;
+            toggleChatButton.setText(isGlobalChat ? "Switch to Lobby Chat" : "Switch to Global Chat");
+            chatModeLabel.setText(isGlobalChat ? "Global Chat" : "Lobby Chat");
+            appendToMessageArea("Now chatting in " + chatModeLabel.getText());
+            if (serverHandler != null && serverHandler.isConnected()) {
+                serverHandler.sendMessage(isGlobalChat ? "getplayers:" : "getlobbyplayers:");
+            }
+        });
+
+        Button startButton = new Button("Start Game");
+        Button createButton = new Button("Create Lobby");
+        Button leaveLobbyButton = new Button("Exit Lobby");
+        Button nameButton = new Button("Change Name");
+        Button exitButton = new Button("Exit");
 
         startButton.setOnAction(event -> {
             String selected = lobbyListView.getSelectionModel().getSelectedItem();
@@ -94,7 +112,6 @@ public class LobbyGUI {
         createButton.setOnAction(event -> {
             if (serverHandler != null && serverHandler.isConnected()) {
                 serverHandler.sendMessage("newlobby:");
-                System.out.println("Sent: newlobby:");
             }
         });
 
@@ -130,46 +147,18 @@ public class LobbyGUI {
             System.exit(0);
         });
 
-        lobbyListView = new ListView<>();
-        lobbyListView.setPrefWidth(150);
-
-        lobbyListView.setOnMouseClicked(event -> {
-            if (event.getClickCount() == 2) {
-                String selectedLobby = lobbyListView.getSelectionModel().getSelectedItem();
-                if (selectedLobby != null && !selectedLobby.isEmpty() && serverHandler != null && serverHandler.isConnected()) {
-                    String code = selectedLobby.split(" ")[0];
-                    serverHandler.sendMessage("lobby:" + code);
-                    appendToMessageArea("Joining lobby " + code + "...");
-                }
-            }
-        });
-
-        VBox leftPanel = new VBox(10, new Label("Available Lobbies:"), lobbyListView);
-        leftPanel.setPadding(new Insets(10));
-        leftPanel.setAlignment(Pos.TOP_LEFT);
-
         VBox rightPanel = new VBox(10);
-        rightPanel.setAlignment(Pos.CENTER);
+        rightPanel.setAlignment(Pos.TOP_CENTER);
         rightPanel.setPadding(new Insets(10));
         rightPanel.getChildren().addAll(
-            label,
-            lobbyCodeField,
-            startButton,
-            createButton,
-            leaveLobbyButton,
-            nameButton,
-            exitButton,
-            chatModeLabel,
-            messageArea,
-            chatInput,
-            sendButton,
-            toggleChatButton
+            startButton, createButton, leaveLobbyButton, nameButton, exitButton,
+            chatModeLabel, messageArea, chatInput, sendButton, toggleChatButton
         );
 
-        HBox mainLayout = new HBox(10, leftPanel, rightPanel);
-        mainLayout.setPadding(new Insets(10));
+        HBox mainLayout = new HBox(20, leftPanel, rightPanel);
+        mainLayout.setPadding(new Insets(20));
 
-        Scene scene = new Scene(mainLayout, 700, 520);
+        Scene scene = new Scene(mainLayout, 750, 500);
         primaryStage.setTitle("Lobby Menu");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -177,9 +166,8 @@ public class LobbyGUI {
         if (serverHandler != null && serverHandler.isConnected()) {
             serverHandler.sendMessage("connect:" + username);
             serverHandler.sendMessage("getlobbies:");
+            serverHandler.sendMessage("getlobbyplayers:");
 
-            startButton.setDisable(false);
-            createButton.setDisable(false);
             chatInput.setDisable(false);
             sendButton.setDisable(false);
 
@@ -190,6 +178,7 @@ public class LobbyGUI {
             Thread refreshThread = new Thread(() -> {
                 while (running && serverHandler != null && serverHandler.isConnected()) {
                     serverHandler.sendMessage("getlobbies:");
+                    serverHandler.sendMessage(isGlobalChat ? "getplayers:" : "getlobbyplayers:");
                     try {
                         Thread.sleep(lobbyRefreshTime);
                     } catch (InterruptedException e) {
@@ -207,30 +196,16 @@ public class LobbyGUI {
         if (!text.isEmpty()) {
             if (serverHandler != null && serverHandler.isConnected()) {
                 String prefix = isGlobalChat ? "chat:" : "lobbychat:";
-
-                if (text.startsWith("/whisper ")) {
-                    String[] parts = text.substring(9).split(" ", 2);
-                    if (parts.length == 2) {
-                        serverHandler.sendMessage("whisper:" + parts[0] + "," + parts[1]);
-                    } else {
-                        appendToMessageArea("Usage: /whisper <user> <message>");
-                    }
-                } else {
-                    serverHandler.sendMessage(prefix + text);
-                }
+                serverHandler.sendMessage(prefix + text);
             }
             chatInput.setText("");
         }
     }
 
     private void startMessageReceiver() {
-        while (running && serverHandler != null) {
+        while (running && serverHandler != null && serverHandler.isConnected()) {
             String message = serverHandler.getMessage();
             if (message == null || message.isEmpty()) continue;
-
-            if (!serverHandler.isConnected()) {
-                appendToMessageArea(message);
-            }
 
             int colonIndex = message.indexOf(':');
             if (colonIndex == -1) continue;
@@ -262,36 +237,25 @@ public class LobbyGUI {
                         appendToMessageArea("Info: Du bist Lobby " + content + " beigetreten.");
                     }
                     break;
-                case "role":
-                    appendToMessageArea("Info: Du hast Rolle " + roleName(content) + " erhalten.");
-                    serverHandler.sendMessage("role:" + content);
-                    break;
-                case "catch":
-                    appendToMessageArea(content + " wurde gefangen.");
-                    break;
-                case "revive":
-                    appendToMessageArea(content + " wurde wiederbelebt.");
-                    break;
                 case "lobbies":
                     Platform.runLater(() -> {
-                        if (content.isBlank()) {
-                            lobbyListView.getItems().clear();
-                            return;
-                        }
-
-                        String[] lobbies = content.split(",");
                         lobbyListView.getItems().clear();
-
+                        String[] lobbies = content.split(",");
                         for (String entry : lobbies) {
                             String[] parts = entry.split("=");
                             if (parts.length == 2) {
                                 String code = parts[0];
                                 String playerCount = parts[1];
                                 lobbyListView.getItems().add(code + " (" + playerCount + "/" + MAX_PLAYERS + ")");
-                            } else {
-                                lobbyListView.getItems().add(entry);
                             }
                         }
+                    });
+                    break;
+                case "players":
+                case "lobbyplayers":
+                    Platform.runLater(() -> {
+                        String[] players = content.split(",");
+                        playerListView.getItems().setAll(players);
                     });
                     break;
                 default:
@@ -309,14 +273,5 @@ public class LobbyGUI {
 
     private void appendToMessageArea(String message) {
         Platform.runLater(() -> messageArea.appendText(message + "\n"));
-    }
-
-    private String roleName(String code) {
-        return switch (code) {
-            case "0" -> "Ziege";
-            case "1" -> "iGOAT";
-            case "2" -> "Wächter";
-            default -> "Unbekannt";
-        };
     }
 }

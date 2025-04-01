@@ -294,6 +294,12 @@ public class ClientHandler implements Runnable {
                         sendError("Du bist in keiner Lobby");
                     }
                     break;
+                case "getplayers":
+                    handleGetPlayers();
+                    break;
+                case "getlobbyplayers":
+                    handleGetLobbyPlayers();
+                    break;
                 case "ready":
                     handleReady();
                     break;
@@ -542,6 +548,32 @@ public class ClientHandler implements Runnable {
         sendMessage("lobbies:" + sb.toString());
     }
 
+    private void handleGetPlayers() {
+        StringBuilder sb = new StringBuilder();
+        for (ClientHandler client : clientList) {
+            sb.append(client.nickname).append(",");
+        }
+        if (sb.length() > 0) {
+            sb.setLength(sb.length() - 1); // remove last comma
+        }
+        sendMessage("players:" + sb);
+    }
+
+    private void handleGetLobbyPlayers() {
+        if (currentLobby == null) {
+            sendMessage("lobbyplayers:");
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (ClientHandler member : currentLobby.getMembers()) {
+            sb.append(member.nickname).append(",");
+        }
+        if (sb.length() > 0) {
+            sb.setLength(sb.length() - 1);
+        }
+        sendMessage("lobbyplayers:" + sb);
+    }
 
     private void handleReady() {
         if (currentLobby == null) {
@@ -645,6 +677,10 @@ public class ClientHandler implements Runnable {
 
     public int getRole() {
         return role;
+    }
+
+    public String getNickname() {
+        return nickname;
     }
 
     private ClientHandler findPlayer(String name) {
