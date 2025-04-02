@@ -50,7 +50,7 @@ public class LobbyGUI {
             }
         });
 
-        playerListLabel = new Label("Players");
+        playerListLabel = new Label("Players in Lobby");
         playerListLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
 
         playerListView = new ListView<>();
@@ -89,6 +89,7 @@ public class LobbyGUI {
             isGlobalChat = !isGlobalChat;
             toggleChatButton.setText(isGlobalChat ? "Switch to Lobby Chat" : "Switch to Global Chat");
             chatModeLabel.setText(isGlobalChat ? "Global Chat" : "Lobby Chat");
+            playerListLabel.setText(isGlobalChat ? "All Connected Players" : "Players in Lobby");
             appendToMessageArea("Now chatting in " + chatModeLabel.getText());
             if (serverHandler != null && serverHandler.isConnected()) {
                 serverHandler.sendMessage(isGlobalChat ? "getplayers:" : "getlobbyplayers:");
@@ -237,7 +238,7 @@ public class LobbyGUI {
                         appendToMessageArea("Info: Du bist Lobby " + content + " beigetreten.");
                     }
                     break;
-                case "lobbies":
+                case "getlobbies": // updates the lobby list
                     Platform.runLater(() -> {
                         lobbyListView.getItems().clear();
                         String[] lobbies = content.split(",");
@@ -255,8 +256,8 @@ public class LobbyGUI {
                         }
                     });
                     break;
-                case "players":
-                case "lobbyplayers":
+                case "getplayers": // all connected Users
+                case "getlobbyplayers": // Only Users in the current lobby
                     Platform.runLater(() -> {
                         String[] players = content.split(",");
                         playerListView.getItems().setAll(players);

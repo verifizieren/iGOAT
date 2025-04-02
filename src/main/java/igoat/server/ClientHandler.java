@@ -529,7 +529,7 @@ public class ClientHandler implements Runnable {
 
     private void handleGetLobbies() {
         if (lobbyList.isEmpty()) {
-            sendMessage("lobbies:");
+            sendMessage("getlobbies:");
             return;
         }
 
@@ -550,7 +550,7 @@ public class ClientHandler implements Runnable {
             sb.setLength(sb.length() - 1);
         }
 
-        sendMessage("lobbies:" + sb.toString());
+        sendMessage("getlobbies:" + sb.toString());
     }
 
     private void handleGetPlayers() {
@@ -559,14 +559,14 @@ public class ClientHandler implements Runnable {
             sb.append(client.nickname).append(",");
         }
         if (sb.length() > 0) {
-            sb.setLength(sb.length() - 1); // remove last comma
+            sb.setLength(sb.length() - 1);
         }
-        sendMessage("players:" + sb);
+        sendMessage("getplayers:" + sb);
     }
 
     private void handleGetLobbyPlayers() {
         if (currentLobby == null) {
-            sendMessage("lobbyplayers:");
+            sendMessage("getlobbyplayers:");
             return;
         }
 
@@ -577,7 +577,7 @@ public class ClientHandler implements Runnable {
         if (sb.length() > 0) {
             sb.setLength(sb.length() - 1);
         }
-        sendMessage("lobbyplayers:" + sb);
+        sendMessage("getlobbyplayers:" + sb);
     }
 
     private void handleReady() {
