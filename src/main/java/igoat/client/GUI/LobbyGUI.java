@@ -17,20 +17,25 @@ import javafx.stage.Stage;
  */
 public class LobbyGUI {
 
+    // Server communication
     private static ServerHandler serverHandler;
     private String username = System.getProperty("user.name");
     private volatile boolean running = true;
 
+
+    // Chat UI components
     private TextArea messageArea;
     private TextField chatInput;
     private Button sendButton;
     private Button toggleChatButton;
     private Label chatModeLabel;
 
+    // Lobby and player list components
     private ListView<String> lobbyListView;
     private ListView<String> playerListView;
     private Label playerListLabel;
 
+    // Configuration constants
     private boolean isGlobalChat = false;
     private final int MAX_PLAYERS = 4;
 
@@ -249,6 +254,9 @@ public class LobbyGUI {
         }
     }
 
+    /**
+     * Sends a chat message to either the global or lobby chat based on current mode.
+     */
     private void sendChatMessage() {
         String text = chatInput.getText().trim();
         if (!text.isEmpty()) {
@@ -259,7 +267,9 @@ public class LobbyGUI {
             chatInput.setText("");
         }
     }
-
+    /**
+     * Starts a background thread to receive and display messages from the server.
+     */
     private void startMessageReceiver() {
         while (running && serverHandler != null && serverHandler.isConnected()) {
             String message = serverHandler.getMessage();
@@ -347,7 +357,11 @@ public class LobbyGUI {
             }
         }
     }
-
+    /**
+     * Appends a message to the chat area.
+     *
+     * @param message the message to append to the chat area
+     */
     private void appendToMessageArea(String message) {
         Platform.runLater(() -> messageArea.appendText(message + "\n"));
     }
