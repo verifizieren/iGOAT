@@ -43,9 +43,7 @@ public class Lobby {
         return members.size() >= MAX_PLAYERS;
     }
 
-    public void addMember(ClientHandler client) {
-        members.add(client);
-
+    private void updateState() {
         if (members.size() >= MAX_PLAYERS) {
             state = GameState.FULL;
         } else {
@@ -53,8 +51,14 @@ public class Lobby {
         }
     }
 
+    public void addMember(ClientHandler client) {
+        members.add(client);
+        updateState();
+    }
+
     public void removeMember(ClientHandler client) {
         members.remove(client);
+        updateState();
     }
 
     public void broadcastToLobby(String message) {

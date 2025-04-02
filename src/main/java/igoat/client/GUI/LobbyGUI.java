@@ -176,19 +176,6 @@ public class LobbyGUI {
             messageThread.setDaemon(true);
             messageThread.start();
 
-            Thread refreshThread = new Thread(() -> {
-                while (running && serverHandler != null && serverHandler.isConnected()) {
-                    serverHandler.sendMessage("getlobbies:");
-                    serverHandler.sendMessage(isGlobalChat ? "getplayers:" : "getlobbyplayers:");
-                    try {
-                        Thread.sleep(lobbyRefreshTime);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                }
-            });
-            refreshThread.setDaemon(true);
-            refreshThread.start();
         }
     }
 
@@ -234,6 +221,7 @@ public class LobbyGUI {
                 case "lobby":
                     if (content.equals("0")) {
                         appendToMessageArea("Info: Du hast die Lobby verlassen.");
+                        Platform.runLater(() -> playerListView.getItems().clear());
                     } else {
                         appendToMessageArea("Info: Du bist Lobby " + content + " beigetreten.");
                     }

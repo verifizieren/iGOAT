@@ -397,6 +397,7 @@ public class ClientHandler implements Runnable {
 
         sendMessage("confirm:" + this.nickname);
         broadcast("chat:User " + this.nickname + " connected");
+        broadcastGlobalPlayerList();
     }
 
     /**
@@ -441,6 +442,9 @@ public class ClientHandler implements Runnable {
                 + " hat seinen/ihren Username zu "
                 + this.nickname
                 + " geändert");
+
+        broadcastGlobalPlayerList();
+        if (currentLobby != null) broadcastLobbyPlayerList();
     }
 
     /**
@@ -497,6 +501,9 @@ public class ClientHandler implements Runnable {
 
         sendMessage("lobby:" + code);
         currentLobby.broadcastToLobby("chat:" + nickname + " ist der Lobby " + code + " beigetreten");
+
+        broadcastGetLobbiesToAll();
+        broadcastLobbyPlayerList();
     }
 
 
@@ -512,6 +519,9 @@ public class ClientHandler implements Runnable {
 
         sendMessage("lobby:" + code);
         currentLobby.broadcastToLobby("chat:" + nickname + " hat eine neue Lobby erstellt (" + code + ")");
+
+        broadcastGetLobbiesToAll();
+        broadcastLobbyPlayerList();
     }
 
     private void leaveCurrentLobby() {
@@ -522,7 +532,8 @@ public class ClientHandler implements Runnable {
             if (currentLobby.getMembers().isEmpty()) {
                 lobbyList.remove(currentLobby);
             }
-
+            broadcastGetLobbiesToAll();
+            broadcastLobbyPlayerList();
             currentLobby = null;
         }
     }
@@ -732,6 +743,7 @@ public class ClientHandler implements Runnable {
                 broadcast("chat:User " + this.nickname + " wurde getrennt");
                 System.out.println("Client " + nickname + " wurde getrennt");
             }
+            broadcastGlobalPlayerList();
 
             running = false;
             clientList.remove(this);
@@ -807,6 +819,56 @@ public class ClientHandler implements Runnable {
     private void broadcast(String message) {
         for (ClientHandler client : clientList) {
             client.sendMessage(message);
+        }
+    }
+
+    private static void broadcastGetLobbiesToAll() {
+        StringBuilder sb = new StringBuilder();
+        for (Lobby lobby : lobbyList) {
+            sb.append(lobby.getCode())
+                .append("=")
+                .append(lobby.getMembers().size())
+                .append("/")
+                .append(Lobby.MAX_PLAYERS)
+                .append(" [")
+                .append(lobby.getState().toString().toLowerCase())
+                .append("],");
+        }
+        if (sb.length() > 0) {
+            sb.setLength(sb.length() - 1);
+        }
+        String message = "getlobbies:" + sb.toString();
+        for (ClientHandler client : clientList) {
+            client.sendMessage(message);
+        }
+    }
+
+    private static void broadcastGlobalPlayerList() {
+        StringBuilder sb = new StringBuilder();
+        for (ClientHandler client : clientList) {
+            sb.append(client.getNickname()).append(",");
+        }
+        if (sb.length() > 0) sb.setLength(sb.length() - 1);
+
+        String update = "getplayers:" + sb.toString();
+        for (ClientHandler client : clientList) {
+            client.sendMessage(update);
+        }
+    }
+
+    private void broadcastLobbyPlayerList() {
+        if (currentLobby == null)
+            return;
+
+        StringBuilder sb = new StringBuilder();
+        for (ClientHandler member : currentLobby.getMembers()) {
+            sb.append(member.getNickname()).append(",");
+        }
+        if (sb.length() > 0) sb.setLength(sb.length() - 1);
+
+        String update = "getlobbyplayers:" + sb.toString();
+        for (ClientHandler member : currentLobby.getMembers()) {
+            member.sendMessage(update);
         }
     }
 
