@@ -15,6 +15,7 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import igoat.client.Game;
 
 public class MainMenuGUI extends Application {
 
@@ -31,6 +32,19 @@ public class MainMenuGUI extends Application {
 
         Label titleLabel = new Label("iGOAT");
         titleLabel.setFont(new Font("Arial", 24));
+
+        Button startButton = new Button("Start");
+        startButton.setOnAction(e -> {
+            try {
+                Game game = new Game();
+                Stage gameStage = new Stage();
+                game.start(gameStage);
+                ((Stage) startButton.getScene().getWindow()).close();
+            } catch (Exception ex) {
+                showAlert(Alert.AlertType.ERROR, "Failed to start game: " + ex.getMessage());
+            }
+        });
+
 
         Button createServerButton = new Button("Create Server");
         createServerButton.setOnAction(e -> new Thread(() -> Server.startServer(5555)).start());
@@ -82,6 +96,7 @@ public class MainMenuGUI extends Application {
 
         root.getChildren().addAll(
             titleLabel,
+            startButton,
             createServerButton,
             joinServerButton,
             exitButton
