@@ -12,12 +12,14 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 
+
+
 public class Game extends Application {
 
     private static final double PLAYER_WIDTH = 32;
     private static final double PLAYER_HEIGHT = 32;
     private static final double MOVEMENT_SPEED = 300;
-    private static final double CAMERA_ZOOM = 4.0;
+    private static final double CAMERA_ZOOM = 1.0;
     
     private Pane gamePane;
     private Set<KeyCode> activeKeys;
@@ -36,11 +38,11 @@ public class Game extends Application {
      */
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setFullScreen(true);
-        primaryStage.setFullScreenExitHint("");
-        
         gameMap = new Map();
-        
+        primaryStage.setWidth(gameMap.getWidth());
+        primaryStage.setHeight(gameMap.getHeight());
+        primaryStage.setFullScreenExitHint("");
+
         gamePane = new Pane();
         gamePane.setPrefSize(gameMap.getWidth(), gameMap.getHeight());
         gamePane.setMinSize(gameMap.getWidth(), gameMap.getHeight());
