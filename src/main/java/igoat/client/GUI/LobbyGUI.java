@@ -12,29 +12,48 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
+/**
+ * Represents the GUI for the game lobby where players can chat and join games.
+ * This class handles the lobby interface including chat functionality,
+ * lobby listings, and player listing for global and lobby.
+ */
 public class LobbyGUI {
 
+    // Server communication
     private static ServerHandler serverHandler;
     private String username = System.getProperty("user.name");
     private volatile boolean running = true;
 
+    // Chat UI components
     private TextArea messageArea;
     private TextField chatInput;
     private Button sendButton;
     private Button toggleChatButton;
     private Label chatModeLabel;
+
+    // Lobby and player list components
     private ListView<String> lobbyListView;
     private ListView<String> playerListView;
     private Label playerListLabel;
 
+    // Configuration constants
     private boolean isGlobalChat = false;
     private final int MAX_PLAYERS = 4;
-    private final int lobbyRefreshTime = 3000;
 
+    /**
+     * Sets the server handler for communication with the game server.
+     *
+     * @param handler the ServerHandler instance to use for server communication
+     */
     public static void setServerHandler(ServerHandler handler) {
         serverHandler = handler;
     }
 
+    /**
+     * Displays the lobby GUI
+     *
+     * @param primaryStage the JavaFX stage to display the lobby on
+     */
     public void show(Stage primaryStage) {
         Label lobbyListLabel = new Label("Available Lobbies");
         lobbyListLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
@@ -179,6 +198,9 @@ public class LobbyGUI {
         }
     }
 
+    /**
+     * Sends a chat message to either the global or lobby chat based on current mode.
+     */
     private void sendChatMessage() {
         String text = chatInput.getText().trim();
         if (!text.isEmpty()) {
@@ -190,6 +212,9 @@ public class LobbyGUI {
         }
     }
 
+    /**
+     * Starts a background thread to receive and display messages from the server.
+     */
     private void startMessageReceiver() {
         while (running && serverHandler != null && serverHandler.isConnected()) {
             String message = serverHandler.getMessage();
@@ -264,6 +289,11 @@ public class LobbyGUI {
         }
     }
 
+    /**
+     * Appends a message to the chat area.
+     *
+     * @param message the message to append to the chat area
+     */
     private void appendToMessageArea(String message) {
         Platform.runLater(() -> messageArea.appendText(message + "\n"));
     }
