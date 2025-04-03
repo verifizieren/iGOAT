@@ -113,9 +113,10 @@ public class Game extends Application {
         gamePane.setPrefSize(gameMap.getWidth(), gameMap.getHeight());
         gamePane.setMinSize(gameMap.getWidth(), gameMap.getHeight());
         gamePane.setMaxSize(gameMap.getWidth(), gameMap.getHeight());
-        gamePane.setStyle("-fx-background-color: #f0f0f0;");
+        gamePane.setStyle("-fx-background-color: white;");
 
         Scene scene = new Scene(gamePane);
+        scene.setFill(javafx.scene.paint.Color.WHITE);
         
         String windowTitle = "iGoat Game - Lobby " + lobbyCode + " - Player: " + confirmedNickname;
         primaryStage.setTitle(windowTitle);
