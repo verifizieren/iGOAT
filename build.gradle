@@ -44,26 +44,6 @@ dependencies {
 
     testImplementation platform('org.junit:junit-bom:5.9.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
-
-    implementation 'org.lwjgl:lwjgl:3.3.6'
-    implementation 'org.lwjgl:lwjgl-glfw:3.3.6'
-    implementation 'org.lwjgl:lwjgl-opengl:3.3.6'
-
-    implementation 'org.lwjgl:lwjgl:3.3.6:natives-windows'
-    implementation 'org.lwjgl:lwjgl-glfw:3.3.6:natives-windows'
-    implementation 'org.lwjgl:lwjgl-opengl:3.3.6:natives-windows'
-
-    implementation 'org.lwjgl:lwjgl:3.3.6:natives-linux'
-    implementation 'org.lwjgl:lwjgl-glfw:3.3.6:natives-linux'
-    implementation 'org.lwjgl:lwjgl-opengl:3.3.6:natives-linux'
-
-    implementation 'org.lwjgl:lwjgl:3.3.6:natives-macos'
-    implementation 'org.lwjgl:lwjgl-glfw:3.3.6:natives-macos'
-    implementation 'org.lwjgl:lwjgl-opengl:3.3.6:natives-macos'
-
-    implementation 'org.lwjgl:lwjgl:3.3.6:natives-macos-arm64'
-    implementation 'org.lwjgl:lwjgl-glfw:3.3.6:natives-macos-arm64'
-    implementation 'org.lwjgl:lwjgl-opengl:3.3.6:natives-macos-arm64'
 }
 
 test {
