@@ -74,7 +74,7 @@ public class Lobby {
      * @param excludeMember A member to exclude from the broadcast (usually the sender), can be null.
      */
     public void broadcastUpdateToLobby(String message, ClientHandler excludeMember) {
-        System.out.println("[UDP_LOBBY] Broadcasting to lobby " + code + ": '" + message + "'");
+       //System.out.println("[UDP_LOBBY] Broadcasting to lobby " + code + ": '" + message + "'");
         
         for (ClientHandler member : members) {
             if (excludeMember != null && member == excludeMember) {

@@ -181,8 +181,6 @@ public class Game extends Application {
                 update(deltaTime);
             }
         }.start();
-
-        showInfo("Game Started", "Lobby " + lobbyCode + " game has started! Good luck!");
     }
     
     /**
@@ -321,7 +319,7 @@ public class Game extends Application {
      * @param update The UDP update message
      */
     private void processUdpUpdate(String update) {
-        System.out.println("[Game_UDP_PROCESS] Processing update: '" + update + "'");
+        //System.out.println("[Game_UDP_PROCESS] Processing update: '" + update + "'");
         
         if (update.startsWith("player_position:")) {
             String[] parts = update.split(":");
@@ -335,8 +333,8 @@ public class Game extends Application {
                 int x = Integer.parseInt(parts[2]);
                 int y = Integer.parseInt(parts[3]);
 
-                System.out.println("[Game_UDP_PROCESS] Parsed position update for '" + remotePlayerName + 
-                                 "' at (" + x + "," + y + ")");
+                //System.out.println("[Game_UDP_PROCESS] Parsed position update for '" + remotePlayerName + 
+                                 //"' at (" + x + "," + y + ")");
 
                 String confirmedNickname = serverHandler.getConfirmedNickname();
                 if (confirmedNickname == null) {
@@ -344,24 +342,13 @@ public class Game extends Application {
                     return;
                 }
                 if (remotePlayerName.equals(confirmedNickname)) {
-                    if (serverHandler == null || lobbyCode == null) {
-                        System.out.println("[Game_UDP_PROCESS] Ignoring update about ourselves (not in lobby)");
-                        return;
-                    }
-                    
-                    if (otherPlayers.isEmpty()) {
-                        System.out.println("[Game_UDP_PROCESS] Ignoring update about ourselves (no other players)");
-                        return;
-                    }
-                    
-                    System.out.println("[Game_UDP_PROCESS] Processing update from another player with the same name");
+                    return;
                 }
-
-                if (!otherPlayers.containsKey(remotePlayerName)) {
-                    createVisualForRemotePlayer(remotePlayerName, x, y);
-                } else {
+                if (otherPlayers.containsKey(remotePlayerName)) {
                     updateRemotePlayerPosition(remotePlayerName, x, y);
+                    return;
                 }
+                createVisualForRemotePlayer(remotePlayerName, x, y);
             } catch (NumberFormatException e) {
                 System.err.println("[UDP_CLIENT] Invalid coordinates: " + e.getMessage());
             }
@@ -380,12 +367,14 @@ public class Game extends Application {
      * @param y The new y-coordinate
      */
     private void updateRemotePlayerPosition(String playerName, int x, int y) {
-        System.out.println("[Game_RemotePlayer] Attempting to update player '" + playerName + "' to position (" + x + "," + y + ")");
+        //System.out.println("[Game_RemotePlayer] Attempting to update player '" + playerName + "' to position (" + x + "," + y + ")");
         
         if (otherPlayers.containsKey(playerName)) {
             Player remotePlayer = otherPlayers.get(playerName);
-            remotePlayer.updatePosition(x, y);
-            System.out.println("[Game_RemotePlayer] Updated existing player '" + playerName + "' to position (" + x + "," + y + ")");
+            Platform.runLater(() -> {
+                remotePlayer.updatePosition(x, y);
+                //System.out.println("[Game_RemotePlayer] Updated existing player '" + playerName + "' to position (" + x + "," + y + ")");
+            });
         } else {
             System.out.println("[Game_DEBUG] Player '" + playerName + "' not found visually, creating at (" + x + ", " + y + ").");
             createVisualForRemotePlayer(playerName, x, y);
@@ -411,12 +400,30 @@ public class Game extends Application {
         Color playerColor = Color.ORANGE;
         
         try {
-            final Player remotePlayer = new Player(gamePane, gamePane.getPrefWidth(), gamePane.getPrefHeight(), CAMERA_ZOOM,
+            final Player[] remotePlayerRef = new Player[1];
+            Platform.runLater(() -> {
+                if (!otherPlayers.containsKey(playerName)) { 
+                    remotePlayerRef[0] = new Player(gamePane, gamePane.getPrefWidth(), gamePane.getPrefHeight(), CAMERA_ZOOM,
                                                x, y, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, playerColor, playerName);
+                    
+                    otherPlayers.put(playerName, remotePlayerRef[0]);
+                    
+                    System.out.println("[Game_RemotePlayer] Added visual for player: " + playerName + " with username: " + playerName);
+                }
+            });
             
-            otherPlayers.put(playerName, remotePlayer);
+            Thread.sleep(50);
             
-            System.out.println("[Game_RemotePlayer] Added visual for player: " + playerName + " with username: " + playerName);
+            if (remotePlayerRef[0] != null) {
+                Platform.runLater(() -> {
+                    if (!gamePane.getChildren().contains(remotePlayerRef[0].getVisualRepresentation())) {
+                        gamePane.getChildren().add(remotePlayerRef[0].getVisualRepresentation());
+                    }
+                    if (!gamePane.getChildren().contains(remotePlayerRef[0].getUsernameLabel())) {
+                        gamePane.getChildren().add(remotePlayerRef[0].getUsernameLabel());
+                    }
+                });
+            }
         } catch (Exception e) {
             System.err.println("[Game_RemotePlayer] Error creating visual for player: " + e.getMessage());
             e.printStackTrace();
@@ -543,7 +550,7 @@ public class Game extends Application {
             
             String updateMessage = String.format("position:%s:%s:%d:%d",
                                                confirmedNickname, lobbyCode, x, y);
-            System.out.println("[Game_UDP_SEND] Sending position update: " + updateMessage);
+            //System.out.println("[Game_UDP_SEND] Sending position update: " + updateMessage);
             serverHandler.sendUpdate(updateMessage);
         }
     }

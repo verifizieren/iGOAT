@@ -85,8 +85,8 @@ public class ServerHandler {
                 return;
             }
             
-            System.out.println("[UDP_CLIENT] Sending: '" + msg + "' to " + host + ":" + SERVER_UDP_LISTENING_PORT);
-            System.out.println("[UDP_CLIENT] Using local port: " + updateSocket.getLocalPort());
+            //System.out.println("[UDP_CLIENT] Sending: '" + msg + "' to " + host + ":" + SERVER_UDP_LISTENING_PORT);
+            //System.out.println("[UDP_CLIENT] Using local port: " + updateSocket.getLocalPort());
             
             byte[] buffer = msg.getBytes();
             InetAddress targetAddress = InetAddress.getByName(host);
@@ -94,7 +94,7 @@ public class ServerHandler {
                 new DatagramPacket(buffer, buffer.length, targetAddress, SERVER_UDP_LISTENING_PORT);
             updateSocket.send(packet);
             
-            System.out.println("[UDP_CLIENT] Packet sent - " + buffer.length + " bytes");
+            //System.out.println("[UDP_CLIENT] Packet sent - " + buffer.length + " bytes");
         } catch (Exception e) {
             System.err.println("[UDP_CLIENT] Send error: " + e.getMessage());
             e.printStackTrace();
