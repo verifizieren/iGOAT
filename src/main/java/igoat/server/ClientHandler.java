@@ -468,6 +468,11 @@ public class ClientHandler implements Runnable {
             return;
         }
 
+        if (currentLobby != null && code != 0) {
+            sendError("Du bist bereits in einem Lobby");
+            return;
+        }
+
         if (code == 0) {
             leaveCurrentLobby();
             sendMessage("lobby:0");
@@ -508,6 +513,11 @@ public class ClientHandler implements Runnable {
 
 
     private void handleNewLobby() {
+        if (currentLobby != null) {
+            sendError("Du bist bereits in einem Lobby");
+            return;
+        }
+
         int code = nextLobbyCode++;
         Lobby newLobby = new Lobby(code);
         lobbyList.add(newLobby);
