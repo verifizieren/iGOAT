@@ -67,4 +67,11 @@ public class Camera {
     public void addToWorld(javafx.scene.Node node) {
         gamePane.getChildren().add(node);
     }
+
+    /**
+     * Centers the camera on the specified world position.
+     */
+    public void centerOn(double x, double y) {
+        update(x, y);
+    }
 } 

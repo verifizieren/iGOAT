@@ -1,11 +1,27 @@
 package igoat.client.GUI;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import igoat.client.Game;
 import igoat.client.ServerHandler;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -34,6 +50,12 @@ public class LobbyGUI {
     private ListView<String> lobbyListView;
     private ListView<String> playerListView;
     private Label playerListLabel;
+    private Button readyButton;
+    private boolean isReady = false;
+    
+    // Player ready status tracking
+    private Map<String, Boolean> playerReadyStatus = new HashMap<>();
+    private String currentLobbyCode = null;
 
     // Configuration constants
     private boolean isGlobalChat = false;
@@ -45,6 +67,7 @@ public class LobbyGUI {
      * @param handler the ServerHandler instance to use for server communication
      */
     public static void setServerHandler(ServerHandler handler) {
+        System.out.println("[LobbyGUI] ServerHandler set.");
         serverHandler = handler;
     }
 
@@ -54,6 +77,7 @@ public class LobbyGUI {
      * @param primaryStage the JavaFX stage to display the lobby on
      */
     public void show(Stage primaryStage) {
+        System.out.println("[LobbyGUI] show() called. Setting up UI...");
         VBox leftPanel = setupLeftPanel();
         VBox rightPanel = setupRightPanel();
 
@@ -65,6 +89,7 @@ public class LobbyGUI {
         primaryStage.setScene(scene);
         primaryStage.show();
 
+        System.out.println("[LobbyGUI] LobbyGUI displayed. Initializing server communication...");
         initializeServerCommunication();
     }
 
@@ -85,8 +110,13 @@ public class LobbyGUI {
 
         playerListView = new ListView<>();
         playerListView.setPrefHeight(150);
+        
+        readyButton = new Button("Ready");
+        readyButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
+        readyButton.setOnAction(e -> toggleReadyStatus());
+        readyButton.setDisable(true); 
 
-        VBox leftPanel = new VBox(10, lobbyListLabel, lobbyListView, playerListLabel, playerListView);
+        VBox leftPanel = new VBox(10, lobbyListLabel, lobbyListView, playerListLabel, playerListView, readyButton);
         leftPanel.setPadding(new Insets(10));
         leftPanel.setAlignment(Pos.TOP_LEFT);
         leftPanel.setPrefWidth(200);
@@ -127,6 +157,39 @@ public class LobbyGUI {
         );
 
         return rightPanel;
+    }
+
+    /**
+     * Toggles the ready status of the player and sends the ready command to the server.
+     */
+    private void toggleReadyStatus() {
+        if (serverHandler != null && serverHandler.isConnected() && currentLobbyCode != null) {
+            isReady = !isReady;
+            updateReadyButton();
+            
+            if (isReady) {
+                serverHandler.sendMessage("ready:");
+                appendToMessageArea("You are now ready!");
+            } else {
+                // Hier koennte man unready machen
+                appendToMessageArea("You are ready!");
+            }
+        }
+    }
+    
+    /**
+     * Updates the ready button appearance based on the current ready status.
+     */
+    private void updateReadyButton() {
+        Platform.runLater(() -> {
+            if (isReady) {
+                readyButton.setText("Ready!");
+                readyButton.setStyle("-fx-background-color: #FF5722; -fx-text-fill: white;");
+            } else {
+                readyButton.setText("Ready");
+                readyButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
+            }
+        });
     }
 
     /**
@@ -201,6 +264,11 @@ public class LobbyGUI {
             if (serverHandler != null && serverHandler.isConnected()) {
                 serverHandler.sendMessage("lobby:0");
                 appendToMessageArea("You have left the lobby.");
+                isReady = false;
+                updateReadyButton();
+                readyButton.setDisable(true);
+                currentLobbyCode = null;
+                playerReadyStatus.clear();
             }
         });
 
@@ -213,8 +281,7 @@ public class LobbyGUI {
             dialog.showAndWait().ifPresent(name -> {
                 if (!name.isBlank()) {
                     username = name;
-                    serverHandler.sendMessage("connect:" + username);
-                    appendToMessageArea("Username changed to: " + username);
+                    serverHandler.sendMessage("username:" + username);
                 }
             });
         });
@@ -241,6 +308,7 @@ public class LobbyGUI {
      */
     private void initializeServerCommunication() {
         if (serverHandler != null && serverHandler.isConnected()) {
+            System.out.println("[LobbyGUI] Initializing Server Communication. Sending connect, getlobbies, getlobbyplayers.");
             serverHandler.sendMessage("connect:" + username);
             serverHandler.sendMessage("getlobbies:");
             serverHandler.sendMessage("getlobbyplayers:");
@@ -248,9 +316,18 @@ public class LobbyGUI {
             chatInput.setDisable(false);
             sendButton.setDisable(false);
 
+            System.out.println("[LobbyGUI] Starting message receiver thread...");
             Thread messageThread = new Thread(this::startMessageReceiver);
             messageThread.setDaemon(true);
             messageThread.start();
+        } else {
+            System.err.println("[LobbyGUI] Cannot initialize server communication: ServerHandler is null or not connected.");
+            // Optionally show an error alert to the user
+             Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Lost connection to server. Please restart.", ButtonType.OK);
+                alert.setHeaderText(null);
+                alert.showAndWait();
+             });
         }
     }
 
@@ -271,15 +348,25 @@ public class LobbyGUI {
      * Starts a background thread to receive and display messages from the server.
      */
     private void startMessageReceiver() {
+        System.out.println("[LobbyGUI] MessageReceiver thread started.");
         while (running && serverHandler != null && serverHandler.isConnected()) {
             String message = serverHandler.getMessage();
-            if (message == null || message.isEmpty()) continue;
+            if (message == null || message.isEmpty()) {
+                 try { Thread.sleep(50); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; } // Avoid busy-waiting on null
+                 continue;
+            }
+
+            System.out.println("[LobbyGUI_DEBUG] Raw message received: '" + message + "'");
 
             int colonIndex = message.indexOf(':');
-            if (colonIndex == -1) continue;
+            if (colonIndex == -1) {
+                 System.err.println("[LobbyGUI_DEBUG] Invalid message format (no colon): '" + message + "'");
+                 continue;
+            }
 
-            String type = message.substring(0, colonIndex);
+            String type = message.substring(0, colonIndex).toLowerCase();
             String content = message.substring(colonIndex + 1);
+            System.out.println("[LobbyGUI_DEBUG] Parsed type: '" + type + "', content: '" + content + "'");
 
             switch (type) {
                 case "chat":
@@ -306,8 +393,15 @@ public class LobbyGUI {
                         } else {
                             serverHandler.sendMessage("getplayers:");
                         }
+                        isReady = false;
+                        updateReadyButton();
+                        readyButton.setDisable(true);
+                        currentLobbyCode = null;
+                        playerReadyStatus.clear();
                     } else {
                         appendToMessageArea("Info: Du bist Lobby " + content + " beigetreten.");
+                        currentLobbyCode = content;
+                        readyButton.setDisable(false);
                         serverHandler.sendMessage("getlobbyplayers:");
                     }
                     break;
@@ -340,10 +434,98 @@ public class LobbyGUI {
                 case "getlobbyplayers":
                     if (!isGlobalChat) {
                         Platform.runLater(() -> {
-                            String[] players = content.split(",");
-                            playerListView.getItems().setAll(players);
+                            System.out.println("[LobbyGUI] Received getlobbyplayers: " + content);
+                            String[] players = content.isEmpty() ? new String[0] : content.split(",");
+                            playerListView.getItems().clear();
+                            
+                            Set<String> namesInUpdate = new HashSet<>();
+                            for (String player : players) {
+                                namesInUpdate.add(player.trim());
+                                boolean isPlayerReady = playerReadyStatus.getOrDefault(player.trim(), false);
+                                String playerDisplay = player.trim() + (isPlayerReady ? " ✓" : "");
+                                playerListView.getItems().add(playerDisplay);
+                            }
+
+                            Set<String> playersToRemoveFromStatus = new HashSet<>(playerReadyStatus.keySet());
+                            playersToRemoveFromStatus.removeAll(namesInUpdate);
+                            if (!playersToRemoveFromStatus.isEmpty()) {
+                                System.out.println("[LobbyGUI] Removing players from ready status map who left lobby: " + playersToRemoveFromStatus);
+                                for (String nameToRemove : playersToRemoveFromStatus) {
+                                    playerReadyStatus.remove(nameToRemove);
+                                }
+                                System.out.println("[LobbyGUI] playerReadyStatus map after removal: " + playerReadyStatus);
+                            }
+
+                            System.out.println("[LobbyGUI] Checking if all players are ready after getlobbyplayers update...");
+                            checkAllPlayersReady(players);
                         });
                     }
+                    break;
+                case "ready_status":
+                    System.out.println("[LobbyGUI] Entering 'ready_status' case.");
+                    String[] readyInfo = content.split(",");
+                    if (readyInfo.length == 2) {
+                        String playerName = readyInfo[0].trim();
+                        boolean ready = Boolean.parseBoolean(readyInfo[1].trim());
+                        System.out.println("[LobbyGUI] Parsed ready_status for '" + playerName + "': " + ready);
+                        playerReadyStatus.put(playerName, ready);
+                        System.out.println("[LobbyGUI] playerReadyStatus map updated: " + playerReadyStatus);
+
+                        Platform.runLater(() -> {
+                            System.out.println("[LobbyGUI] Calling updatePlayerListWithReadyStatus for " + playerName);
+                            updatePlayerListWithReadyStatus();
+                            String[] currentPlayersArray = playerListView.getItems().stream()
+                                   .map(item -> item.replace(" ✓", ""))
+                                   .toArray(String[]::new);
+                             System.out.println("[LobbyGUI] Checking all players ready immediately after ready_status update for " + playerName + "...");
+                            checkAllPlayersReady(currentPlayersArray);
+                        });
+                    } else {
+                         System.err.println("[LobbyGUI] Invalid ready_status content format: '" + content + "'");
+                    }
+                    break;
+                case "game_started":
+                    System.out.println("[LobbyGUI] Received game_started message!");
+                    appendToMessageArea("Game started!");
+                    Platform.runLater(() -> {
+                        if (currentLobbyCode == null) {
+                            appendToMessageArea("Error: Cannot start game without being in a lobby.");
+                            return;
+                        }
+                        readyButton.setDisable(true);
+
+                        System.out.println("[LobbyGUI] Gathering player list for game initialization...");
+                        List<String> playerNames = new ArrayList<>();
+                        for (String item : playerListView.getItems()) {
+                            playerNames.add(item.replace(" ✓", ""));
+                        }
+                        System.out.println("[LobbyGUI] Players in lobby: " + playerNames);
+
+                        try {
+                            System.out.println("[LobbyGUI] Creating and initializing Game instance...");
+                            Game game = new Game();
+                            game.initialize(serverHandler, username, currentLobbyCode, playerNames);
+                            System.out.println("[LobbyGUI] Game instance initialized.");
+
+                            System.out.println("[LobbyGUI] Creating new stage for game...");
+                            Stage gameStage = new Stage();
+                             System.out.println("[LobbyGUI] Calling game.start()...");
+                            game.start(gameStage);
+                             System.out.println("[LobbyGUI] game.start() returned. Closing lobby window...");
+
+                            Stage currentStage = (Stage) playerListView.getScene().getWindow();
+                            if (currentStage != null) {
+                                currentStage.close();
+                                System.out.println("[LobbyGUI] Lobby window closed.");
+                            } else {
+                                 System.err.println("[LobbyGUI] Could not get current stage to close lobby window.");
+                            }
+                        } catch (Exception ex) {
+                            System.err.println("[LobbyGUI] Error starting game: " + ex.getMessage());
+                            appendToMessageArea("Error starting game: " + ex.getMessage());
+                            ex.printStackTrace();
+                        }
+                    });
                     break;
                 default:
                     appendToMessageArea("[Server] " + message);
@@ -354,9 +536,75 @@ public class LobbyGUI {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                 System.err.println("[LobbyGUI] MessageReceiver thread interrupted.");
+                break;
             }
         }
+         System.out.println("[LobbyGUI] MessageReceiver thread stopped.");
     }
+    
+    /**
+     * Updates the player list to show ready status indicators based on the playerReadyStatus map.
+     */
+    private void updatePlayerListWithReadyStatus() {
+        if (isGlobalChat) return;
+        System.out.println("[LobbyGUI] Updating player list view based on ready statuses map: " + playerReadyStatus);
+
+        List<String> currentItems = new ArrayList<>(playerListView.getItems());
+        playerListView.getItems().clear();
+
+        for (String item : currentItems) {
+            String playerName = item.replace(" ✓", "").trim();
+            boolean isPlayerReady = playerReadyStatus.getOrDefault(playerName, false);
+            String playerDisplay = playerName + (isPlayerReady ? " ✓" : "");
+            playerListView.getItems().add(playerDisplay);
+        }
+         System.out.println("[LobbyGUI] Player list view updated: " + playerListView.getItems());
+    }
+    
+    /**
+     * Checks if all players currently listed in the input array are marked as ready in the map.
+     * If so, sends the "startgame:" command.
+     *
+     * @param players Array of player names currently in the lobby (from server message)
+     */
+    private void checkAllPlayersReady(String[] players) {
+         if (currentLobbyCode == null) {
+              System.out.println("[LobbyGUI_checkAll] Not in a lobby, skipping check.");
+              return;
+         }
+         System.out.println("[LobbyGUI_checkAll] Checking readiness for players: " + Arrays.toString(players));
+         System.out.println("[LobbyGUI_checkAll] Current ready status map: " + playerReadyStatus);
+
+         if (players.length < 1) { 
+              System.out.println("[LobbyGUI_checkAll] Not enough players to start (<1).");
+              return;
+         }
+
+         boolean allReady = true;
+         for (String player : players) {
+             String trimmedPlayerName = player.trim();
+             if (!playerReadyStatus.getOrDefault(trimmedPlayerName, false)) {
+                 allReady = false;
+                 System.out.println("[LobbyGUI_checkAll] Player '" + trimmedPlayerName + "' is not ready (status in map: " + playerReadyStatus.getOrDefault(trimmedPlayerName, false) + ").");
+                 break;
+             } else {
+                 System.out.println("[LobbyGUI_checkAll] Player '" + trimmedPlayerName + "' is ready.");
+             }
+         }
+
+         if (allReady) {
+             System.out.println("[LobbyGUI_checkAll] All players are ready! Sending startgame command...");
+             if (serverHandler != null && serverHandler.isConnected()) {
+                 serverHandler.sendMessage("startgame:");
+             } else {
+                  System.err.println("[LobbyGUI_checkAll] Cannot send startgame command: ServerHandler not ready.");
+             }
+         } else {
+             System.out.println("[LobbyGUI_checkAll] Not all players are ready yet.");
+         }
+     }
+    
     /**
      * Appends a message to the chat area.
      *

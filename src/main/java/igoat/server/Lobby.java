@@ -68,14 +68,19 @@ public class Lobby {
     }
 
     /**
-     * Broadcasts a UDP update message to all members of the lobby.
-     * It calls the sendUpdate method on each ClientHandler.
-     *
-     * @param message The UDP message to broadcast.
+     * Broadcasts a UDP update message to all clients in the lobby.
+     * 
+     * @param message The message to broadcast.
+     * @param excludeMember A member to exclude from the broadcast (usually the sender), can be null.
      */
-    public void broadcastUpdateToLobby(String message) {
-        System.out.println("Broadcasting UDP update to lobby " + code + ": '" + message + "'");
+    public void broadcastUpdateToLobby(String message, ClientHandler excludeMember) {
+       //System.out.println("[UDP_LOBBY] Broadcasting to lobby " + code + ": '" + message + "'");
+        
         for (ClientHandler member : members) {
+            if (excludeMember != null && member == excludeMember) {
+                continue;
+            }
+            
             member.sendUpdate(message);
         }
     }
