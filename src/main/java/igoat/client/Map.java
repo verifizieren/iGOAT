@@ -75,42 +75,37 @@ public class Map {
         createWall(0, 1000, 200, WALL_THICKNESS);
 
         //6
-        createWall(0, 600, 350, WALL_THICKNESS);
+        createWall(0, 600, 400, WALL_THICKNESS);
         createWall(200, 300, WALL_THICKNESS, 300);
         createWall(200, 300, 300, WALL_THICKNESS);
         createWall(300, 150, WALL_THICKNESS, 150);
         createWall(300, 150, 200, WALL_THICKNESS);
+        createWall(0, 200, 150, WALL_THICKNESS);
+        createWall(130, 130,WALL_THICKNESS, 70);
+        createWall(130, 0, WALL_THICKNESS, 70);
 
+        //7
+        createWall(550, 150, 200, WALL_THICKNESS);
+        createWall(650, 0, WALL_THICKNESS, 150);
+        createWall(800, 150, 100, WALL_THICKNESS);
+        createWall(900, 0, WALL_THICKNESS, 400);
+        createWall(550, 300, 200, WALL_THICKNESS);
+        createWall(800, 300, 100, WALL_THICKNESS);
+        createWall(900, 500, WALL_THICKNESS, 50);
 
+        //8
+        createWall(600, 550, 100, WALL_THICKNESS);
+        createWall(600, 550, WALL_THICKNESS, 150);
+        createWall(600, 700, 200, WALL_THICKNESS);
+        createWall(600, 700, WALL_THICKNESS, 350);
+        createWall(600, 1050, 100, WALL_THICKNESS);
+        createWall(400, 550, 300, WALL_THICKNESS);
+        createWall(400, 550, WALL_THICKNESS, 350);
+        createWall(400,950, WALL_THICKNESS, 150);
+        createWall(400, 1050, 200, WALL_THICKNESS);
 
-
-
-
-
-
-        /*createWall(0, 0, MAP_WIDTH, WALL_THICKNESS);
-        createWall(0, MAP_HEIGHT - WALL_THICKNESS, MAP_WIDTH, WALL_THICKNESS); 
-        createWall(0, 0, WALL_THICKNESS, MAP_HEIGHT);
-        createWall(MAP_WIDTH - WALL_THICKNESS, 0, WALL_THICKNESS, MAP_HEIGHT);
-        
-        createWall(400, 0, WALL_THICKNESS, 150);
-        createWall(400, 150, 200, WALL_THICKNESS);
-        
-        createWall(800, 0, WALL_THICKNESS, 400);
-        createWall(800, 400, 200, WALL_THICKNESS);
-        createWall(1000, 200, WALL_THICKNESS, 400);
-        
-        createWall(250, 300, 400, WALL_THICKNESS);
-        createWall(400, 300, WALL_THICKNESS, 300);
-        createWall(600, 400, WALL_THICKNESS, 200);
-        
-        createWall(0, 500, 200, WALL_THICKNESS);
-        createWall(200, 600, 400, WALL_THICKNESS);
-        
-        createWall(800, 400, WALL_THICKNESS, 200);
-        createWall(800, 600, 200, WALL_THICKNESS);*/
     }
-    
+
     /**
      * Creates a wall with both visual and collision components.
      */
