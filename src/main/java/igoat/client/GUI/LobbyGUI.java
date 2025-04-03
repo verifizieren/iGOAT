@@ -213,8 +213,7 @@ public class LobbyGUI {
             dialog.showAndWait().ifPresent(name -> {
                 if (!name.isBlank()) {
                     username = name;
-                    serverHandler.sendMessage("connect:" + username);
-                    appendToMessageArea("Username changed to: " + username);
+                    serverHandler.sendMessage("username:" + username);
                 }
             });
         });
