@@ -29,6 +29,7 @@ public class Map {
         collisionWalls = new ArrayList<>();
         specialElements = new ArrayList<>();
         createMapLayout();
+        createSpecialElement();
     }
     
     /**
@@ -107,6 +108,13 @@ public class Map {
 
     }
 
+    private void createSpecialElement(){
+        //create Terminals
+        addSpecialElement(1430, 30, SPECIAL_ELEMENT_WIDTH, 50);
+    }
+
+
+
     /**
      * Creates a wall with both visual and collision components.
      */
@@ -122,10 +130,13 @@ public class Map {
     /**
      * Adds a special element (terminal, window, or exit) to the map.
      */
-    private void addSpecialElement(int x, int y, Color color) {
-        Rectangle element = new Rectangle(x, y, SPECIAL_ELEMENT_WIDTH, WALL_THICKNESS);
-        element.setFill(color);
-        specialElements.add(element);
+    private void addSpecialElement(int x, int y, int width, int height) {
+        Rectangle specialElement = new Rectangle(x, y, width, height);
+        specialElement.setFill(Color.RED);
+        specialElements.add(specialElement);
+
+        Wall collisionWall = new Wall(x, y, width, height);
+        collisionWalls.add(collisionWall);
     }
     
     /**
