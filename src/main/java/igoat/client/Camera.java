@@ -26,7 +26,8 @@ public class Camera {
     private final Rectangle clip;
 
     private static final double FOG_OPACITY = 0.7;
-    private static final double LIGHT_RADIUS = 120; // Radius of vision
+    private static final double LIGHT_RADIUS_RATIO = 0.08; // About 120px on a 1500px width
+    private double lightRadius; // Actual light radius based on viewport size
 
     /**
      * Creates a new Camera with the specified viewport size and zoom level.
@@ -36,6 +37,8 @@ public class Camera {
         this.viewportWidth = viewportWidth;
         this.viewportHeight = viewportHeight;
         this.zoom = zoom;
+
+        this.lightRadius = viewportWidth * LIGHT_RADIUS_RATIO;
 
         this.scaleTransform = new Scale(zoom, zoom);
         gamePane.getTransforms().add(scaleTransform);
@@ -101,7 +104,7 @@ public class Camera {
 
         // Create a sharper radial gradient
         RadialGradient gradient = new RadialGradient(
-                0, 0, playerScreenX, playerScreenY, LIGHT_RADIUS,
+                0, 0, playerScreenX, playerScreenY, lightRadius,
                 false, CycleMethod.NO_CYCLE,
                 new Stop(0, Color.TRANSPARENT),   // Fully transparent at the center
                 new Stop(0.8, Color.TRANSPARENT), // Stays transparent up to 80% of the radius

@@ -105,15 +105,30 @@ public class Game extends Application {
         }
 
         gameMap = new igoat.client.Map();
-        primaryStage.setWidth(gameMap.getWidth());
-        primaryStage.setHeight(gameMap.getHeight());
-        primaryStage.setFullScreenExitHint("");
-
+        
+        // Set up the game pane with the map's fixed dimensions
         gamePane = new Pane();
         gamePane.setPrefSize(gameMap.getWidth(), gameMap.getHeight());
-        gamePane.setMinSize(gameMap.getWidth(), gameMap.getHeight());
-        gamePane.setMaxSize(gameMap.getWidth(), gameMap.getHeight());
         gamePane.setStyle("-fx-background-color: white;");
+
+        javafx.geometry.Rectangle2D screenBounds = javafx.stage.Screen.getPrimary().getVisualBounds();
+        double screenWidth = screenBounds.getWidth() * 0.8;
+        double screenHeight = screenBounds.getHeight() * 0.8;
+        
+        double mapAspectRatio = (double)gameMap.getWidth() / gameMap.getHeight();
+        double windowWidth, windowHeight;
+        
+        if (screenWidth / screenHeight > mapAspectRatio) {
+            windowHeight = screenHeight;
+            windowWidth = screenHeight * mapAspectRatio;
+        } else {
+            windowWidth = screenWidth;
+            windowHeight = screenWidth / mapAspectRatio;
+        }
+        
+        primaryStage.setWidth(windowWidth);
+        primaryStage.setHeight(windowHeight);
+        primaryStage.setFullScreenExitHint("");
 
         Scene scene = new Scene(gamePane);
         scene.setFill(javafx.scene.paint.Color.WHITE);
