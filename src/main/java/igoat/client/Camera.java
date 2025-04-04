@@ -29,8 +29,8 @@ public class Camera {
         gamePane.getTransforms().add(scaleTransform);
         
         this.clip = new Rectangle();
-        clip.setWidth(viewportWidth);
-        clip.setHeight(viewportHeight);
+        clip.setWidth(viewportWidth / zoom);
+        clip.setHeight(viewportHeight / zoom);
         
         gamePane.setClip(clip);
     }
@@ -42,8 +42,8 @@ public class Camera {
         this.viewportWidth = newWidth;
         this.viewportHeight = newHeight;
         
-        clip.setWidth(newWidth);
-        clip.setHeight(newHeight);
+        clip.setWidth(newWidth / zoom);
+        clip.setHeight(newHeight / zoom);
     }
 
     /**
@@ -59,6 +59,9 @@ public class Camera {
         
         gamePane.setTranslateX(-targetX * zoom);
         gamePane.setTranslateY(-targetY * zoom);
+        
+        clip.setX(targetX);
+        clip.setY(targetY);
     }
     
     /**
