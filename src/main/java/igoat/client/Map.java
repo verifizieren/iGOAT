@@ -76,6 +76,7 @@ public class Map {
         createWall(200, 1000, WALL_THICKNESS, 300);
         createWall(0, 1000, 200, WALL_THICKNESS);
 
+
         //6
         createWall(0, 600, 400, WALL_THICKNESS);
         createWall(200, 300, WALL_THICKNESS, 300);
@@ -110,7 +111,16 @@ public class Map {
 
     private void createSpecialElement(){
         //create Terminals
-        addSpecialElement(1430, 30, SPECIAL_ELEMENT_WIDTH, 50);
+        addSpecialElement(1380, 20, SPECIAL_ELEMENT_WIDTH, 20);
+        addSpecialElement(1460, 1450, 20, SPECIAL_ELEMENT_WIDTH);
+        addSpecialElement(950, 1560, SPECIAL_ELEMENT_WIDTH, 20);
+        addSpecialElement(480, 1450, 20, SPECIAL_ELEMENT_WIDTH);
+        addSpecialElement(20, 800,20, SPECIAL_ELEMENT_WIDTH);
+        addSpecialElement(800, 20, SPECIAL_ELEMENT_WIDTH, 20);
+        addSpecialElement(760, 620, 20, SPECIAL_ELEMENT_WIDTH);
+        addSpecialElement(1080, 680, SPECIAL_ELEMENT_WIDTH, 20);
+
+
     }
 
 
