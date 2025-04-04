@@ -37,9 +37,9 @@ public class Map {
     private void createMapLayout() {
         // Outer Walls
         createWall(0, 0, MAP_WIDTH, WALL_THICKNESS); // WALL TOP
-        createWall(0, MAP_HEIGHT, MAP_WIDTH + 20, WALL_THICKNESS); // WALL BOTTOM
+        createWall(0, MAP_HEIGHT - WALL_THICKNESS, MAP_WIDTH + 20, WALL_THICKNESS); // WALL BOTTOM
         createWall(0, 0, WALL_THICKNESS, MAP_HEIGHT); // WALL LEFT
-        createWall(MAP_WIDTH, 0, WALL_THICKNESS, MAP_HEIGHT); // WALL RIGHT
+        createWall(MAP_WIDTH - WALL_THICKNESS, 0, WALL_THICKNESS, MAP_HEIGHT); // WALL RIGHT
 
         // Room Top right
         createWall(1170, 300, 330, WALL_THICKNESS);
