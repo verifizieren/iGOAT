@@ -23,7 +23,7 @@ public class MapTest extends Application {
         Scene scene = new Scene(gamePane, WINDOW_WIDTH, WINDOW_HEIGHT);
         
         Map map = new Map();
-        Camera camera = new Camera(gamePane, WINDOW_WIDTH, WINDOW_HEIGHT, ZOOM);
+        Camera camera = new Camera(gamePane, WINDOW_WIDTH, WINDOW_HEIGHT, ZOOM, false);
         
         map.getVisualWalls().forEach(wall -> camera.addToWorld(wall));
         

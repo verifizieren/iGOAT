@@ -41,7 +41,7 @@ public class Player {
         gamePane.getChildren().addAll(visualRepresentation, usernameLabel);
         
         if (isLocalPlayer) {
-            this.camera = new Camera(gamePane, viewportWidth, viewportHeight, zoom);
+            this.camera = new Camera(gamePane, viewportWidth, viewportHeight, zoom, true);
         } else {
             this.camera = null;
         }

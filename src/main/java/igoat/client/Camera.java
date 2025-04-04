@@ -28,15 +28,17 @@ public class Camera {
     private static final double FOG_OPACITY = 0.7;
     private static final double LIGHT_RADIUS_RATIO = 0.2; // About 120px on a 1500px width
     private double lightRadius; // Actual light radius based on viewport size
+    private boolean isLocal = false;
 
     /**
      * Creates a new Camera with the specified viewport size and zoom level.
      */
-    public Camera(Pane gamePane, double viewportWidth, double viewportHeight, double zoom) {
+    public Camera(Pane gamePane, double viewportWidth, double viewportHeight, double zoom, boolean isLocal) {
         this.gamePane = gamePane;
         this.viewportWidth = viewportWidth;
         this.viewportHeight = viewportHeight;
         this.zoom = zoom;
+        this.isLocal = isLocal;
 
         this.lightRadius = viewportWidth * LIGHT_RADIUS_RATIO;
 
@@ -51,10 +53,12 @@ public class Camera {
         // Create the fog overlay
         this.fogCanvas = new Canvas(viewportWidth, viewportHeight);
         this.fogGC = fogCanvas.getGraphicsContext2D();
-        drawFog(viewportWidth / 2, viewportHeight / 2); // Start with the fog centered
 
-        // Add fog overlay to game pane
-        gamePane.getChildren().add(fogCanvas);
+        if (isLocal) {
+            drawFog(viewportWidth / (2 * zoom), viewportHeight / (2 * zoom)); // Start with the fog centered
+            // Add fog overlay to game pane
+            gamePane.getChildren().add(fogCanvas);
+        }
     }
 
     /**
@@ -67,8 +71,11 @@ public class Camera {
         clip.setWidth(newWidth / zoom);
         clip.setHeight(newHeight / zoom);
 
-        fogCanvas.setWidth(newWidth);
-        fogCanvas.setHeight(newHeight);
+        if (isLocal) {
+            drawFog(viewportWidth / (2 * zoom), viewportHeight / (2 * zoom));
+            fogCanvas.setWidth(newWidth);
+            fogCanvas.setHeight(newHeight);
+        }
     }
 
     /**
@@ -88,8 +95,10 @@ public class Camera {
         clip.setX(targetX);
         clip.setY(targetY);
 
-        // Update fog of war effect
-        drawFog(playerX, playerY);
+        if (isLocal) {
+            fogCanvas.setTranslateX(targetX);
+            fogCanvas.setTranslateY(targetY);
+        }
     }
 
     /**
