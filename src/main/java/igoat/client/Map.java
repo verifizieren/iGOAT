@@ -35,13 +35,14 @@ public class Map {
      * Creates the map layout based on the design image.
      */
     private void createMapLayout() {
-        createWall(0, 0, MAP_WIDTH, WALL_THICKNESS);
-        createWall(0, 1550, MAP_WIDTH, WALL_THICKNESS);
-        createWall(0, 0, WALL_THICKNESS, MAP_HEIGHT);
-        createWall(1470, 0, WALL_THICKNESS, MAP_HEIGHT);
+        // Outer Walls
+        createWall(0, 0, MAP_WIDTH, WALL_THICKNESS); // WALL TOP
+        createWall(0, MAP_HEIGHT, MAP_WIDTH + 20, WALL_THICKNESS); // WALL BOTTOM
+        createWall(0, 0, WALL_THICKNESS, MAP_HEIGHT); // WALL LEFT
+        createWall(MAP_WIDTH, 0, WALL_THICKNESS, MAP_HEIGHT); // WALL RIGHT
 
-        //1
-        createWall(1170, 300, MAP_WIDTH, WALL_THICKNESS);
+        // Room Top right
+        createWall(1170, 300, 330, WALL_THICKNESS);
         createWall(1168, 200, WALL_THICKNESS, 200);
         createWall(1168, 0, WALL_THICKNESS, 100);
 
@@ -60,16 +61,16 @@ public class Map {
         createWall(1168, 1000, WALL_THICKNESS, 52);
 
         //4
-        createWall(1000, 1300, MAP_WIDTH, WALL_THICKNESS);
+        createWall(1000, 1300, 500, WALL_THICKNESS);
         createWall(1100, 1300, WALL_THICKNESS, 100);
-        createWall(1100, 1450, WALL_THICKNESS, MAP_HEIGHT);
+        createWall(1100, 1450, WALL_THICKNESS, 170);
         createWall(700,1300, 250, WALL_THICKNESS);
-        createWall(800, 1300, WALL_THICKNESS, MAP_HEIGHT);
+        createWall(800, 1300, WALL_THICKNESS, 320);
 
         //5
         createWall(300, 1300, 350, WALL_THICKNESS);
         createWall(400, 1250, WALL_THICKNESS, 50);
-        createWall(500, 1300, WALL_THICKNESS, MAP_HEIGHT);
+        createWall(500, 1300, WALL_THICKNESS, 320);
         createWall(200, 1300, 50, WALL_THICKNESS);
         createWall(200, 1000, WALL_THICKNESS, 300);
         createWall(0, 1000, 200, WALL_THICKNESS);
