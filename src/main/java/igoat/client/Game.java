@@ -129,11 +129,8 @@ public class Game extends Application {
             gamePane.getChildren().add(wall);
         }
         
-        double startX = 100;
-        double startY = 100;
-        
-        player = new Player(gamePane, scene.getWidth(), scene.getHeight(), CAMERA_ZOOM,
-                          (int)startX, (int)startY, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, Color.RED, confirmedNickname);
+        player = new Player(gamePane, primaryStage.getWidth(), primaryStage.getHeight(), CAMERA_ZOOM,
+                100, 100, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, Color.BLUE, confirmedNickname, true);
         
         player.setSpectated(false);
         activeCamera = player.getCamera();
@@ -404,10 +401,10 @@ public class Game extends Application {
             final Player[] remotePlayerRef = new Player[1];
             Platform.runLater(() -> {
                 if (!otherPlayers.containsKey(playerName)) { 
-                    remotePlayerRef[0] = new Player(gamePane, gamePane.getPrefWidth(), gamePane.getPrefHeight(), CAMERA_ZOOM,
-                                               x, y, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, playerColor, playerName);
+                    Player remotePlayer = new Player(gamePane, gamePane.getWidth(), gamePane.getHeight(), CAMERA_ZOOM,
+                x, y, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, playerColor, playerName, false);
                     
-                    otherPlayers.put(playerName, remotePlayerRef[0]);
+                    otherPlayers.put(playerName, remotePlayer);
                     
                     System.out.println("[Game_RemotePlayer] Added visual for player: " + playerName + " with username: " + playerName);
                 }

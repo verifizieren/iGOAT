@@ -21,7 +21,7 @@ public class Player {
      * Creates a new player with the specified position and dimensions.
      */
     public Player(Pane gamePane, double viewportWidth, double viewportHeight, double zoom,
-                 int x, int y, int width, int height, Color color, String username) {
+                 int x, int y, int width, int height, Color color, String username, boolean isLocalPlayer) {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -40,7 +40,11 @@ public class Player {
         
         gamePane.getChildren().addAll(visualRepresentation, usernameLabel);
         
-        this.camera = new Camera(gamePane, viewportWidth, viewportHeight, zoom);
+        if (isLocalPlayer) {
+            this.camera = new Camera(gamePane, viewportWidth, viewportHeight, zoom);
+        } else {
+            this.camera = null;
+        }
         this.isBeingSpectated = false;
     }
 
@@ -54,7 +58,7 @@ public class Player {
         this.visualRepresentation.setY(newY);
         updateUsernamePosition();
         
-        if (isBeingSpectated) {
+        if (isBeingSpectated && camera != null) {
             updateCamera();
         }
     }
@@ -88,7 +92,9 @@ public class Player {
      * Updates the camera to follow this player.
      */
     public void updateCamera() {
-        camera.update(visualRepresentation.getX(), visualRepresentation.getY());
+        if (camera != null) {
+            camera.update(visualRepresentation.getX(), visualRepresentation.getY());
+        }
     }
 
     /**
