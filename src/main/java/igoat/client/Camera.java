@@ -25,7 +25,7 @@ public class Camera {
     private final Scale scaleTransform;
     private final Rectangle clip;
 
-    private static final double FOG_OPACITY = 0.7;
+    private static final double FOG_OPACITY = 0.9;
     private static final double LIGHT_RADIUS_RATIO = 0.2; // About 120px on a 1500px width
     private double lightRadius; // Actual light radius based on viewport size
 
@@ -69,6 +69,7 @@ public class Camera {
 
         fogCanvas.setWidth(newWidth);
         fogCanvas.setHeight(newHeight);
+        drawFog(viewportWidth / 2, viewportHeight / 2);
     }
 
     /**
@@ -84,12 +85,11 @@ public class Camera {
 
         gamePane.setTranslateX(-targetX * zoom);
         gamePane.setTranslateY(-targetY * zoom);
+        fogCanvas.setTranslateX(targetX * zoom);
+        fogCanvas.setTranslateY(targetY * zoom);
 
         clip.setX(targetX);
         clip.setY(targetY);
-
-        // Update fog of war effect
-        drawFog(playerX, playerY);
     }
 
     /**
@@ -104,7 +104,7 @@ public class Camera {
 
         // Create a sharper radial gradient
         RadialGradient gradient = new RadialGradient(
-                0, 0, playerScreenX, playerScreenY, lightRadius,
+                0, 0, playerScreenX,playerScreenY, lightRadius,
                 false, CycleMethod.NO_CYCLE,
                 new Stop(0, Color.TRANSPARENT),   // Fully transparent at the center
                 new Stop(0.8, Color.TRANSPARENT), // Stays transparent up to 80% of the radius
