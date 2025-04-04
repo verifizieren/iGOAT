@@ -77,3 +77,13 @@ task fatJar(type: Jar) {
     with jar
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
+
+// Task to run the map test
+task runMapTest(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'igoat.client.MapTest'
+    jvmArgs = [
+        '--module-path', classpath.asPath,
+        '--add-modules', 'javafx.controls,javafx.fxml,javafx.base,javafx.graphics'
+    ]
+}
