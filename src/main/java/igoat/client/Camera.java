@@ -26,7 +26,7 @@ public class Camera {
     private final Rectangle clip;
 
     private static final double FOG_OPACITY = 0.7;
-    private static final double LIGHT_RADIUS_RATIO = 0.08; // About 120px on a 1500px width
+    private static final double LIGHT_RADIUS_RATIO = 0.2; // About 120px on a 1500px width
     private double lightRadius; // Actual light radius based on viewport size
 
     /**

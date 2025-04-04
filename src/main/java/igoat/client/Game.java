@@ -25,7 +25,7 @@ public class Game extends Application {
     private static final double PLAYER_WIDTH = 32;
     private static final double PLAYER_HEIGHT = 32;
     private static final double MOVEMENT_SPEED = 300;
-    private static final double CAMERA_ZOOM = 1.0;
+    private static final double CAMERA_ZOOM = 3.0;
     
     private Pane gamePane;
     private Set<KeyCode> activeKeys;
