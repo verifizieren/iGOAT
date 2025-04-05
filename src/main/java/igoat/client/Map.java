@@ -13,9 +13,12 @@ import javafx.scene.shape.Rectangle;
 public class Map {
     private static final int WALL_THICKNESS = 20;
     private static final int SPECIAL_ELEMENT_WIDTH = 40;
+    private static final int DOOR_WIDTH = 60;
     
     private static final int MAP_WIDTH = 1500;
     private static final int MAP_HEIGHT = 1600;
+
+    private Rectangle door;
     
     private List<Rectangle> visualWalls;
     private List<Wall> collisionWalls;
@@ -30,6 +33,7 @@ public class Map {
         specialElements = new ArrayList<>();
         createMapLayout();
         createSpecialElement();
+        createDoor();
     }
     
     /**
@@ -39,8 +43,10 @@ public class Map {
         // Outer Walls
         createWall(0, 0, MAP_WIDTH, WALL_THICKNESS); // WALL TOP
         createWall(0, MAP_HEIGHT - WALL_THICKNESS, MAP_WIDTH, WALL_THICKNESS); // WALL BOTTOM
-        createWall(0, 0, WALL_THICKNESS, MAP_HEIGHT); // WALL LEFT
-        createWall(MAP_WIDTH - WALL_THICKNESS, 0, WALL_THICKNESS, MAP_HEIGHT); // WALL RIGHT
+        createWall(0, 0, WALL_THICKNESS, 500); // WALL LEFT
+        createWall(0, 560, WALL_THICKNESS, MAP_HEIGHT - 560);
+        createWall(MAP_WIDTH - WALL_THICKNESS, 0, WALL_THICKNESS, 500); // WALL RIGHT
+        createWall(MAP_WIDTH - WALL_THICKNESS, 560, WALL_THICKNESS, MAP_HEIGHT - 560);
 
         // Room Top right
         createWall(1170, 300, 330, WALL_THICKNESS);
@@ -123,6 +129,12 @@ public class Map {
 
     }
 
+    private void createDoor(){
+       addDoor(0, 500, 20, DOOR_WIDTH);
+       addDoor(1480, 500, 20, DOOR_WIDTH);
+
+    }
+
 
 
     /**
@@ -138,7 +150,7 @@ public class Map {
     }
     
     /**
-     * Adds a special element (terminal, window, or exit) to the map.
+     * Adds a special element (terminal) to the map.
      */
     private void addSpecialElement(int x, int y, int width, int height) {
         Rectangle specialElement = new Rectangle(x, y, width, height);
@@ -148,7 +160,31 @@ public class Map {
         Wall collisionWall = new Wall(x, y, width, height);
         collisionWalls.add(collisionWall);
     }
-    
+
+    /**
+     * Add two exits to the map
+     */
+    private void addDoor(int x, int y, int width, int height) {
+        door = new Rectangle(x, y, width, height);
+        door.setFill(Color.GREEN);
+        visualWalls.add(door);
+
+        Wall collisionWall = new Wall(x, y, width, height);
+        collisionWalls.add(collisionWall);
+
+
+
+    }
+
+    public void removeDoor() {
+        if (door != null) {
+            collisionWalls.remove(collisionWalls);
+        }
+    }
+
+
+
+
     /**
      * Gets all visual elements including walls and special elements.
      * @return a list containing the elements
