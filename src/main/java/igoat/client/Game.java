@@ -15,6 +15,8 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
 
@@ -28,6 +30,8 @@ public class Game extends Application {
     private static final double CAMERA_ZOOM = 3.0;
     
     private Pane gamePane;
+    private double windowWidth;
+    private double windowHeight;
     private Set<KeyCode> activeKeys;
     private long lastUpdate;
     private long lastPositionUpdate = 0;
@@ -116,7 +120,6 @@ public class Game extends Application {
         double screenHeight = screenBounds.getHeight() * 0.8;
         
         double mapAspectRatio = (double)gameMap.getWidth() / gameMap.getHeight();
-        double windowWidth, windowHeight;
         
         if (screenWidth / screenHeight > mapAspectRatio) {
             windowHeight = screenHeight;
@@ -152,16 +155,23 @@ public class Game extends Application {
         
         for (Player other : otherPlayers.values()) {
             if (!gamePane.getChildren().contains(other.getVisualRepresentation())) {
-                gamePane.getChildren().add(other.getVisualRepresentation());
+                Rectangle otherVisual = other.getVisualRepresentation();
+                // add clipping for fog effect
+
+                gamePane.getChildren().add(otherVisual);
             }
         }
         
         scene.widthProperty().addListener((obs, oldVal, newVal) -> {
             activeCamera.updateViewport(newVal.doubleValue(), scene.getHeight());
+            windowWidth = newVal.doubleValue();
+            updateVisuals();
         });
         
         scene.heightProperty().addListener((obs, oldVal, newVal) -> {
             activeCamera.updateViewport(scene.getWidth(), newVal.doubleValue());
+            windowHeight = newVal.doubleValue();
+            updateVisuals();
         });
         
         primaryStage.fullScreenProperty().addListener((obs, oldVal, newVal) -> {
@@ -444,6 +454,15 @@ public class Game extends Application {
     }
 
     /**
+     * Updates the clip on the game objects for the fog effect
+     */
+    private void updateVisuals() {
+        for (Player otherPlayer : otherPlayers.values()) {
+            otherPlayer.getVisualRepresentation().setClip(new Circle(player.getX() + (PLAYER_WIDTH/2.0), player.getY() + (PLAYER_HEIGHT/2.0),100));
+        }
+    }
+
+    /**
      * Removes the visual representation of a remote player.
      *
      * @param remotePlayerName The name of the player to remove.
@@ -544,6 +563,8 @@ public class Game extends Application {
         if (activeCamera != null) {
             activeCamera.centerOn(player.getX() + (player.getWidth() / 2), player.getY() + (player.getHeight() / 2));
         }
+
+        updateVisuals();
     }
     
     /**
