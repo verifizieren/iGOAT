@@ -40,6 +40,9 @@ public class LobbyGUI {
 
 
     // Chat UI components
+    private Stage stage;
+    private Stage mainMenu;
+
     private TextArea messageArea;
     private TextField chatInput;
     private Button sendButton;
@@ -62,6 +65,14 @@ public class LobbyGUI {
     private final int MAX_PLAYERS = 4;
 
     /**
+     * Constructor for LobbyGUI
+     * @param mainMenu The stage of the main menu. The main menu will be shown again after LobbyGUI closes.
+     */
+    public LobbyGUI(Stage mainMenu) {
+        this.mainMenu = mainMenu;
+    }
+
+    /**
      * Sets the server handler for communication with the game server.
      *
      * @param handler the ServerHandler instance to use for server communication
@@ -77,6 +88,9 @@ public class LobbyGUI {
      * @param primaryStage the JavaFX stage to display the lobby on
      */
     public void show(Stage primaryStage) {
+        stage = primaryStage;
+        stage.setOnCloseRequest(event -> exit());
+
         System.out.println("[LobbyGUI] show() called. Setting up UI...");
         VBox leftPanel = setupLeftPanel();
         VBox rightPanel = setupRightPanel();
@@ -85,9 +99,9 @@ public class LobbyGUI {
         mainLayout.setPadding(new Insets(20));
 
         Scene scene = new Scene(mainLayout, 750, 500);
-        primaryStage.setTitle("Lobby Menu");
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        stage.setTitle("Lobby Menu");
+        stage.setScene(scene);
+        stage.show();
 
         System.out.println("[LobbyGUI] LobbyGUI displayed. Initializing server communication...");
         initializeServerCommunication();
@@ -286,19 +300,21 @@ public class LobbyGUI {
             });
         });
 
-        exitButton.setOnAction(event -> {
-            running = false;
-            if (serverHandler != null) {
-                serverHandler.sendMessage("exit");
-                serverHandler.close();
-            }
-            Platform.exit();
-            System.exit(0);
-        });
+        exitButton.setOnAction(event -> exit());
 
         VBox buttons = new VBox(10, startButton, createButton, leaveLobbyButton, nameButton, exitButton);
         buttons.setAlignment(Pos.CENTER);
         return buttons;
+    }
+
+    private void exit() {
+        running = false;
+        if (serverHandler != null) {
+            serverHandler.sendMessage("exit");
+            serverHandler.close();
+        }
+        stage.close();
+        mainMenu.show();
     }
 
     /**

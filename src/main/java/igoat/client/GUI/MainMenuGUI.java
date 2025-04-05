@@ -20,10 +20,14 @@ public class MainMenuGUI extends Application {
 
     private ServerHandler handler;
     private String username = System.getProperty("user.name");
+    private Thread serverThread;
+    private Stage stage;
 
     @Override
     public void start(Stage primaryStage) {
+        stage = primaryStage;
         primaryStage.setTitle("iGOAT");
+        primaryStage.setOnCloseRequest(event -> exit());
 
         VBox root = new VBox(15);
         root.setAlignment(Pos.CENTER);
@@ -35,7 +39,9 @@ public class MainMenuGUI extends Application {
         Button createServerButton = new Button("Create Server");
         createServerButton.setOnAction(e -> {
             System.out.println("[MainMenuGUI] Create Server button clicked. Starting server on port 61000...");
-            new Thread(() -> Server.startServer(61000)).start();
+            serverThread = new Thread(() -> Server.startServer(61000));
+            serverThread.setDaemon(true);
+            serverThread.start();
         });
 
         Button joinServerButton = new Button("Join Server");
@@ -44,54 +50,19 @@ public class MainMenuGUI extends Application {
             if (username.isEmpty()) {
                 username = getSystemName();
             }
+
             TextInputDialog ipDialog = new TextInputDialog("localhost");
             ipDialog.setTitle("Join Server");
             ipDialog.setHeaderText(null);
             ipDialog.setContentText("Enter server IP:");
 
             ipDialog.showAndWait().ifPresent(serverIP -> {
-                if (!serverIP.trim().isEmpty()) {
-                    System.out.println("[MainMenuGUI] Attempting to connect to server: " + serverIP.trim() + ":61000");
-                    new Thread(() -> {
-                        handler = new ServerHandler(serverIP.trim(), 61000);
-                        if (handler.isConnected()) {
-                            System.out.println("[MainMenuGUI] Successfully connected to server.");
-                            Platform.runLater(() -> {
-                                try {
-                                    System.out.println("[MainMenuGUI] Setting ServerHandler and launching LobbyGUI...");
-                                    LobbyGUI.setServerHandler(handler);
-                                    LobbyGUI lobby = new LobbyGUI();
-                                    lobby.show(new Stage());
-                                    System.out.println("[MainMenuGUI] LobbyGUI shown. Closing MainMenuGUI.");
-                                    ((Stage) joinServerButton.getScene().getWindow()).close();
-                                } catch (Exception ex) {
-                                    System.err.println("[MainMenuGUI] Error launching LobbyGUI: " + ex.getMessage());
-                                    ex.printStackTrace();
-                                    showAlert(Alert.AlertType.ERROR, "Error launching lobby: " + ex.getMessage());
-                                }
-                            });
-                        } else {
-                            System.err.println("[MainMenuGUI] Failed to connect to server at: " + serverIP);
-                            Platform.runLater(() ->
-                                showAlert(Alert.AlertType.ERROR, "Failed to connect to server at: " + serverIP)
-                            );
-                        }
-                    }).start();
-                } else {
-                    System.err.println("[MainMenuGUI] Invalid server IP entered.");
-                    showAlert(Alert.AlertType.ERROR, "Invalid server IP.");
-                }
+                join(serverIP);
             });
         });
 
         Button exitButton = new Button("Exit");
-        exitButton.setOnAction(e -> {
-            System.out.println("[MainMenuGUI] Exit button clicked.");
-            if (handler != null) {
-                handler.close();
-            }
-            Platform.exit();
-        });
+        exitButton.setOnAction(e -> exit());
 
         root.getChildren().addAll(
             titleLabel,
@@ -104,6 +75,53 @@ public class MainMenuGUI extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
         System.out.println("[MainMenuGUI] Main menu displayed.");
+    }
+
+    /**
+     * Establishes a connection to the server and launches the lobby GUI
+     * @param serverIP The server IP address
+     */
+    private void join(String serverIP) {
+        if (serverIP.isEmpty()) {
+            System.err.println("[MainMenuGUI] Invalid server IP entered.");
+            showAlert(Alert.AlertType.ERROR, "Invalid server IP.");
+            return;
+        }
+
+        System.out.println("[MainMenuGUI] Attempting to connect to server: " + serverIP.trim() + ":61000");
+        handler = new ServerHandler(serverIP.trim(), 61000);
+
+        if (!handler.isConnected()) {
+            System.err.println("[MainMenuGUI] Failed to connect to server at: " + serverIP);
+            Platform.runLater(() ->
+                showAlert(Alert.AlertType.ERROR, "Failed to connect to server at: " + serverIP)
+            );
+            return;
+        }
+
+        System.out.println("[MainMenuGUI] Successfully connected to server.");
+        Platform.runLater(() -> {
+            try {
+                System.out.println("[MainMenuGUI] Setting ServerHandler and launching LobbyGUI...");
+                LobbyGUI.setServerHandler(handler);
+                LobbyGUI lobby = new LobbyGUI(stage);
+                lobby.show(new Stage());
+                System.out.println("[MainMenuGUI] LobbyGUI shown. Closing MainMenuGUI.");
+                stage.hide();
+            } catch (Exception ex) {
+                System.err.println("[MainMenuGUI] Error launching LobbyGUI: " + ex.getMessage());
+                ex.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Error launching lobby: " + ex.getMessage());
+            }
+        });
+    }
+
+    private void exit() {
+        System.out.println("[MainMenuGUI] Exit button clicked.");
+        if (handler != null) {
+            handler.close();
+        }
+        Platform.exit();
     }
 
     private void showAlert(Alert.AlertType type, String message) {
