@@ -42,16 +42,12 @@ public class Client {
             return;
         }
 
-        ServerHandler server = new ServerHandler(host, port);
+        String defaultUsername = "user-" + System.currentTimeMillis();
+        ServerHandler server = new ServerHandler(host, port, defaultUsername);
         Scanner scanner = new Scanner(System.in);
 
         Thread messageHandler = new Thread(() -> handleMessages(server));
         messageHandler.start();
-
-        // Send initial connect with default username
-        if (server.isConnected()) {
-            server.sendMessage("connect:user");
-        }
 
         String in;
 
@@ -61,9 +57,6 @@ public class Client {
                 in = scanner.nextLine();
                 if (in.equals("y")) {
                     server.reconnect();
-                    if (server.isConnected()) {
-                        server.sendMessage("connect:user");
-                    }
                 } else {
                     server.close();
                     run = false;

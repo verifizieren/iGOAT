@@ -22,7 +22,7 @@ public class MainMenuGUI extends Application {
     private static final Logger logger = LoggerFactory.getLogger(MainMenuGUI.class);
 
     private ServerHandler handler;
-    private String username = System.getProperty("user.name");
+    private String username;
     private Thread serverThread;
     private Stage stage;
 
@@ -57,10 +57,6 @@ public class MainMenuGUI extends Application {
         Button joinServerButton = new Button("Join Server");
         joinServerButton.setOnAction(e -> {
             logger.info("Join Server button clicked.");
-            if (username.isEmpty()) {
-                username = getSystemName();
-            }
-
             TextInputDialog ipDialog = new TextInputDialog("localhost");
             ipDialog.setTitle("Join Server");
             ipDialog.setHeaderText(null);
@@ -72,7 +68,18 @@ public class MainMenuGUI extends Application {
                 portDialog.setHeaderText(null);
                 portDialog.setContentText("Enter server port:");
                 portDialog.showAndWait().ifPresent(port -> {
-                    join(serverIP, port);
+                    TextInputDialog nameDialog = new TextInputDialog("");
+                    nameDialog.setTitle("Join Server");
+                    nameDialog.setHeaderText(null);
+                    nameDialog.setContentText("Enter your username:");
+                    nameDialog.showAndWait().ifPresent(name -> {
+                        if (name.isEmpty()) {
+                            showAlert(Alert.AlertType.ERROR, "Username cannot be empty");
+                            return;
+                        }
+                        username = name;
+                        join(serverIP, port, username);
+                    });
                 });
             });
         });
@@ -97,15 +104,15 @@ public class MainMenuGUI extends Application {
      * Establishes a connection to the server and launches the lobby GUI
      * @param serverIP The server IP address
      */
-    private void join(String serverIP, String port) {
+    private void join(String serverIP, String port, String username) {
         if (serverIP.isEmpty()) {
             logger.error("Invalid server IP entered.");
             showAlert(Alert.AlertType.ERROR, "Invalid server IP.");
             return;
         }
 
-        logger.info("Attempting to connect to server: {}:61000", serverIP.trim());
-        handler = new ServerHandler(serverIP.trim(), 61000);
+        logger.info("Attempting to connect to server: {}:{}", serverIP.trim(), port);
+        handler = new ServerHandler(serverIP.trim(), Integer.parseInt(port), username);
 
         if (!handler.isConnected()) {
             logger.error("Failed to connect to server at: {}:{}", serverIP, port);
@@ -121,6 +128,7 @@ public class MainMenuGUI extends Application {
                 logger.info("Setting ServerHandler and launching LobbyGUI...");
                 LobbyGUI.setServerHandler(handler);
                 LobbyGUI lobby = new LobbyGUI(stage);
+                lobby.setUsername(username);
                 lobby.show(new Stage());
                 logger.info("LobbyGUI shown. Closing MainMenuGUI.");
                 stage.hide();
@@ -153,11 +161,7 @@ public class MainMenuGUI extends Application {
             });
         }
     }
-
-    public static String getSystemName() {
-        return System.getProperty("user.name");
-    }
-
+    
     public static void main(String[] args) {
         logger.info("Launching application...");
         launch(args);

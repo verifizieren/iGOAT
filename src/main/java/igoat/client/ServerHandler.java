@@ -35,9 +35,12 @@ public class ServerHandler {
     private final int port;
     private final int TIMEOUT = 3000;
 
-    public ServerHandler(String host, int port) {
+    private final String username;
+
+    public ServerHandler(String host, int port, String username) {
         this.host = host;
         this.port = port;
+        this.username = username;
         reconnect();
     }
 
@@ -115,33 +118,38 @@ public class ServerHandler {
     /**
      * Closes and reopens the receiver thread and the socket
      */
-    public void reconnect() {
+    public boolean reconnect() {
         close();
-        // (re)open socket and start receiver threads
         try {
             msgSocket = new Socket(host, port);
             msgWriter = new PrintWriter(msgSocket.getOutputStream(), true);
             msgReader = new BufferedReader(new InputStreamReader(msgSocket.getInputStream()));
 
+            if (username != null) {
+                sendMessage("connect:" + username);
+            }
+
             try {
                 updateSocket = new DatagramSocket();
                 System.out.println("[UDP_CLIENT] Created UDP socket on local port: " + updateSocket.getLocalPort());
                 System.out.println("[UDP_CLIENT] Will send to server UDP port: " + SERVER_UDP_LISTENING_PORT);
+                connected = true;
+
+                messageReceiver = new Thread(this::receiveMSG);
+                updateReceiver = new Thread(this::receiveUpdate);
+                messageReceiver.start();
+                updateReceiver.start();
+                log("Connected to server at " + host + ":" + port);
+                return true;
             } catch (Exception e) {
                 System.err.println("[UDP_CLIENT] Failed to create UDP socket: " + e.getMessage());
-                e.printStackTrace();
+                close();
+                return false;
             }
-            
-            connected = true;
-
-            messageReceiver = new Thread(this::receiveMSG);
-            updateReceiver = new Thread(this::receiveUpdate);
-            messageReceiver.start();
-            updateReceiver.start();
-            log("Connected to server at " + host + ":" + port);
         } catch (IOException e) {
-            log("Couldn't connect to server at " + host + ":" + port);
-            log(e.getMessage());
+            System.err.println("[TCP_CLIENT] Connection error: " + e.getMessage());
+            close();
+            return false;
         }
     }
 
@@ -193,17 +201,28 @@ public class ServerHandler {
         while (connected) {
             try {
                 msg = msgReader.readLine();
+                if (msg == null) {
+                    log("Server closed connection");
+                    connected = false;
+                    break;
+                }
             } catch (IOException e) {
-                msg = "";
+                log("Error reading from server: " + e.getMessage());
+                connected = false;
+                break;
             }
 
             if ("ping".equals(msg)) {
                 sendMessage("pong");
                 pingTimer = System.currentTimeMillis();
+                continue;
             } else if (msg.startsWith(NICKNAME_CONFIRM_PREFIX)) {
-                this.confirmedNickname = msg.substring(NICKNAME_CONFIRM_PREFIX.length());
-                log("Nickname confirmed by server: " + this.confirmedNickname);
-                sendUdpRegistrationPacket();
+                String newNickname = msg.substring(NICKNAME_CONFIRM_PREFIX.length());
+                if (!newNickname.equals(this.confirmedNickname)) {
+                    this.confirmedNickname = newNickname;
+                    log("Nickname confirmed by server: " + this.confirmedNickname);
+                    sendUdpRegistrationPacket();
+                }
                 messageBuffer.add(msg);
             } else if (!msg.isEmpty()) {
                 messageBuffer.add(msg);

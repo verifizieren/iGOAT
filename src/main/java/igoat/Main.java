@@ -1,6 +1,5 @@
 package igoat;
 
-import igoat.client.Client;
 import igoat.client.GUI.MainMenuGUI;
 import igoat.server.Server;
 import javafx.application.Application;
@@ -57,7 +56,7 @@ public class Main {
 
                 case "client":
                     if (args.length < 2) {
-                        logger.warn("Usage: java -jar igoat.jar client <host:port>");
+                        logger.warn("Usage: java -jar igoat.jar client <host:port> [username]");
                         System.exit(1);
                     }
                     try {
@@ -68,12 +67,14 @@ public class Main {
                         }
                         String host = hostPort[0];
                         int port = Integer.parseInt(hostPort[1]);
+                        String username = args.length > 2 ? args[2] : System.getProperty("user.name");
+                        logger.info("Using username: {}", username);
                         
                         Platform.startup(() -> {
                             try {
-                                ServerHandler handler = new ServerHandler(host, port);
+                                ServerHandler handler = new ServerHandler(host, port, username);
                                 if (!handler.isConnected()) {
-                                    logger.error("Failed to connect to server at: {}:{}", host, port);
+                                    logger.error("Failed to connect to server at: {}:{} with username {}", host, port, username);
                                     System.exit(1);
                                 }
                                 

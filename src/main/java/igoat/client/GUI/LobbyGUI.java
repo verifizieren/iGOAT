@@ -35,7 +35,7 @@ public class LobbyGUI {
 
     // Server communication
     private static ServerHandler serverHandler;
-    private String username = System.getProperty("user.name");
+    private String username;
     private volatile boolean running = true;
 
 
@@ -78,8 +78,11 @@ public class LobbyGUI {
      * @param handler the ServerHandler instance to use for server communication
      */
     public static void setServerHandler(ServerHandler handler) {
-        System.out.println("[LobbyGUI] ServerHandler set.");
         serverHandler = handler;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     /**
@@ -324,8 +327,7 @@ public class LobbyGUI {
      */
     private void initializeServerCommunication() {
         if (serverHandler != null && serverHandler.isConnected()) {
-            System.out.println("[LobbyGUI] Initializing Server Communication. Sending connect, getlobbies, getlobbyplayers.");
-            serverHandler.sendMessage("connect:" + username);
+            System.out.println("[LobbyGUI] Initializing Server Communication. Sending getlobbies, getlobbyplayers.");
             serverHandler.sendMessage("getlobbies:");
             serverHandler.sendMessage("getlobbyplayers:");
 
