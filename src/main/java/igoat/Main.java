@@ -7,6 +7,10 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import javafx.application.Platform;
+import javafx.stage.Stage;
+import igoat.client.ServerHandler;
+import igoat.client.GUI.LobbyGUI;
 
 /**
  * Main entry point for the iGoat application. Handles command-line arguments to start either the
@@ -52,19 +56,41 @@ public class Main {
                     break;
 
                 case "client":
-                    if (args.length < 3) {
-                        logger.warn("Usage: java -jar igoat.jar client <host> <port>");
+                    if (args.length < 2) {
+                        logger.warn("Usage: java -jar igoat.jar client <host:port>");
                         System.exit(1);
                     }
                     try {
-                        String host = args[1];
-                        int port = Integer.parseInt(args[2]);
-                        Client.main(new String[]{host, String.valueOf(port)});
+                        String[] hostPort = args[1].split(":");
+                        if (hostPort.length != 2) {
+                            logger.warn("Invalid format. Use host:port");
+                            System.exit(1);
+                        }
+                        String host = hostPort[0];
+                        int port = Integer.parseInt(hostPort[1]);
+                        
+                        Platform.startup(() -> {
+                            try {
+                                ServerHandler handler = new ServerHandler(host, port);
+                                if (!handler.isConnected()) {
+                                    logger.error("Failed to connect to server at: {}:{}", host, port);
+                                    System.exit(1);
+                                }
+                                
+                                Stage stage = new Stage();
+                                LobbyGUI.setServerHandler(handler);
+                                LobbyGUI lobby = new LobbyGUI(stage);
+                                lobby.show(stage);
+                            } catch (Exception e) {
+                                logger.error("Couldn't start client: ", e);
+                                System.exit(1);
+                            }
+                        });
                     } catch (NumberFormatException e) {
                         logger.error("Invalid port number", e);
                         System.exit(1);
                     } catch (Exception e) {
-                        logger.error("Couldn't starting client: ", e);
+                        logger.error("Couldn't start client: ", e);
                         System.exit(1);
                     }
                     break;
