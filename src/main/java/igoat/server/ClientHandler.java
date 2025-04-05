@@ -181,7 +181,6 @@ public class ClientHandler implements Runnable {
                 Arrays.fill(buffer, (byte) 0);
                 
             } catch (java.net.SocketTimeoutException e) {
-                logger.error("Timed out", e);
             } catch (SocketException se) {
                 if (udpListenerRunning) {
                     logger.error("Socket exception", se);
