@@ -26,9 +26,13 @@ public class Lobby {
      * - IN_GAME: Game is currently in progress
      */
     public enum GameState {
+        /** Lobby is accepting new players */
         OPEN,
+        /** Lobby has reached maximum player capacity */
         FULL,
+        /** All players in the lobby are ready to start */
         READY,
+        /** Game is currently in progress */
         IN_GAME
     }
 

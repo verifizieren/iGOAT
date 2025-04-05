@@ -40,7 +40,7 @@ public class Camera {
      * @param gamePane the main game pane to which all game elements are added
      * @param viewportWidth the initial width of the viewport in pixels
      * @param viewportHeight the initial height of the viewport in pixels
-     * @param zoom the zoom level (1.0 = no zoom, > 1.0 = zoom in, < 1.0 = zoom out)
+     * @param zoom the zoom level (1.0 = no zoom, &gt; 1.0 = zoom in, &lt; 1.0 = zoom out)
      * @param isLocal true if this is a local player's camera (with fog of war), false otherwise
      */
     public Camera(Pane gamePane, double viewportWidth, double viewportHeight, double zoom, boolean isLocal) {

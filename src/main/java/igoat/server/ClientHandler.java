@@ -15,11 +15,18 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Handles individual client connections in the game server.
+ * Each instance manages one client's TCP connection and UDP communication,
+ * handling game state updates, chat messages, and player actions.
+ * Implements Runnable to run in its own thread.
+ */
 public class ClientHandler implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
     
     // Constants for UDP Auto-Registration
-    public static final int SERVER_UDP_LISTENING_PORT = 61001; // Fixed port server listens on for UDP registration
+    /** Fixed port that the server listens on for UDP client registration */
+    public static final int SERVER_UDP_LISTENING_PORT = 61001;
     private static final String UDP_REGISTRATION_PREFIX = "register_udp:";
     private static final int UDP_BUFFER_SIZE = 512;
 
@@ -796,34 +803,74 @@ public class ClientHandler implements Runnable {
         broadcast("revive:" + targetName);
     }
 
+    /**
+     * Checks if the player has been caught.
+     * 
+     * @return true if the player has been caught, false otherwise
+     */
     public boolean isCaught() {
         return isCaught;
     }
 
+    /**
+     * Sets the caught status of the player.
+     * 
+     * @param caught true to mark the player as caught, false otherwise
+     */
     public void setCaught(boolean caught) {
         this.isCaught = caught;
     }
 
+    /**
+     * Checks if the player is currently down (unable to move).
+     * 
+     * @return true if the player is down, false otherwise
+     */
     public boolean isDown() {
         return isDown;
     }
 
+    /**
+     * Sets whether the player is down (unable to move).
+     * 
+     * @param down true to mark the player as down, false otherwise
+     */
     public void setDown(boolean down) {
         this.isDown = down;
     }
 
+    /**
+     * Gets the client's role in the game.
+     * 
+     * @return The current role of the client (e.g., hunter or runner)
+     */
     public int getRole() {
         return role;
     }
 
+    /**
+     * Checks if the player is ready to start the game.
+     * 
+     * @return true if the player is ready, false otherwise
+     */
     public boolean isReady() {
         return isReady;
     }
 
+    /**
+     * Sets whether the player is ready to start the game.
+     * 
+     * @param ready true to mark the player as ready, false otherwise
+     */
     public void setReady(boolean ready) {
         this.isReady = ready;
     }
 
+    /**
+     * Gets the client's nickname.
+     * 
+     * @return The current nickname of the client
+     */
     public String getNickname() {
         return nickname;
     }
