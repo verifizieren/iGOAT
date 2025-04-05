@@ -1,5 +1,5 @@
 ### IMPORTANT
-- [ ]  JavaDoc
+- [x]  JavaDoc
 - [ ] Broadcast
 - [x] correct build script with params
 - [ ] diary
