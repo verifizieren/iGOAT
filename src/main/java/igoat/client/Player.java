@@ -7,8 +7,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 public class Player {
-    public int x;
-    public int y;
+    private double x;
+    private double y;
     private final int width;
     private final int height;
     private final Rectangle visualRepresentation;
@@ -21,7 +21,7 @@ public class Player {
      * Creates a new player with the specified position and dimensions.
      */
     public Player(Pane gamePane, double viewportWidth, double viewportHeight, double zoom,
-                 int x, int y, int width, int height, Color color, String username, boolean isLocalPlayer) {
+                 double x, double y, int width, int height, Color color, String username, boolean isLocalPlayer) {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -52,8 +52,8 @@ public class Player {
      * Updates the player's position and camera.
      */
     public void updatePosition(double newX, double newY) {
-        this.x = (int)newX;
-        this.y = (int)newY;
+        this.x = newX;
+        this.y = newY;
         this.visualRepresentation.setX(newX);
         this.visualRepresentation.setY(newY);
         updateUsernamePosition();
@@ -125,7 +125,7 @@ public class Player {
      * Checks if this player collides with a wall.
      * Uses exact dimensions for precise collision detection.
      */
-    public boolean collidesWithWall(int testX, int testY, Wall wall) {
+    public boolean collidesWithWall(double testX, double testY, Wall wall) {
         return testX < wall.x + wall.width &&
                testX + width > wall.x &&
                testY < wall.y + wall.height &&
@@ -135,14 +135,14 @@ public class Player {
     /**
      * Gets the player's x-coordinate.
      */
-    public int getX() {
+    public double getX() {
         return x;
     }
 
     /**
      * Gets the player's y-coordinate.
      */
-    public int getY() {
+    public double getY() {
         return y;
     }
 

@@ -14,6 +14,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
+import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
@@ -520,21 +521,28 @@ public class Game extends Application {
         double newX = currentX;
         double newY = currentY;
 
-        double dx = 0;
-        double dy = 0;
-
+        Point2D direction = new Point2D(0, 0);
+        
         if (activeKeys.contains(KeyCode.W) || activeKeys.contains(KeyCode.UP)) {
-            dy -= MOVEMENT_SPEED * deltaTime;
+            direction = direction.add(0, -1);
         }
         if (activeKeys.contains(KeyCode.S) || activeKeys.contains(KeyCode.DOWN)) {
-            dy += MOVEMENT_SPEED * deltaTime;
+            direction = direction.add(0, 1);
         }
         if (activeKeys.contains(KeyCode.A) || activeKeys.contains(KeyCode.LEFT)) {
-            dx -= MOVEMENT_SPEED * deltaTime;
+            direction = direction.add(-1, 0);
         }
         if (activeKeys.contains(KeyCode.D) || activeKeys.contains(KeyCode.RIGHT)) {
-            dx += MOVEMENT_SPEED * deltaTime;
+            direction = direction.add(1, 0);
         }
+        
+        if (!direction.equals(Point2D.ZERO)) {
+            direction = direction.normalize();
+            direction = direction.multiply(MOVEMENT_SPEED * deltaTime);
+        }
+        
+        double dx = direction.getX();
+        double dy = direction.getY();
 
         double potentialX = currentX + dx;
         double potentialY = currentY + dy;
