@@ -43,6 +43,8 @@ public class Game extends Application {
     private static final double CAMERA_ZOOM = 3.0;
     
     private Pane gamePane;
+    private Stage stage;
+    private Stage lobbyStage;
     private double windowWidth;
     private double windowHeight;
     private Set<KeyCode> activeKeys;
@@ -60,7 +62,15 @@ public class Game extends Application {
     private boolean gameStarted = false;
     
     private Map<String, Player> otherPlayers = new HashMap<>();
-    
+
+    /**
+     * Constructor for Game
+     * @param lobbyStage The JavaFX stage of the lobby window. This will be used to return to the lobby after the game window closes.
+     */
+    public Game(Stage lobbyStage) {
+        this.lobbyStage = lobbyStage;
+    }
+
     /**
      * Initializes the game with necessary data from the lobby.
      *
@@ -108,16 +118,20 @@ public class Game extends Application {
      */
     @Override
     public void start(Stage primaryStage) {
+        stage = primaryStage;
+
+        stage.setOnCloseRequest(event -> exit());
+
         if (serverHandler == null || playerName == null || lobbyCode == null) {
             showError("Initialization Error", "Game cannot start without server connection details.");
-            Platform.exit();
+            exit();
             return;
         }
 
         String confirmedNickname = serverHandler.getConfirmedNickname();
         if (confirmedNickname == null) {
             showError("Initialization Error", "Cannot start game without confirmed nickname from server.");
-            Platform.exit();
+            exit();
             return;
         }
 
@@ -217,7 +231,15 @@ public class Game extends Application {
             }
         }.start();
     }
-    
+
+    /**
+     * Exit routine for the Game instance. This will close the game window and return to the lobby screen.
+     */
+    private void exit() {
+        stage.close();
+        lobbyStage.show();
+    }
+
     /**
      * Shows an error dialog to the user.
      * This method is thread-safe and will run on the JavaFX Application Thread.

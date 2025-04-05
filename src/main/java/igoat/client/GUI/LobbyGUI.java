@@ -536,26 +536,23 @@ public class LobbyGUI {
 
                         try {
                             logger.info("Creating and initializing Game instance...");
-                            Game game = new Game();
+                            Game game = new Game(stage);
                             game.initialize(serverHandler, username, currentLobbyCode, playerNames);
                             logger.info("Game instance initialized.");
 
                             logger.info("Creating new stage for game...");
                             Stage gameStage = new Stage();
-                             logger.info("Calling game.start()...");
-                            game.start(gameStage);
-                             logger.info("game.start() returned. Closing lobby window...");
+                            logger.info("Calling game.start()...");
 
-                            Stage currentStage = (Stage) playerListView.getScene().getWindow();
-                            if (currentStage != null) {
-                                currentStage.close();
-                                logger.info("Lobby window closed.");
-                            } else {
-                                 logger.error("Could not get current stage to close lobby window.");
-                            }
+                            game.start(gameStage);
+                            logger.info("game.start() returned. Closing lobby window...");
+
+                            stage.hide();
+                            logger.info("Lobby window closed.");
                         } catch (Exception ex) {
                             logger.error("Error starting game", ex);
                             appendToMessageArea("Error starting game: " + ex.getMessage());
+                            stage.show();
                         }
                     });
                     break;
