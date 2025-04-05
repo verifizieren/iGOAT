@@ -7,6 +7,9 @@ package igoat.client.GUI;
 
 import javafx.application.Application;
 
+/**
+ * Class for launching the client GUI application
+ */
 public class Main {
     /**
      * Starts the main menu GUI.

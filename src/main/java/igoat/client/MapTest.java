@@ -6,6 +6,9 @@ import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
+/**
+ * Class for testing the map during development
+ */
 public class MapTest extends Application {
     private static final double WINDOW_WIDTH = 800;
     private static final double WINDOW_HEIGHT = 600;
@@ -69,6 +72,9 @@ public class MapTest extends Application {
         scene.getRoot().requestFocus();
     }
 
+    /**
+     * launch the application
+     */
     public static void main(String[] args) {
         launch(args);
     }

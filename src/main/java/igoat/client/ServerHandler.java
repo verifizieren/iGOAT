@@ -13,6 +13,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This class handles the connection of the client to the server, including sockets for TCP and UDP.
+ */
 public class ServerHandler {
     private static final Logger logger = LoggerFactory.getLogger(ServerHandler.class);
 
@@ -40,6 +43,12 @@ public class ServerHandler {
 
     private final String username;
 
+    /**
+     * Creates a new ServerHandler instance
+     * @param host Host IP
+     * @param port Port
+     * @param username Client username
+     */
     public ServerHandler(String host, int port, String username) {
         this.host = host;
         this.port = port;
@@ -119,7 +128,7 @@ public class ServerHandler {
     /**
      * Closes and reopens the receiver thread and the socket
      */
-    public boolean reconnect() {
+    public void reconnect() {
         close();
         try {
             msgSocket = new Socket(host, port);
@@ -141,16 +150,16 @@ public class ServerHandler {
                 messageReceiver.start();
                 updateReceiver.start();
                 logger.info("Connected to server at {}:{}", host, port);
-                return true;
+                return;
             } catch (Exception e) {
                 logger.error("Failed to create UDP socket: ", e);
                 close();
-                return false;
+                return;
             }
         } catch (IOException e) {
             logger.error("Connection error: ", e);
             close();
-            return false;
+            return;
         }
     }
 

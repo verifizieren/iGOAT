@@ -151,6 +151,7 @@ public class Map {
     
     /**
      * Gets all visual elements including walls and special elements.
+     * @return a list containing the elements
      */
     public List<Rectangle> getVisualWalls() {
         List<Rectangle> allElements = new ArrayList<>(visualWalls);
@@ -160,6 +161,7 @@ public class Map {
     
     /**
      * Gets the list of collision wall objects.
+     * @return the list of walls
      */
     public List<Wall> getCollisionWalls() {
         return collisionWalls;
@@ -167,6 +169,7 @@ public class Map {
     
     /**
      * Gets the width of the map.
+     * @return map width
      */
     public int getWidth() {
         return MAP_WIDTH;
@@ -174,6 +177,7 @@ public class Map {
     
     /**
      * Gets the height of the map.
+     * @return map width
      */
     public int getHeight() {
         return MAP_HEIGHT;

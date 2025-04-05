@@ -85,6 +85,10 @@ public class LobbyGUI {
         serverHandler = handler;
     }
 
+    /**
+     * Sets the username
+     * @param username new username
+     */
     public void setUsername(String username) {
         this.username = username;
     }

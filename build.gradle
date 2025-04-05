@@ -9,6 +9,12 @@ javafx {
     modules = ['javafx.controls', 'javafx.fxml', 'javafx.base']
 }
 
+javadoc {
+    exclude '**/MapTest.java'
+
+    options.addStringOption('Xdoclint:none', '-quiet')
+}
+
 group 'iGOAT'
 version '0.15-ALPHA'
 
