@@ -15,8 +15,11 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MainMenuGUI extends Application {
+    private final Logger logger = LoggerFactory.getLogger(MainMenuGUI.class);
 
     private ServerHandler handler;
     private String username = System.getProperty("user.name");
@@ -38,7 +41,7 @@ public class MainMenuGUI extends Application {
 
         Button createServerButton = new Button("Create Server");
         createServerButton.setOnAction(e -> {
-            System.out.println("[MainMenuGUI] Create Server button clicked. Starting server on port 61000...");
+            logger.info("Create Server button clicked. Starting server on port 61000...");
             serverThread = new Thread(() -> Server.startServer(61000));
             serverThread.setDaemon(true);
             serverThread.start();
