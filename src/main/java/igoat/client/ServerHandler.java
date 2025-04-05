@@ -10,8 +10,11 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ServerHandler {
+    private static final Logger logger = LoggerFactory.getLogger(ServerHandler.class);
 
     private static final int SERVER_UDP_LISTENING_PORT = 61001;
     private static final String UDP_REGISTRATION_PREFIX = "register_udp:";
@@ -62,8 +65,7 @@ public class ServerHandler {
         try {
             msgWriter.println(msg);
         } catch (Exception e) {
-            log("Couldn't send message");
-            log(e.getMessage());
+            logger.error("Couldn't send message", e);
         }
     }
 
@@ -84,12 +86,12 @@ public class ServerHandler {
     public void sendUpdate(String msg) {
         try {
             if (updateSocket == null || !connected) {
-                System.err.println("[UDP_CLIENT] Cannot send - socket is null or not connected");
+                logger.error("[UDP_CLIENT] Cannot send - socket is null or not connected");
                 return;
             }
-            
-            //System.out.println("[UDP_CLIENT] Sending: '" + msg + "' to " + host + ":" + SERVER_UDP_LISTENING_PORT);
-            //System.out.println("[UDP_CLIENT] Using local port: " + updateSocket.getLocalPort());
+
+            //logger.info("Sending {} to {}:{}", msg, host, SERVER_UDP_LISTENING_PORT)
+            //logger.info("Using local port: ", updateSocket.getLocalPort());
             
             byte[] buffer = msg.getBytes();
             InetAddress targetAddress = InetAddress.getByName(host);
@@ -97,10 +99,9 @@ public class ServerHandler {
                 new DatagramPacket(buffer, buffer.length, targetAddress, SERVER_UDP_LISTENING_PORT);
             updateSocket.send(packet);
             
-            //System.out.println("[UDP_CLIENT] Packet sent - " + buffer.length + " bytes");
+            //logger.info("Packet sent - {} bytes", buffer.length);
         } catch (Exception e) {
-            System.err.println("[UDP_CLIENT] Send error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Couldn't send update", e);
         }
     }
 
@@ -131,23 +132,23 @@ public class ServerHandler {
 
             try {
                 updateSocket = new DatagramSocket();
-                System.out.println("[UDP_CLIENT] Created UDP socket on local port: " + updateSocket.getLocalPort());
-                System.out.println("[UDP_CLIENT] Will send to server UDP port: " + SERVER_UDP_LISTENING_PORT);
+                logger.info("Created UDP socket on local port {}", updateSocket.getLocalPort());
+                logger.info("Will send to server UDP port {} ", SERVER_UDP_LISTENING_PORT);
                 connected = true;
 
                 messageReceiver = new Thread(this::receiveMSG);
                 updateReceiver = new Thread(this::receiveUpdate);
                 messageReceiver.start();
                 updateReceiver.start();
-                log("Connected to server at " + host + ":" + port);
+                logger.info("Connected to server at {}:{}", host, port);
                 return true;
             } catch (Exception e) {
-                System.err.println("[UDP_CLIENT] Failed to create UDP socket: " + e.getMessage());
+                logger.error("Failed to create UDP socket: ", e);
                 close();
                 return false;
             }
         } catch (IOException e) {
-            System.err.println("[TCP_CLIENT] Connection error: " + e.getMessage());
+            logger.error("Connection error: ", e);
             close();
             return false;
         }
@@ -163,7 +164,7 @@ public class ServerHandler {
             try {
                 messageReceiver.join();
             } catch (InterruptedException e) {
-                log(e.getMessage());
+                logger.error("Couldn't close messageReceiver", e);
             }
         }
         // close updateReceiver thread
@@ -171,7 +172,7 @@ public class ServerHandler {
             try {
                 updateReceiver.join();
             } catch (InterruptedException e) {
-                log(e.getMessage());
+                logger.error("Couldn't close updateReceiver", e);
             }
         }
         // close msgSocket
@@ -181,7 +182,7 @@ public class ServerHandler {
                 msgWriter.close();
                 msgReader.close();
             } catch (Exception e) {
-                log(e.getMessage());
+                logger.error("Couldn't close msgSocket", e);
             }
         }
         // close updateSocket
@@ -202,12 +203,12 @@ public class ServerHandler {
             try {
                 msg = msgReader.readLine();
                 if (msg == null) {
-                    log("Server closed connection");
+                    logger.warn("Server closed connection");
                     connected = false;
                     break;
                 }
             } catch (IOException e) {
-                log("Error reading from server: " + e.getMessage());
+                logger.error("Error reading from server", e);
                 connected = false;
                 break;
             }
@@ -225,7 +226,7 @@ public class ServerHandler {
                     newNickname = confirmMessage;
                 }
                 this.confirmedNickname = newNickname;
-                log("Nickname confirmed by server: " + this.confirmedNickname);
+                logger.info("Nickname confirmed by server: {}", this.confirmedNickname);
                 sendUdpRegistrationPacket();
                 messageBuffer.add(msg);
             } else if (!msg.isEmpty()) {
@@ -233,7 +234,7 @@ public class ServerHandler {
             }
 
             if (System.currentTimeMillis() - pingTimer > TIMEOUT) {
-                log("Connection timed out");
+                logger.warn("Connection timed out");
                 messageBuffer.add("Connection timed out");
                 break;
             }
@@ -246,7 +247,7 @@ public class ServerHandler {
      * lastUpdate.
      */
     private void receiveUpdate() {
-        System.out.println("[UDP_CLIENT] Starting UDP receiver on port " + 
+        logger.info("Starting UDP receiver on port {}",
                          (updateSocket != null ? updateSocket.getLocalPort() : "unknown"));
         
         byte[] receiveBuffer = new byte[512];
@@ -254,7 +255,7 @@ public class ServerHandler {
         try {
             while (connected) {
                 if (updateSocket == null || updateSocket.isClosed()) {
-                    System.err.println("[UDP_CLIENT] Cannot receive - socket is null or closed");
+                    logger.error("[UDP_CLIENT] Cannot receive - socket is null or closed");
                     break;
                 }
                 
@@ -266,10 +267,8 @@ public class ServerHandler {
                     
                     updateSocket.receive(receivePacket);
                     String receivedMsg = new String(receivePacket.getData(), 0, receivePacket.getLength());
-                    
-                    //System.out.println("[UDP_CLIENT] Received: '" + receivedMsg + "' from " +
-                                     //receivePacket.getAddress().getHostAddress() + ":" + 
-                                     //receivePacket.getPort());
+
+                    //logger.info("Received: {} from {}:{}", receivedMsg, receivePacket.getAddress(), receivePacket.getPort());
 
                     if (!receivedMsg.startsWith("udp_ack:")) {
                         lastUpdate = receivedMsg;
@@ -279,12 +278,12 @@ public class ServerHandler {
             }
         } catch (Exception e) {
             if (connected && updateSocket != null && !updateSocket.isClosed()) {
-                System.err.println("[UDP_CLIENT] Receive error: " + e.getMessage());
+                logger.error("[UDP_CLIENT] Receive error: " + e.getMessage());
                 e.printStackTrace();
             }
         }
         
-        System.out.println("[UDP_CLIENT] UDP receiver stopped");
+        logger.info("UDP receiver stopped");
     }
 
     /**
@@ -293,7 +292,7 @@ public class ServerHandler {
      */
     private void sendUdpRegistrationPacket() {
         if (this.confirmedNickname == null || updateSocket == null || updateSocket.isClosed()) {
-            System.err.println("[UDP_CLIENT] Cannot register - nickname or socket unavailable");
+            logger.error("[UDP_CLIENT] Cannot register - nickname or socket unavailable");
             return;
         }
 
@@ -304,10 +303,10 @@ public class ServerHandler {
                                                this.confirmedNickname, 
                                                localUdpPort);
             
-            System.out.println("\n======= UDP REGISTRATION =======");
-            System.out.println("[UDP_CLIENT] Preparing registration: '" + registrationMsg + "'");
-            System.out.println("[UDP_CLIENT] From local port: " + localUdpPort);
-            System.out.println("[UDP_CLIENT] To server listening port: " + SERVER_UDP_LISTENING_PORT);
+            logger.info("\n======= UDP REGISTRATION =======");
+            logger.info("Preparing registration: {}", registrationMsg);
+            logger.info("From local port: {}", localUdpPort);
+            logger.info("To server listening port: {}", SERVER_UDP_LISTENING_PORT);
             
             byte[] buffer = registrationMsg.getBytes();
             InetAddress serverAddress = InetAddress.getByName(host);
@@ -315,11 +314,10 @@ public class ServerHandler {
                                                                   serverAddress, SERVER_UDP_LISTENING_PORT);
             
             updateSocket.send(registrationPacket);
-            System.out.println("[UDP_CLIENT] Registration packet sent successfully");
-            System.out.println("===============================\n");
+            logger.info("Registration packet sent successfully");
+            logger.info("===============================\n");
         } catch (IOException e) {
-            System.err.println("[UDP_CLIENT] Registration error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Registration error: " + e.getMessage());
         }
     }
 
@@ -330,9 +328,5 @@ public class ServerHandler {
      */
     public String getConfirmedNickname() {
         return confirmedNickname;
-    }
-
-    private static void log(String msg) {
-        System.out.println("[ServerHandler] " + msg);
     }
 }
