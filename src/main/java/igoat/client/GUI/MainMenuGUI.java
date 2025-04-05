@@ -41,10 +41,17 @@ public class MainMenuGUI extends Application {
 
         Button createServerButton = new Button("Create Server");
         createServerButton.setOnAction(e -> {
-            logger.info("Create Server button clicked. Starting server on port 61000...");
-            serverThread = new Thread(() -> Server.startServer(61000));
-            serverThread.setDaemon(true);
-            serverThread.start();
+            TextInputDialog portDialog = new TextInputDialog("61000");
+            portDialog.setTitle("Create Server");
+            portDialog.setHeaderText(null);
+            portDialog.setContentText("Enter server port:");
+
+            portDialog.showAndWait().ifPresent(serverPort -> {
+                logger.info("Create Server button clicked. Starting server on port {}...", serverPort);
+                serverThread = new Thread(() -> Server.startServer(Integer.parseInt(serverPort)));
+                serverThread.setDaemon(true);
+                serverThread.start();
+            });
         });
 
         Button joinServerButton = new Button("Join Server");
@@ -60,7 +67,13 @@ public class MainMenuGUI extends Application {
             ipDialog.setContentText("Enter server IP:");
 
             ipDialog.showAndWait().ifPresent(serverIP -> {
-                join(serverIP);
+                TextInputDialog portDialog = new TextInputDialog("61000");
+                portDialog.setTitle("Join Server");
+                portDialog.setHeaderText(null);
+                portDialog.setContentText("Enter server port:");
+                portDialog.showAndWait().ifPresent(port -> {
+                    join(serverIP, port);
+                });
             });
         });
 
@@ -84,7 +97,7 @@ public class MainMenuGUI extends Application {
      * Establishes a connection to the server and launches the lobby GUI
      * @param serverIP The server IP address
      */
-    private void join(String serverIP) {
+    private void join(String serverIP, String port) {
         if (serverIP.isEmpty()) {
             logger.error("Invalid server IP entered.");
             showAlert(Alert.AlertType.ERROR, "Invalid server IP.");
@@ -95,9 +108,9 @@ public class MainMenuGUI extends Application {
         handler = new ServerHandler(serverIP.trim(), 61000);
 
         if (!handler.isConnected()) {
-            logger.error("Failed to connect to server at: {}", serverIP);
+            logger.error("Failed to connect to server at: {}:{}", serverIP, port);
             Platform.runLater(() ->
-                showAlert(Alert.AlertType.ERROR, "Failed to connect to server at: " + serverIP)
+                showAlert(Alert.AlertType.ERROR, "Failed to connect to server at: " + serverIP + ":" + port)
             );
             return;
         }
