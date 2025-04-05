@@ -19,11 +19,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-
-
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Game extends Application {
+    private static final Logger logger = LoggerFactory.getLogger(Game.class);
 
     private static final double PLAYER_WIDTH = 32;
     private static final double PLAYER_HEIGHT = 32;
@@ -69,7 +69,7 @@ public class Game extends Application {
         Platform.runLater(() -> {
             String confirmedNickname = serverHandler.getConfirmedNickname();
             if (confirmedNickname == null) {
-                System.err.println("[Game_INIT] Cannot initialize - confirmed nickname is null");
+                logger.error("Cannot initialize - confirmed nickname is null");
                 return;
             }
             
@@ -250,14 +250,14 @@ public class Game extends Application {
                     Thread.sleep(16);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    System.err.println("Message processor interrupted.");
+                    logger.error("Message processor interrupted.");
                     break;
                 } catch (Exception e) {
-                     System.err.println("Error in message processor: " + e.getMessage());
+                     logger.error("Error in message processor", e);
                      break;
                  }
             }
-             System.out.println("Message processor stopped.");
+             logger.info("Message processor stopped.");
         });
         messageProcessor.setDaemon(true);
         messageProcessor.start();
@@ -290,15 +290,15 @@ public class Game extends Application {
             }
         } else if (message.startsWith("chat:")) {
             String chatMessage = message.substring("chat:".length());
-             System.out.println("CHAT: " + chatMessage);
+             logger.info("CHAT: {}", chatMessage);
         } else if (message.equals("game_started")) {
             handleGameStarted();
         } else if (message.startsWith("catch:")) {
             String caughtPlayer = message.substring("catch:".length());
-            System.out.println(caughtPlayer + " was caught!");
+            logger.info("{} was caught!", caughtPlayer);
         } else if (message.startsWith("revive:")) {
             String revivedPlayer = message.substring("revive:".length());
-            System.out.println(revivedPlayer + " was revived!");
+            logger.info("{} was revived!", revivedPlayer);
         } else if (message.startsWith("player_left:")) {
             String leftPlayer = message.substring("player_left:".length());
             if (!leftPlayer.equals(this.playerName)) {
@@ -328,7 +328,7 @@ public class Game extends Application {
                     Thread.currentThread().interrupt();
                     break;
                 } catch (Exception e) {
-                    System.err.println("[UDP_CLIENT] Processor error: " + e.getMessage());
+                    logger.error("Processor error", e);
                     break;
                 }
             }
@@ -343,12 +343,12 @@ public class Game extends Application {
      * @param update The UDP update message
      */
     private void processUdpUpdate(String update) {
-        //System.out.println("[Game_UDP_PROCESS] Processing update: '" + update + "'");
+        //logger.info("Processing update: {}", update);
         
         if (update.startsWith("player_position:")) {
             String[] parts = update.split(":");
             if (parts.length != 4) {
-                System.err.println("[UDP_CLIENT] Invalid position update: " + update);
+                logger.error("Invalid position update: {}", update);
                 return;
             }
 
@@ -357,12 +357,11 @@ public class Game extends Application {
                 int x = Integer.parseInt(parts[2]);
                 int y = Integer.parseInt(parts[3]);
 
-                //System.out.println("[Game_UDP_PROCESS] Parsed position update for '" + remotePlayerName + 
-                                 //"' at (" + x + "," + y + ")");
+                //logger.info("Parsed position update for {} at {}, {}'", remotePlayerName, x, y);
 
                 String confirmedNickname = serverHandler.getConfirmedNickname();
                 if (confirmedNickname == null) {
-                    System.err.println("[Game_UDP_PROCESS] Cannot process update - confirmed nickname is null");
+                    logger.error("Cannot process update - confirmed nickname is null");
                     return;
                 }
                 if (remotePlayerName.equals(confirmedNickname)) {
@@ -374,12 +373,12 @@ public class Game extends Application {
                 }
                 createVisualForRemotePlayer(remotePlayerName, x, y);
             } catch (NumberFormatException e) {
-                System.err.println("[UDP_CLIENT] Invalid coordinates: " + e.getMessage());
+                logger.error("Invalid coordinates", e);
             }
         } else if (update.startsWith("udp_ack:")) {
-            System.out.println("[Game_UDP_RECV] Received UDP acknowledgment from server");
+            logger.info("Received UDP acknowledgment from server");
         } else {
-            System.out.println("[Game_UDP_RECV] Unrecognized UDP message format: '" + update + "'");
+            logger.info("Unrecognized UDP message format: {}", update);
         }
     }
     
@@ -391,16 +390,16 @@ public class Game extends Application {
      * @param y The new y-coordinate
      */
     private void updateRemotePlayerPosition(String playerName, int x, int y) {
-        //System.out.println("[Game_RemotePlayer] Attempting to update player '" + playerName + "' to position (" + x + "," + y + ")");
+        //logger.info("Attempting to update player {} to position ({}, {})", playerName, x, y);
         
         if (otherPlayers.containsKey(playerName)) {
             Player remotePlayer = otherPlayers.get(playerName);
             Platform.runLater(() -> {
                 remotePlayer.updatePosition(x, y);
-                //System.out.println("[Game_RemotePlayer] Updated existing player '" + playerName + "' to position (" + x + "," + y + ")");
+                //logger.info("Updated existing player {} to position ({}, {})", playerName, x, y);
             });
         } else {
-            System.out.println("[Game_DEBUG] Player '" + playerName + "' not found visually, creating at (" + x + ", " + y + ").");
+            logger.info("Player {} not found visually, creating at ({}, {})", playerName, x, y);
             createVisualForRemotePlayer(playerName, x, y);
         }
     }
@@ -413,10 +412,10 @@ public class Game extends Application {
      * @param y The y-coordinate
      */
     private void createVisualForRemotePlayer(String playerName, int x, int y) {
-        System.out.println("Creating visual for player: " + playerName);
+        logger.info("Creating visual for player: {}", playerName);
         
         if (otherPlayers.containsKey(playerName)) {
-            System.out.println("[Game_RemotePlayer] Player '" + playerName + "' already exists, updating position instead");
+            logger.info("Player {} already exists, updating position instead", playerName);
             updateRemotePlayerPosition(playerName, x, y);
             return;
         }
@@ -432,7 +431,7 @@ public class Game extends Application {
                     
                     otherPlayers.put(playerName, remotePlayer);
                     
-                    System.out.println("[Game_RemotePlayer] Added visual for player: " + playerName + " with username: " + playerName);
+                    logger.info("Added visual for player {}", playerName);
                 }
             });
             
@@ -449,8 +448,7 @@ public class Game extends Application {
                 });
             }
         } catch (Exception e) {
-            System.err.println("[Game_RemotePlayer] Error creating visual for player: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Error creating visual for player", e);
         }
     }
 
@@ -460,8 +458,7 @@ public class Game extends Application {
     private void updateVisuals() {
         double centerX = player.getX() + (PLAYER_WIDTH/2.0);
         double centerY = player.getY() + (PLAYER_HEIGHT/2.0);
-        
-        // Fuer SPieler
+
         for (Player otherPlayer : otherPlayers.values()) {
             Circle visualClip = new Circle(centerX, centerY, 100);
             Circle labelClip = new Circle(centerX, centerY, 100);
@@ -469,8 +466,7 @@ public class Game extends Application {
             otherPlayer.getVisualRepresentation().setClip(visualClip);
             otherPlayer.getUsernameLabel().setClip(labelClip);
         }
-        
-        // Fuer Element (Special)
+
         for (javafx.scene.Node node : gameMap.getVisualWalls()) {
             if (node instanceof Rectangle rectangle && rectangle.getFill() == Color.RED) { // Special elemente die rot sind
                 Circle elementClip = new Circle(centerX, centerY, 100);
@@ -487,12 +483,12 @@ public class Game extends Application {
     private void removeRemotePlayer(String remotePlayerName) {
         String confirmedNickname = serverHandler.getConfirmedNickname();
         if (confirmedNickname == null) {
-            System.err.println("[Game_REMOVE] Cannot remove player - confirmed nickname is null");
+            logger.error("Cannot remove player - confirmed nickname is null");
             return;
         }
         
         if (remotePlayerName.equals(confirmedNickname)) {
-            System.out.println("[Game_REMOVE] Ignoring removal of ourselves");
+            logger.info("Ignoring removal of ourselves");
             return;
         }
         
@@ -502,7 +498,7 @@ public class Game extends Application {
                 gamePane.getChildren().remove(removedPlayer.getVisualRepresentation());
                 gamePane.getChildren().remove(removedPlayer.getUsernameLabel());
             });
-            System.out.println("Removed visual for player: " + remotePlayerName);
+            logger.info("Removed visual for player {}", remotePlayerName);
         }
     }
 
@@ -602,13 +598,13 @@ public class Game extends Application {
             
             String confirmedNickname = serverHandler.getConfirmedNickname();
             if (confirmedNickname == null) {
-                System.err.println("[Game_UDP_SEND] Cannot send position update - confirmed nickname is null");
+                logger.error("Cannot send position update - confirmed nickname is null");
                 return;
             }
             
             String updateMessage = String.format("position:%s:%s:%d:%d",
                                                confirmedNickname, lobbyCode, x, y);
-            //System.out.println("[Game_UDP_SEND] Sending position update: " + updateMessage);
+            //logger.info("Sending position update: {}", updateMessage);
             serverHandler.sendUpdate(updateMessage);
         }
     }
@@ -634,7 +630,7 @@ public class Game extends Application {
      * @param args Command line arguments (not used)
      */
     public static void main(String[] args) {
-        System.err.println("Warning: Launching Game directly via main() requires manual initialization setup.");
+        logger.warn("Warning: Launching Game directly via main() requires manual initialization setup.");
         launch(args);
     }
 } 

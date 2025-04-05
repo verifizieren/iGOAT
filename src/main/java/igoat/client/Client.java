@@ -109,13 +109,4 @@ public class Client {
             }
         }
     }
-
-    /**
-     * Logs a message with the client prefix.
-     *
-     * @param msg The message to log
-     */
-    public static void log(String msg) {
-        System.out.println("[Client] " + msg);
-    }
 }
