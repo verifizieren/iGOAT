@@ -217,12 +217,16 @@ public class ServerHandler {
                 pingTimer = System.currentTimeMillis();
                 continue;
             } else if (msg.startsWith(NICKNAME_CONFIRM_PREFIX)) {
-                String newNickname = msg.substring(NICKNAME_CONFIRM_PREFIX.length());
-                if (!newNickname.equals(this.confirmedNickname)) {
-                    this.confirmedNickname = newNickname;
-                    log("Nickname confirmed by server: " + this.confirmedNickname);
-                    sendUdpRegistrationPacket();
+                String confirmMessage = msg.substring(NICKNAME_CONFIRM_PREFIX.length());
+                String newNickname;
+                if (confirmMessage.startsWith("Username gesetzt zu ")) {
+                    newNickname = confirmMessage.substring("Username gesetzt zu ".length());
+                } else {
+                    newNickname = confirmMessage;
                 }
+                this.confirmedNickname = newNickname;
+                log("Nickname confirmed by server: " + this.confirmedNickname);
+                sendUdpRegistrationPacket();
                 messageBuffer.add(msg);
             } else if (!msg.isEmpty()) {
                 messageBuffer.add(msg);

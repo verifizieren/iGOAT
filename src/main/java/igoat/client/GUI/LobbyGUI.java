@@ -297,8 +297,8 @@ public class LobbyGUI {
 
             dialog.showAndWait().ifPresent(name -> {
                 if (!name.isBlank()) {
-                    username = name;
-                    serverHandler.sendMessage("username:" + username);
+                    serverHandler.sendMessage("username:" + name);
+                    // Username will be updated when server confirms the change
                 }
             });
         });

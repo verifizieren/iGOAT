@@ -68,10 +68,11 @@ public class MainMenuGUI extends Application {
                 portDialog.setHeaderText(null);
                 portDialog.setContentText("Enter server port:");
                 portDialog.showAndWait().ifPresent(port -> {
-                    TextInputDialog nameDialog = new TextInputDialog("");
+                    String systemUsername = System.getProperty("user.name");
+                    TextInputDialog nameDialog = new TextInputDialog(systemUsername);
                     nameDialog.setTitle("Join Server");
                     nameDialog.setHeaderText(null);
-                    nameDialog.setContentText("Enter your username:");
+                    nameDialog.setContentText("Enter your username (default: " + systemUsername + "):");
                     nameDialog.showAndWait().ifPresent(name -> {
                         if (name.isEmpty()) {
                             showAlert(Alert.AlertType.ERROR, "Username cannot be empty");
