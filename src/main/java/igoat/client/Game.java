@@ -22,6 +22,18 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Main game class that handles the core game logic, rendering, and networking.
+ * This class manages:
+ * - Player movement and collision detection
+ * - Camera and viewport management
+ * - Network communication (TCP for game state, UDP for position updates)
+ * - Remote player synchronization
+ * - Game state and visual updates
+ *
+ * The game uses a client-server architecture where each client sends position updates
+ * via UDP and receives game state updates via TCP.
+ */
 public class Game extends Application {
     private static final Logger logger = LoggerFactory.getLogger(Game.class);
 
@@ -36,7 +48,7 @@ public class Game extends Application {
     private Set<KeyCode> activeKeys;
     private long lastUpdate;
     private long lastPositionUpdate = 0;
-    private static final long POSITION_UPDATE_INTERVAL = 16; // Send updates every 16ms (approximately 60fps)
+    private static final long POSITION_UPDATE_INTERVAL = 16;
     
     private Player player;
     private igoat.client.Map gameMap;
@@ -111,7 +123,6 @@ public class Game extends Application {
 
         gameMap = new igoat.client.Map();
         
-        // Set up the game pane with the map's fixed dimensions
         gamePane = new Pane();
         gamePane.setPrefSize(gameMap.getWidth(), gameMap.getHeight());
         gamePane.setStyle("-fx-background-color: white;");
@@ -208,7 +219,11 @@ public class Game extends Application {
     }
     
     /**
-     * Shows an error dialog.
+     * Shows an error dialog to the user.
+     * This method is thread-safe and will run on the JavaFX Application Thread.
+     *
+     * @param title the title of the error dialog
+     * @param content the error message to display
      */
     private void showError(String title, String content) {
         Platform.runLater(() -> {
@@ -221,7 +236,11 @@ public class Game extends Application {
     }
     
     /**
-     * Shows an info dialog.
+     * Shows an information dialog to the user.
+     * This method is thread-safe and will run on the JavaFX Application Thread.
+     *
+     * @param title the title of the information dialog
+     * @param content the information message to display
      */
     private void showInfo(String title, String content) {
         Platform.runLater(() -> {
@@ -234,8 +253,9 @@ public class Game extends Application {
     }
     
     /**
-     * Starts a thread to process incoming messages from the server.
-     * Uses the ServerHandler passed during initialization.
+     * Starts a background thread that processes TCP messages from the server.
+     * Handles game state updates, chat messages, and player events.
+     * The thread runs continuously until the game ends or the connection is lost.
      */
     private void startMessageProcessor() {
         if (serverHandler == null) return;
@@ -264,9 +284,14 @@ public class Game extends Application {
     }
     
     /**
-     * Processes messages received from the server.
+     * Processes TCP messages received from the server.
+     * Handles various message types including:
+     * - Lobby player updates
+     * - Chat messages
+     * - Game state changes
+     * - Player events (catch, revive, leave)
      *
-     * @param message The server message
+     * @param message the message received from the server
      */
     private void processServerMessage(String message) {
         if (message.startsWith("getlobbyplayers:")) {
@@ -308,8 +333,10 @@ public class Game extends Application {
     }
     
     /**
-     * Starts a thread to process incoming UDP updates from the server.
-     * Uses the ServerHandler passed during initialization.
+     * Starts a background thread that processes UDP position updates from the server.
+     * This thread runs at a higher frequency than the TCP message processor to ensure
+     * smooth player movement updates. Also initiates the first position update for
+     * the local player.
      */
     private void startUdpUpdateProcessor() {
         if (serverHandler == null) return;
@@ -453,7 +480,11 @@ public class Game extends Application {
     }
 
     /**
-     * Updates the clip on the game objects for the fog effect
+     * Updates the visual elements of the game based on the local player's position.
+     * This includes:
+     * - Updating the fog of war effect around other players
+     * - Clipping special game elements based on visibility
+     * - Updating visual elements for dynamic game objects
      */
     private void updateVisuals() {
         double centerX = player.getX() + (PLAYER_WIDTH/2.0);
@@ -503,11 +534,15 @@ public class Game extends Application {
     }
 
     /**
-     * Updates the game state based on the elapsed time since the last update.
-     * Handles player movement based on active keys and checks for collisions.
-     * Sends local player position updates to the server.
+     * Updates the game state based on the elapsed time.
+     * This is the main game loop that handles:
+     * - Player movement based on keyboard input
+     * - Collision detection with walls
+     * - Camera updates
+     * - Position updates to server
+     * - Visual updates
      *
-     * @param deltaTime The time elapsed since the last update in seconds
+     * @param deltaTime time elapsed since last update in seconds
      */
     private void update(double deltaTime) {
         if (player == null || !gameStarted) return;
@@ -588,8 +623,14 @@ public class Game extends Application {
     }
     
     /**
-     * Sends the player's current position to the server via UDP.
-     * The update includes the player name, lobby code, and x,y coordinates.
+     * Sends the local player's current position to the server via UDP.
+     * The update includes:
+     * - Player's nickname
+     * - Current lobby code
+     * - X and Y coordinates
+     * 
+     * This is called periodically during the game loop when the player moves
+     * or when the position update interval has elapsed.
      */
     private void sendPlayerPositionUpdate() {
         if (serverHandler != null && serverHandler.isConnected() && player != null) {

@@ -12,7 +12,10 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Scale;
 
 /**
- * Camera with fog of war effect in JavaFX.
+ * Represents a camera system for the game world with fog of war effect.
+ * The camera follows the player and manages the viewport, including zooming and fog of war effects.
+ * The fog of war creates a visibility circle around the player's position, with the rest of the
+ * game world obscured by a semi-transparent overlay.
  */
 public class Camera {
     private final Pane gamePane;
@@ -31,6 +34,14 @@ public class Camera {
 
     /**
      * Creates a new Camera with the specified viewport size and zoom level.
+     * Initializes the camera system including the viewport, zoom, and fog of war effect if this
+     * is a local player's camera.
+     *
+     * @param gamePane the main game pane to which all game elements are added
+     * @param viewportWidth the initial width of the viewport in pixels
+     * @param viewportHeight the initial height of the viewport in pixels
+     * @param zoom the zoom level (1.0 = no zoom, > 1.0 = zoom in, < 1.0 = zoom out)
+     * @param isLocal true if this is a local player's camera (with fog of war), false otherwise
      */
     public Camera(Pane gamePane, double viewportWidth, double viewportHeight, double zoom, boolean isLocal) {
         this.gamePane = gamePane;
@@ -47,19 +58,21 @@ public class Camera {
         clip.setHeight(viewportHeight / zoom);
         gamePane.setClip(clip);
 
-        // Create the fog overlay
         this.fogCanvas = new Canvas(viewportWidth, viewportHeight);
         this.fogGC = fogCanvas.getGraphicsContext2D();
 
         if (isLocal) {
-            drawFog(viewportWidth / (2 * zoom), viewportHeight / (2 * zoom)); // Start with the fog centered
-            // Add fog overlay to game pane
+            drawFog(viewportWidth / (2 * zoom), viewportHeight / (2 * zoom));
             gamePane.getChildren().add(fogCanvas);
         }
     }
 
     /**
-     * Updates the viewport size.
+     * Updates the viewport size when the window is resized.
+     * Adjusts the clip rectangle and fog canvas to match the new dimensions.
+     *
+     * @param newWidth the new width of the viewport in pixels
+     * @param newHeight the new height of the viewport in pixels
      */
     public void updateViewport(double newWidth, double newHeight) {
         this.viewportWidth = newWidth;
@@ -76,8 +89,12 @@ public class Camera {
     }
 
     /**
-     * Updates the camera to center on the player's position.
-     * Also updates the fog effect.
+     * Updates the camera position to center on the player.
+     * Calculates the appropriate translation to keep the player centered in the viewport
+     * and updates the fog of war effect position if this is a local player's camera.
+     *
+     * @param playerX the player's x-coordinate in world space
+     * @param playerY the player's y-coordinate in world space
      */
     public void update(double playerX, double playerY) {
         double centerOffsetX = viewportWidth / (2 * zoom);
@@ -99,16 +116,18 @@ public class Camera {
     }
 
     /**
-     * Draws the fog overlay with a transparent visibility circle.
+     * Draws the fog of war overlay with a transparent visibility circle around the player.
+     * Creates a radial gradient that transitions from fully transparent near the player
+     * to semi-transparent at the edges of the visibility circle.
+     *
+     * @param playerScreenX the player's x-coordinate in screen space
+     * @param playerScreenY the player's y-coordinate in screen space
      */
     private void drawFog(double playerScreenX, double playerScreenY) {
         fogGC.clearRect(0, 0, fogCanvas.getWidth(), fogCanvas.getHeight());
-
-        // Draw semi-transparent gray fog over the entire screen
         fogGC.setFill(Color.rgb(0, 0, 0, 0));
         fogGC.fillRect(0, 0, fogCanvas.getWidth(), fogCanvas.getHeight());
 
-        // Create a sharper radial gradient
         RadialGradient gradient = new RadialGradient(
                 0, 0, playerScreenX, playerScreenY, LIGHT_RADIUS,
                 false, CycleMethod.NO_CYCLE,
@@ -124,14 +143,21 @@ public class Camera {
     }
 
     /**
-     * Adds a node to the game world.
+     * Adds a JavaFX node to the game world.
+     * The node will be affected by camera movement and zoom.
+     *
+     * @param node the JavaFX node to add to the game world
      */
     public void addToWorld(javafx.scene.Node node) {
         gamePane.getChildren().add(node);
     }
 
     /**
-     * Centers the camera on the specified world position.
+     * Centers the camera on a specific position in the game world.
+     * This is a convenience method that calls update() internally.
+     *
+     * @param x the x-coordinate to center on in world space
+     * @param y the y-coordinate to center on in world space
      */
     public void centerOn(double x, double y) {
         update(x, y);

@@ -18,7 +18,12 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * The main entry point for the iGoat client application. Displays the main menu that allows users to
+ * create a server or join an existing one.
+ */
 public class MainMenuGUI extends Application {
+    /** Logger for this class */
     private static final Logger logger = LoggerFactory.getLogger(MainMenuGUI.class);
 
     private ServerHandler handler;
@@ -26,6 +31,12 @@ public class MainMenuGUI extends Application {
     private Thread serverThread;
     private Stage stage;
 
+    /**
+     * Initializes and displays the main menu of the application.
+     * Sets up the GUI components including server creation, joining, and exit options.
+     *
+     * @param primaryStage the primary stage for this application
+     */
     @Override
     public void start(Stage primaryStage) {
         stage = primaryStage;
@@ -102,8 +113,12 @@ public class MainMenuGUI extends Application {
     }
 
     /**
-     * Establishes a connection to the server and launches the lobby GUI
-     * @param serverIP The server IP address
+     * Establishes a connection to the server and launches the lobby GUI.
+     * If the connection fails, displays an error message.
+     *
+     * @param serverIP the IP address of the server to connect to
+     * @param port the port number of the server
+     * @param username the player's username for the game session
      */
     private void join(String serverIP, String port, String username) {
         if (serverIP.isEmpty()) {
@@ -141,6 +156,10 @@ public class MainMenuGUI extends Application {
         });
     }
 
+    /**
+     * Handles the application exit process.
+     * Closes the server connection if it exists and terminates the JavaFX application.
+     */
     private void exit() {
         logger.info("Exit button clicked.");
         if (handler != null) {
@@ -149,6 +168,13 @@ public class MainMenuGUI extends Application {
         Platform.exit();
     }
 
+    /**
+     * Displays an alert dialog to the user.
+     * This method is thread-safe and can be called from any thread.
+     *
+     * @param type the type of alert to display (e.g., ERROR, INFORMATION)
+     * @param message the message to display in the alert dialog
+     */
     private void showAlert(Alert.AlertType type, String message) {
         if (Platform.isFxApplicationThread()) {
             Alert alert = new Alert(type, message, ButtonType.OK);
@@ -163,6 +189,12 @@ public class MainMenuGUI extends Application {
         }
     }
     
+    /**
+     * Alternative entry point for the application.
+     * Launches the JavaFX application thread.
+     *
+     * @param args command line arguments (not used)
+     */
     public static void main(String[] args) {
         logger.info("Launching application...");
         launch(args);

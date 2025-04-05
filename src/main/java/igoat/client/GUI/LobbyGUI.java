@@ -314,6 +314,11 @@ public class LobbyGUI {
         return buttons;
     }
 
+    /**
+     * Handles the exit process for the lobby GUI.
+     * Stops the message receiver thread, sends exit message to server,
+     * closes the connection, and returns to the main menu.
+     */
     private void exit() {
         running = false;
         if (serverHandler != null) {
@@ -354,7 +359,9 @@ public class LobbyGUI {
     }
 
     /**
-     * Sends a chat message to either the global or lobby chat based on current mode.
+     * Sends a chat message to either the global or lobby chat.
+     * The message is prefixed with either 'chat:' or 'lobbychat:' depending on the current chat mode.
+     * After sending, the input field is cleared.
      */
     private void sendChatMessage() {
         String text = chatInput.getText().trim();
@@ -565,7 +572,9 @@ public class LobbyGUI {
     }
     
     /**
-     * Updates the player list to show ready status indicators based on the playerReadyStatus map.
+     * Updates the player list view to reflect the current ready status of all players.
+     * Each ready player's name is suffixed with a checkmark (✓).
+     * This method is only applicable in lobby chat mode.
      */
     private void updatePlayerListWithReadyStatus() {
         if (isGlobalChat) return;
@@ -584,8 +593,12 @@ public class LobbyGUI {
     }
     
     /**
-     * Checks if all players currently listed in the input array are marked as ready in the map.
-     * If so, sends the "startgame:" command.
+     * Checks if all players in the lobby are ready to start the game.
+     * If all players are ready, sends the 'startgame:' command to the server.
+     * The game will only start if:
+     * - There is at least one player in the lobby
+     * - All players have marked themselves as ready
+     * - The server connection is active
      *
      * @param players Array of player names currently in the lobby (from server message)
      */
@@ -627,7 +640,8 @@ public class LobbyGUI {
      }
     
     /**
-     * Appends a message to the chat area.
+     * Appends a message to the chat message area.
+     * This method is thread-safe as it uses Platform.runLater().
      *
      * @param message the message to append to the chat area
      */
