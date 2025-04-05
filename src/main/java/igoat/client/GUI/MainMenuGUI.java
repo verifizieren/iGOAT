@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MainMenuGUI extends Application {
-    private final Logger logger = LoggerFactory.getLogger(MainMenuGUI.class);
+    private static final Logger logger = LoggerFactory.getLogger(MainMenuGUI.class);
 
     private ServerHandler handler;
     private String username = System.getProperty("user.name");
@@ -49,7 +49,7 @@ public class MainMenuGUI extends Application {
 
         Button joinServerButton = new Button("Join Server");
         joinServerButton.setOnAction(e -> {
-            System.out.println("[MainMenuGUI] Join Server button clicked.");
+            logger.info("Join Server button clicked.");
             if (username.isEmpty()) {
                 username = getSystemName();
             }
@@ -77,7 +77,7 @@ public class MainMenuGUI extends Application {
         Scene scene = new Scene(root, 400, 300);
         primaryStage.setScene(scene);
         primaryStage.show();
-        System.out.println("[MainMenuGUI] Main menu displayed.");
+        logger.info("Main menu displayed.");
     }
 
     /**
@@ -86,33 +86,33 @@ public class MainMenuGUI extends Application {
      */
     private void join(String serverIP) {
         if (serverIP.isEmpty()) {
-            System.err.println("[MainMenuGUI] Invalid server IP entered.");
+            logger.error("Invalid server IP entered.");
             showAlert(Alert.AlertType.ERROR, "Invalid server IP.");
             return;
         }
 
-        System.out.println("[MainMenuGUI] Attempting to connect to server: " + serverIP.trim() + ":61000");
+        logger.info("Attempting to connect to server: {}:61000", serverIP.trim());
         handler = new ServerHandler(serverIP.trim(), 61000);
 
         if (!handler.isConnected()) {
-            System.err.println("[MainMenuGUI] Failed to connect to server at: " + serverIP);
+            logger.error("Failed to connect to server at: {}", serverIP);
             Platform.runLater(() ->
                 showAlert(Alert.AlertType.ERROR, "Failed to connect to server at: " + serverIP)
             );
             return;
         }
 
-        System.out.println("[MainMenuGUI] Successfully connected to server.");
+        logger.info("Successfully connected to server.");
         Platform.runLater(() -> {
             try {
-                System.out.println("[MainMenuGUI] Setting ServerHandler and launching LobbyGUI...");
+                logger.info("Setting ServerHandler and launching LobbyGUI...");
                 LobbyGUI.setServerHandler(handler);
                 LobbyGUI lobby = new LobbyGUI(stage);
                 lobby.show(new Stage());
-                System.out.println("[MainMenuGUI] LobbyGUI shown. Closing MainMenuGUI.");
+                logger.info("LobbyGUI shown. Closing MainMenuGUI.");
                 stage.hide();
             } catch (Exception ex) {
-                System.err.println("[MainMenuGUI] Error launching LobbyGUI: " + ex.getMessage());
+                logger.error("Couldn't launch LobbyGUI", ex);
                 ex.printStackTrace();
                 showAlert(Alert.AlertType.ERROR, "Error launching lobby: " + ex.getMessage());
             }
@@ -120,7 +120,7 @@ public class MainMenuGUI extends Application {
     }
 
     private void exit() {
-        System.out.println("[MainMenuGUI] Exit button clicked.");
+        logger.info("Exit button clicked.");
         if (handler != null) {
             handler.close();
         }
@@ -146,7 +146,7 @@ public class MainMenuGUI extends Application {
     }
 
     public static void main(String[] args) {
-        System.out.println("[MainMenuGUI] Launching application...");
+        logger.info("Launching application...");
         launch(args);
     }
 }

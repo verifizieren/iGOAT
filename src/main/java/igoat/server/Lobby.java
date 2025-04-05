@@ -2,8 +2,12 @@ package igoat.server;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Lobby {
+    //private static final Logger logger = LoggerFactory.getLogger(Lobby.class);
+
     private final int code;
     private final List<ClientHandler> members;
     public static int MAX_PLAYERS = 4;

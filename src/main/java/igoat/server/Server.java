@@ -3,12 +3,15 @@ package igoat.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Server implementation for the iGoat chat application. Handles client connections and spawns
  * individual handlers for each client.
  */
 public class Server {
+    private static final Logger logger = LoggerFactory.getLogger(Server.class);
 
     private static final int DEFAULT_PORT = 61000;
 
@@ -20,13 +23,13 @@ public class Server {
 
     public static void startServer(int port) {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            System.out.println("Server started on port " + port);
+            logger.info("Server started on port {}", port);
 
             ClientHandler.startUdpListener();
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                System.out.println("New connection from " + clientSocket.getInetAddress().getHostAddress());
+                logger.info("New connection from {}", clientSocket.getInetAddress().getHostAddress());
 
                 ClientHandler handler = new ClientHandler(clientSocket);
                 Thread client = new Thread(handler);
@@ -34,8 +37,7 @@ public class Server {
                 client.start();
             }
         } catch (IOException e) {
-            System.err.println("Could not listen on port " + port);
-            System.err.println(e.getMessage());
+            logger.error("Could not listen on port {}",port, e);
         } finally {
             ClientHandler.stopUdpListener();
         }

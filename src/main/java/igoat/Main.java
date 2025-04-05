@@ -5,12 +5,15 @@ import igoat.client.GUI.MainMenuGUI;
 import igoat.server.Server;
 import javafx.application.Application;
 import javafx.application.Platform;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Main entry point for the iGoat application. Handles command-line arguments to start either the
  * GUI, server, or client mode.
  */
 public class Main {
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     /**
      * Main entry point that processes command-line arguments and launches appropriate mode.
@@ -29,28 +32,28 @@ public class Main {
                 Platform.startup(() -> {});
                 Application.launch(MainMenuGUI.class, args);
             } catch (Exception e) {
-                System.err.println("Error launching GUI: " + e.getMessage());
+                logger.error("Error launching GUI: ", e);
                 System.exit(1);
             }
         } else {
             switch (args[0].toLowerCase()) {
                 case "server":
                     if (args.length < 2) {
-                        System.err.println("Usage: java -jar igoat.jar server <port>");
+                        logger.warn("Usage: java -jar igoat.jar server <port>");
                         System.exit(1);
                     }
                     try {
                         int port = Integer.parseInt(args[1]);
                         Server.main(new String[]{String.valueOf(port)});
                     } catch (NumberFormatException e) {
-                        System.err.println("Error: Invalid port number");
+                        logger.error("Invalid port number", e);
                         System.exit(1);
                     }
                     break;
 
                 case "client":
                     if (args.length < 3) {
-                        System.err.println("Usage: java -jar igoat.jar client <host> <port>");
+                        logger.warn("Usage: java -jar igoat.jar client <host> <port>");
                         System.exit(1);
                     }
                     try {
@@ -58,17 +61,17 @@ public class Main {
                         int port = Integer.parseInt(args[2]);
                         Client.main(new String[]{host, String.valueOf(port)});
                     } catch (NumberFormatException e) {
-                        System.err.println("Error: Invalid port number");
+                        logger.error("Invalid port number", e);
                         System.exit(1);
                     } catch (Exception e) {
-                        System.err.println("Error starting client: " + e.getMessage());
+                        logger.error("Couldn't starting client: ", e);
                         System.exit(1);
                     }
                     break;
 
                 default:
-                    System.err.println("Usage: java -jar igoat.jar [server <port> | client <host> <port>]");
-                    System.err.println("       java -jar igoat.jar (for GUI mode)");
+                    logger.warn("Usage: java -jar igoat.jar [server <port> | client <host> <port>]");
+                    logger.warn("       java -jar igoat.jar (for GUI mode)");
                     System.exit(1);
             }
         }
