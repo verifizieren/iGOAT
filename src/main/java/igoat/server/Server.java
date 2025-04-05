@@ -15,24 +15,7 @@ public class Server {
     public static void main(String[] args) {
         int port = args.length > 0 ? Integer.parseInt(args[0]) : DEFAULT_PORT;
         
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
-            System.out.println("Server started on port " + port);
-            
-            ClientHandler.startUdpListener();
-            
-            while (true) {
-                Socket clientSocket = serverSocket.accept();
-                System.out.println("New connection from " + clientSocket.getInetAddress().getHostAddress());
-                
-                ClientHandler handler = new ClientHandler(clientSocket);
-                new Thread(handler).start();
-            }
-        } catch (IOException e) {
-            System.err.println("Could not listen on port " + port);
-            System.err.println(e.getMessage());
-        } finally {
-            ClientHandler.stopUdpListener();
-        }
+        startServer(port);
     }
 
     public static void startServer(int port) {
@@ -46,7 +29,9 @@ public class Server {
                 System.out.println("New connection from " + clientSocket.getInetAddress().getHostAddress());
 
                 ClientHandler handler = new ClientHandler(clientSocket);
-                new Thread(handler).start();
+                Thread client = new Thread(handler);
+                client.setDaemon(true);
+                client.start();
             }
         } catch (IOException e) {
             System.err.println("Could not listen on port " + port);
@@ -55,6 +40,4 @@ public class Server {
             ClientHandler.stopUdpListener();
         }
     }
-
-
 }
