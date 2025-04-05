@@ -457,15 +457,24 @@ public class Game extends Application {
      * Updates the clip on the game objects for the fog effect
      */
     private void updateVisuals() {
+        double centerX = player.getX() + (PLAYER_WIDTH/2.0);
+        double centerY = player.getY() + (PLAYER_HEIGHT/2.0);
+        
+        // Fuer SPieler
         for (Player otherPlayer : otherPlayers.values()) {
-            double centerX = player.getX() + (PLAYER_WIDTH/2.0);
-            double centerY = player.getY() + (PLAYER_HEIGHT/2.0);
-            
             Circle visualClip = new Circle(centerX, centerY, 100);
             Circle labelClip = new Circle(centerX, centerY, 100);
             
             otherPlayer.getVisualRepresentation().setClip(visualClip);
             otherPlayer.getUsernameLabel().setClip(labelClip);
+        }
+        
+        // Fuer Element (Special)
+        for (javafx.scene.Node node : gameMap.getVisualWalls()) {
+            if (node instanceof Rectangle rectangle && rectangle.getFill() == Color.RED) { // Special elemente die rot sind
+                Circle elementClip = new Circle(centerX, centerY, 100);
+                node.setClip(elementClip);
+            }
         }
     }
 
