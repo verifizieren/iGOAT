@@ -458,7 +458,14 @@ public class Game extends Application {
      */
     private void updateVisuals() {
         for (Player otherPlayer : otherPlayers.values()) {
-            otherPlayer.getVisualRepresentation().setClip(new Circle(player.getX() + (PLAYER_WIDTH/2.0), player.getY() + (PLAYER_HEIGHT/2.0),100));
+            double centerX = player.getX() + (PLAYER_WIDTH/2.0);
+            double centerY = player.getY() + (PLAYER_HEIGHT/2.0);
+            
+            Circle visualClip = new Circle(centerX, centerY, 100);
+            Circle labelClip = new Circle(centerX, centerY, 100);
+            
+            otherPlayer.getVisualRepresentation().setClip(visualClip);
+            otherPlayer.getUsernameLabel().setClip(labelClip);
         }
     }
 
