@@ -69,7 +69,7 @@ public class Game extends Application {
     private static final double PLAYER_WIDTH = 32;
     private static final double PLAYER_HEIGHT = 32;
     private static final double MOVEMENT_SPEED = 300;
-    private static final double CAMERA_ZOOM = 0.5;
+    private static final double CAMERA_ZOOM = 3; // Default is 3
     
     private Pane gamePane;
     private Pane uiOverlay;
