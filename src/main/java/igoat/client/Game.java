@@ -1,11 +1,19 @@
 package igoat.client;
 
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.UnaryOperator;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
+import javafx.stage.Screen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +60,7 @@ public class Game extends Application {
     private static final double PLAYER_WIDTH = 32;
     private static final double PLAYER_HEIGHT = 32;
     private static final double MOVEMENT_SPEED = 300;
-    private static final double CAMERA_ZOOM = 3.0;
+    private static final double CAMERA_ZOOM = 0.5;
     
     private Pane gamePane;
     private Pane uiOverlay;
@@ -67,6 +75,7 @@ public class Game extends Application {
     
     private Player player;
     private igoat.client.Map gameMap;
+    private DoorHandler doorHandler;
     private Camera activeCamera;
     private ServerHandler serverHandler;
     private String playerName;
@@ -117,7 +126,7 @@ public class Game extends Application {
     private TextFlow chatFlow;
     private Text chatModeIndicator;
     private ScrollPane chatScrollPane;
-    private javafx.animation.Timeline chatHideTimer;
+    private Timeline chatHideTimer;
     private FadeTransition chatFadeOutTransition;
     private ChatMode currentChatMode = ChatMode.LOBBY;
 
@@ -198,15 +207,16 @@ public class Game extends Application {
         serverHandler.sendMessage("ready:");
         
         gameMap = new igoat.client.Map();
+        doorHandler = new DoorHandler(gameMap);
         
         gamePane = new Pane();
         gamePane.setMinSize(gameMap.getWidth(), gameMap.getHeight());
         gamePane.setMaxSize(gameMap.getWidth(), gameMap.getHeight());
         gamePane.setPrefSize(gameMap.getWidth(), gameMap.getHeight());
         gamePane.setStyle("-fx-background-color: white;");
-        gamePane.setClip(new javafx.scene.shape.Rectangle(0, 0, gameMap.getWidth(), gameMap.getHeight()));
+        gamePane.setClip(new Rectangle(0, 0, gameMap.getWidth(), gameMap.getHeight()));
 
-        javafx.geometry.Rectangle2D screenBounds = javafx.stage.Screen.getPrimary().getVisualBounds();
+        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
         double screenWidth = screenBounds.getWidth() * 0.8;
         double screenHeight = screenBounds.getHeight() * 0.8;
         
@@ -226,7 +236,7 @@ public class Game extends Application {
 
 
 
-    javafx.scene.layout.Pane container = new javafx.scene.layout.Pane();
+    Pane container = new Pane();
     container.getChildren().add(gamePane);
     
     uiOverlay = new Pane();
@@ -236,7 +246,7 @@ public class Game extends Application {
     container.getChildren().add(uiOverlay);
     
     Scene scene = new Scene(container);
-        scene.setFill(javafx.scene.paint.Color.WHITE);
+        scene.setFill(Color.WHITE);
         
         String windowTitle = "iGoat Game - Lobby " + lobbyCode + " - Player: " + confirmedNickname;
         primaryStage.setTitle(windowTitle);
@@ -245,7 +255,7 @@ public class Game extends Application {
 
         primaryStage.show();
 
-        for (javafx.scene.Node wall : gameMap.getVisualWalls()) {
+        for (Node wall : gameMap.getVisualWalls()) {
             gamePane.getChildren().add(wall);
         }
         
@@ -277,7 +287,7 @@ public class Game extends Application {
         });
         
         primaryStage.fullScreenProperty().addListener((obs, oldVal, newVal) -> {
-            javafx.application.Platform.runLater(() -> {
+            Platform.runLater(() -> {
                 activeCamera.updateViewport(scene.getWidth(), scene.getHeight());
             });
         });
@@ -377,7 +387,7 @@ public class Game extends Application {
      * @param message the message received from the server
      */
     private void processServerMessage(String message) {
-        java.util.function.BiFunction<String, String, String[]> parseSenderAndContent = (prefix, msg) -> {
+        BiFunction<String, String, String[]> parseSenderAndContent = (prefix, msg) -> {
             String data = msg.substring(prefix.length()); 
 
             if (data.startsWith("[") && data.contains("] ")) {
@@ -682,7 +692,7 @@ public class Game extends Application {
             otherPlayer.getUsernameLabel().setClip(labelClip);
         }
 
-        for (javafx.scene.Node node : gameMap.getVisualWalls()) {
+        for (Node node : gameMap.getVisualWalls()) {
             if (node instanceof Rectangle rectangle && rectangle.getFill() == Color.RED) { // Special elemente die rot sind
                 Circle elementClip = new Circle(centerX, centerY, 100);
                 node.setClip(elementClip);
@@ -804,6 +814,10 @@ public class Game extends Application {
         }
 
         updateVisuals();
+
+        if (activeKeys.contains(KeyCode.E)) {
+           // doorHandler.activateTerminal();
+        }
     }
     
     /**
@@ -881,7 +895,7 @@ public class Game extends Application {
         chatFadeOutTransition.setAutoReverse(false);
         chatFadeOutTransition.setOnFinished(e -> chatBox.setVisible(false)); 
 
-        chatHideTimer = new javafx.animation.Timeline(new javafx.animation.KeyFrame(
+        chatHideTimer = new Timeline(new KeyFrame(
             Duration.seconds(4),
             event -> {
                 if (chatBox.isVisible() && chatBox.getOpacity() == 1.0) { 
@@ -912,7 +926,7 @@ public class Game extends Application {
         chatInput.setMaxHeight(30);
         chatInput.setVisible(false);
 
-        java.util.function.UnaryOperator<TextFormatter.Change> filter = change -> {
+        UnaryOperator<TextFormatter.Change> filter = change -> {
             String newText = change.getText();
             if (newText.contains("\t")) {
                 String correctedText = newText.replace("\t", ""); 
@@ -995,8 +1009,8 @@ public class Game extends Application {
      */
     private void addChatMessage(String sender, String recipient, String message, ChatMode mode) {
         final String timeString = String.format("[%02d:%02d] ", 
-                                java.time.LocalTime.now().getHour(),
-                                java.time.LocalTime.now().getMinute());
+                                LocalTime.now().getHour(),
+                                LocalTime.now().getMinute());
         final String prefixDisplay;
         final Color prefixColor;
         final String senderDisplay;

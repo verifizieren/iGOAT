@@ -1,5 +1,7 @@
 package igoat.client;
 
+import javafx.scene.shape.Rectangle;
+
 public class DoorHandler {
     private int activatedTerminals = 0;
     private boolean doorOpen = false;
@@ -9,13 +11,16 @@ public class DoorHandler {
         this.gameMap = map;
     }
 
-    public void activateTerminal() {
-        activatedTerminals++;
-        checkDoorCondition();
+    public void activateTerminal(Rectangle terminal) {
+        if (!doorOpen && gameMap.getSpecialElements().contains(terminal) && terminal.getFill() == javafx.scene.paint.Color.RED) {
+            terminal.setFill(javafx.scene.paint.Color.YELLOW);
+            activatedTerminals++;
+            checkDoorCondition();
+        }
     }
 
     private void checkDoorCondition() {
-        if (activatedTerminals == 3 && !doorOpen) {
+        if (activatedTerminals >= 3) {
             openDoor();
         }
     }

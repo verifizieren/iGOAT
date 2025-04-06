@@ -178,7 +178,8 @@ public class Map {
 
     public void removeDoor() {
         if (door != null) {
-            collisionWalls.remove(collisionWalls);
+            door.setFill(Color.BLUE);
+            collisionWalls.clear();
         }
     }
 
@@ -239,4 +240,9 @@ public class Map {
     public void addWall(int x, int y, int width, int height) {
         createWall(x, y, width, height);
     }
-} 
+
+    public List<Rectangle> getSpecialElements(){
+        return specialElements;
+    }
+
+}
