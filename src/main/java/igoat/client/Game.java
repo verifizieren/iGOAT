@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import animatefx.animation.FadeInDown;
 import animatefx.animation.FadeOutDown;
 import animatefx.animation.FadeOutUp;
+import animatefx.animation.Shake;
 import animatefx.animation.Tada;
 import javafx.animation.AnimationTimer;
 import javafx.animation.FadeTransition;
@@ -141,6 +142,7 @@ public class Game extends Application {
 
     private Label terminalActivationBanner;
     private Label allTerminalsBanner;
+    private Label alreadyActiveBanner;
 
     /**
      * Constructor for Game
@@ -287,6 +289,13 @@ public class Game extends Application {
         allTerminalsBanner.layoutXProperty().bind(uiOverlay.widthProperty().subtract(allTerminalsBanner.widthProperty()).divide(2));
         allTerminalsBanner.setLayoutY(60); 
         uiOverlay.getChildren().add(allTerminalsBanner);
+
+        alreadyActiveBanner = new Label("Terminal X is already active!");
+        alreadyActiveBanner.setStyle("-fx-background-color: rgba(255, 100, 0, 0.8); -fx-text-fill: white; -fx-font-size: 18px; -fx-padding: 8px; -fx-background-radius: 5px;");
+        alreadyActiveBanner.setVisible(false);
+        alreadyActiveBanner.layoutXProperty().bind(uiOverlay.widthProperty().subtract(alreadyActiveBanner.widthProperty()).divide(2));
+        alreadyActiveBanner.setLayoutY(100);
+        uiOverlay.getChildren().add(alreadyActiveBanner);
 
         for (Node wall : gameMap.getVisualWalls()) {
             gamePane.getChildren().add(wall);
@@ -584,6 +593,30 @@ public class Game extends Application {
                 });
                 delay.play();
             });
+            return;
+        }
+
+        final String alreadyActiveSuffix = " was already activated.";
+        if ("System".equals(sender) && content.endsWith(alreadyActiveSuffix) && content.startsWith("Terminal ")) {
+            try {
+                String terminalIdStr = content.substring("Terminal ".length(), content.length() - alreadyActiveSuffix.length());
+                logger.info("Received notification: Terminal {} already activated.", terminalIdStr);
+
+                Platform.runLater(() -> {
+                    alreadyActiveBanner.setText("Terminal " + terminalIdStr + " is already active!");
+                    alreadyActiveBanner.setVisible(true);
+                    alreadyActiveBanner.setOpacity(1.0);
+                    new Shake(alreadyActiveBanner).play();
+
+                    PauseTransition delay = new PauseTransition(Duration.seconds(1.5));
+                    delay.setOnFinished(event -> {
+                        alreadyActiveBanner.setVisible(false); 
+                    });
+                    delay.play();
+                });
+            } catch (Exception e) {
+                logger.error("Failed to parse already activated message: {}", message, e);
+            }
             return;
         }
 
@@ -930,8 +963,6 @@ public class Game extends Application {
             if (sqrt(pow(tx - x, 2) + pow(ty - y, 2)) < 35.0) {
                 logger.info("Activating terminal");
                 serverHandler.sendMessage("terminal:" + terminal.getTerminalID());
-                // TEMPORARY
-                activateTerminal(terminal.getTerminalID());
                 return;
             }
         }
