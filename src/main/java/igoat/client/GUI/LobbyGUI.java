@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import igoat.client.Game;
 import igoat.client.ServerHandler;
 import javafx.application.Platform;
@@ -26,8 +29,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Represents the GUI for the game lobby where players can chat and join games.
@@ -365,16 +366,25 @@ public class LobbyGUI {
     /**
      * Sends a chat message to either the global or lobby chat.
      * The message is prefixed with either 'chat:' or 'lobbychat:' depending on the current chat mode.
-     * After sending, the input field is cleared.
+     * After sending, the input field is cleared. Adds the message locally first for immediate display.
      */
     private void sendChatMessage() {
         String text = chatInput.getText().trim();
         if (!text.isEmpty()) {
             if (serverHandler != null && serverHandler.isConnected()) {
                 String prefix = isGlobalChat ? "chat:" : "lobbychat:";
-                serverHandler.sendMessage(prefix + text);
+                String messageToSend = prefix + text;
+                
+                String senderDisplay = (username != null) ? username : "You";
+                appendToMessageArea(senderDisplay + ": " + text); 
+
+                serverHandler.sendMessage(messageToSend);
+                logger.info("Sent message: {}", messageToSend);
+            } else {
+                 logger.error("Cannot send chat message: ServerHandler not available or connected.");
+                 appendToMessageArea("Error: Not connected to server.");
             }
-            chatInput.setText("");
+            chatInput.setText(""); // Clear input field AFTER sending
         }
     }
     /**
@@ -391,9 +401,40 @@ public class LobbyGUI {
 
             logger.info("Raw message received: {}", message);
 
+            String chatPrefix = null;
+            if (message.startsWith("chat:")) {
+                chatPrefix = "chat:";
+            } else if (message.startsWith("lobbychat:")) {
+                 chatPrefix = "lobbychat:";
+            }
+
+            if (chatPrefix != null) {
+                 String chatData = message.substring(chatPrefix.length());
+                 int firstColonIndex = chatData.indexOf(':');
+                 if (firstColonIndex > 0 && firstColonIndex < chatData.length() - 1) {
+                     String sender = chatData.substring(0, firstColonIndex);
+                     String chatMessage = chatData.substring(firstColonIndex + 1);
+
+                     String localNickname = serverHandler.getConfirmedNickname();
+                     if (localNickname != null && localNickname.equals(sender)) {
+                          logger.debug("Ignoring echo of own message from sender: {}", sender);
+                          continue; 
+                     }
+
+                     logger.info("Parsed {} message - Sender: '{}', Message: '{}'", chatPrefix.substring(0, chatPrefix.length() - 1).toUpperCase(), sender, chatMessage);
+                     appendToMessageArea(sender + ": " + chatMessage);
+                 } else {
+                      logger.warn("Could not parse sender/message from {} data: {}", chatPrefix, chatData);
+                      appendToMessageArea("[" + chatPrefix.substring(0, chatPrefix.length() - 1).toUpperCase() + "] " + chatData); 
+                 }
+                 continue;
+            }
+
+            // Handle non-chat messages
             int colonIndex = message.indexOf(':');
             if (colonIndex == -1) {
-                 logger.error("Invalid message format (no colon): {}", message);
+                 logger.error("Invalid message format (no colon and not a known chat prefix): {}", message);
+                 appendToMessageArea("[System] " + message); // Display unknown format messages
                  continue;
             }
 
@@ -402,16 +443,6 @@ public class LobbyGUI {
             logger.info("Parsed type: {}, content: {}", type, content);
 
             switch (type) {
-                case "chat":
-                    int commaIndex = content.indexOf(',');
-                    if (commaIndex != -1) {
-                        String sender = content.substring(0, commaIndex);
-                        String chatMessage = content.substring(commaIndex + 1);
-                        appendToMessageArea(sender + ": " + chatMessage);
-                    } else {
-                        appendToMessageArea(content);
-                    }
-                    break;
                 case "error":
                     appendToMessageArea("Error: " + content);
                     break;

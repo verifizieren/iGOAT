@@ -1,11 +1,12 @@
 ### Protocol
 ---
-The protocol consists of text commands sent as strings between the server and the client. Commands consist of the command followed by parameters, if required. The command and the parameters are separated by a colon. Parameters are separated by commas. TCP is used for most commands to ensure stable communication. UDP is used for time-sensitive information.
+The protocol consists of text commands sent as strings between the server and the client. Commands consist of the command followed by parameters, if required. The command and the parameters are separated by a colon. Parameters are separated by commas *except* for relayed chat messages from the server (see below). TCP is used for most commands to ensure stable communication. UDP is used for time-sensitive information.
 
 Format: *command*:*parameter*s
 or: *command*
 
 Parameter Format: param1,param2,...
+Relayed Chat Format (Server -> Client): prefix:sender:message
 
 ### Commands
 ---
@@ -18,7 +19,7 @@ The following list contains the commands used in the protocol.
 | Server | error:[errormessage]     | error message                                                                                                        | error:Invalid Command Format | TCP      |
 | Client | chat:[message]           | chat message sent to everyone                                                                                        | chat:hello                   | TCP      |
 | Client | whisper:[target,message] | sends a private message to the target player                                                                         | whisper:bob,hello bob        | TCP      |
-| Server | chat:[message]           | chat message to client, can also be server logs                                                                      | chat:[Bob] hello             | TCP      |
+| Server | chat:[sender]:[message]  | chat message relayed to clients (global), can also be server logs without a sender                                   | chat:Alice:hello everyone   | TCP      |
 | Server | ping                     | ping message to check client connection                                                                              | ping                         | TCP      |
 | Client | pong                     | client response to a ping                                                                                            | pong                         | TCP      |
 | Client | lobby:[code]             | join a lobby using a lobby code. (Code 0 stands for no lobby and is used for disconnecting.)                         | lobby:1312                   | TCP      |
@@ -29,6 +30,9 @@ The following list contains the commands used in the protocol.
 | Client | getlobbies              | request list of available lobbies                                                                                     | getlobbies                   | TCP      |
 | Server | getlobbies:[list]       | response with list of available lobbies and their codes                                                             | getlobbies:1234,5678        | TCP      |
 | Client | lobbychat:[message]      | send a chat message only to players in the same lobby                                                                | lobbychat:hello lobby        | TCP      |
+| Server | lobbychat:[sender]:[message] | lobby chat message relayed to clients in the same lobby                                                        | lobbychat:Bob:in the lobby! | TCP      |
+| Client | teamchat:[message]       | send a chat message only to players on the same team                                                                 | teamchat:go team!            | TCP      |
+| Server | teamchat:[sender]:[message] | team chat message relayed to clients on the same team (Requires server-side team logic)                            | teamchat:Guard1:defend       | TCP      |
 | Client | getplayers              | request list of all connected players                                                                                | getplayers                   | TCP      |
 | Server | getplayers:[list]       | response with list of all connected players                                                                         | getplayers:bob,alice         | TCP      |
 | Client | getlobbyplayers         | request list of players in current lobby                                                                             | getlobbyplayers             | TCP      |

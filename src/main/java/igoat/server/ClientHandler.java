@@ -12,6 +12,7 @@ import java.net.SocketException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -398,7 +399,14 @@ public class ClientHandler implements Runnable {
                     break;
                 case "lobbychat":
                     if (currentLobby != null) {
-                        currentLobby.broadcastToLobby("chat:" + nickname + " " + params);
+                        currentLobby.broadcastToLobby("lobbychat:" + nickname + ":" + params);
+                    } else {
+                        sendError("Du bist in keiner Lobby");
+                    }
+                    break;
+                case "teamchat":
+                    if (currentLobby != null) {
+                        currentLobby.broadcastToLobby("teamchat:" + nickname + ":" + params);
                     } else {
                         sendError("Du bist in keiner Lobby");
                     }
@@ -522,7 +530,7 @@ public class ClientHandler implements Runnable {
             sendError("Keine Nachricht angegeben");
             return;
         }
-        broadcast("chat:" + this.nickname + "," + params[0]);
+        broadcast("chat:" + this.nickname + ":" + params[0]);
     }
 
     /**

@@ -6,21 +6,33 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.animation.AnimationTimer;
+import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.geometry.Point2D;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javafx.util.Duration;
 
 /**
  * Main game class that handles the core game logic, rendering, and networking.
@@ -43,6 +55,7 @@ public class Game extends Application {
     private static final double CAMERA_ZOOM = 3.0;
     
     private Pane gamePane;
+    private Pane uiOverlay;
     private Stage stage;
     private Stage lobbyStage;
     private double windowWidth;
@@ -58,10 +71,55 @@ public class Game extends Application {
     private ServerHandler serverHandler;
     private String playerName;
     private String lobbyCode;
+    private String username;
     
     private boolean gameStarted = false;
     
     private Map<String, Player> otherPlayers = new HashMap<>();
+
+    
+    /**
+     * Enum for defining the chat modes available in the game.
+     * 
+     * This enum provides a way to manage different chat modes within the game. It includes three modes:
+     * GLOBAL, LOBBY, and TEAM. Each mode has a display name associated with it, which is used to identify
+     * the mode in the game's user interface.
+     */
+    private enum ChatMode {
+        GLOBAL("Global"),
+        LOBBY("Lobby"),
+        TEAM("Team");
+
+        private final String displayName;
+
+        /**
+         * Constructor for ChatMode.
+         * 
+         * @param displayName The display name of the chat mode.
+         */
+        ChatMode(String displayName) {
+            this.displayName = displayName;
+        }
+
+        /**
+         * Returns the display name of the chat mode.
+         * 
+         * @return The display name of the chat mode.
+         */
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+
+
+    private VBox chatBox;
+    private TextArea chatInput;
+    private TextFlow chatFlow;
+    private Text chatModeIndicator;
+    private ScrollPane chatScrollPane;
+    private javafx.animation.Timeline chatHideTimer;
+    private FadeTransition chatFadeOutTransition;
+    private ChatMode currentChatMode = ChatMode.LOBBY;
 
     /**
      * Constructor for Game
@@ -84,6 +142,7 @@ public class Game extends Application {
         this.playerName = name;
         this.lobbyCode = code;
         this.gameStarted = true;
+        this.username = name;
 
         startMessageProcessor();
         startUdpUpdateProcessor();
@@ -138,8 +197,11 @@ public class Game extends Application {
         gameMap = new igoat.client.Map();
         
         gamePane = new Pane();
+        gamePane.setMinSize(gameMap.getWidth(), gameMap.getHeight());
+        gamePane.setMaxSize(gameMap.getWidth(), gameMap.getHeight());
         gamePane.setPrefSize(gameMap.getWidth(), gameMap.getHeight());
         gamePane.setStyle("-fx-background-color: white;");
+        gamePane.setClip(new javafx.scene.shape.Rectangle(0, 0, gameMap.getWidth(), gameMap.getHeight()));
 
         javafx.geometry.Rectangle2D screenBounds = javafx.stage.Screen.getPrimary().getVisualBounds();
         double screenWidth = screenBounds.getWidth() * 0.8;
@@ -159,7 +221,18 @@ public class Game extends Application {
         primaryStage.setHeight(windowHeight);
         primaryStage.setFullScreenExitHint("");
 
-        Scene scene = new Scene(gamePane);
+
+
+    javafx.scene.layout.Pane container = new javafx.scene.layout.Pane();
+    container.getChildren().add(gamePane);
+    
+    uiOverlay = new Pane();
+    uiOverlay.setMouseTransparent(true); 
+    uiOverlay.prefWidthProperty().bind(stage.widthProperty());
+    uiOverlay.prefHeightProperty().bind(stage.heightProperty());
+    container.getChildren().add(uiOverlay);
+    
+    Scene scene = new Scene(container);
         scene.setFill(javafx.scene.paint.Color.WHITE);
         
         String windowTitle = "iGoat Game - Lobby " + lobbyCode + " - Player: " + confirmedNickname;
@@ -230,6 +303,8 @@ public class Game extends Application {
                 update(deltaTime);
             }
         }.start();
+        
+        initializeChatUI();
     }
 
     /**
@@ -250,23 +325,6 @@ public class Game extends Application {
     private void showError(String title, String content) {
         Platform.runLater(() -> {
             Alert alert = new Alert(AlertType.ERROR);
-            alert.setTitle(title);
-            alert.setHeaderText(null);
-            alert.setContentText(content);
-            alert.showAndWait();
-        });
-    }
-    
-    /**
-     * Shows an information dialog to the user.
-     * This method is thread-safe and will run on the JavaFX Application Thread.
-     *
-     * @param title the title of the information dialog
-     * @param content the information message to display
-     */
-    private void showInfo(String title, String content) {
-        Platform.runLater(() -> {
-            Alert alert = new Alert(AlertType.INFORMATION);
             alert.setTitle(title);
             alert.setHeaderText(null);
             alert.setContentText(content);
@@ -316,42 +374,108 @@ public class Game extends Application {
      * @param message the message received from the server
      */
     private void processServerMessage(String message) {
-        if (message.startsWith("getlobbyplayers:")) {
-            String playersData = message.substring("getlobbyplayers:".length());
-            if (!playersData.isEmpty()) {
-                String[] playerNames = playersData.split(",");
-                Set<String> currentPlayers = new HashSet<>(List.of(playerNames));
-                currentPlayers.add(this.playerName);
+        java.util.function.BiFunction<String, String, String[]> parseSenderAndContent = (prefix, msg) -> {
+            String data = msg.substring(prefix.length()); // Content after prefix
 
-                Set<String> playersToRemove = new HashSet<>(otherPlayers.keySet());
-                playersToRemove.removeAll(currentPlayers);
-                for (String nameToRemove : playersToRemove) {
-                    removeRemotePlayer(nameToRemove);
+            if (data.startsWith("[") && data.contains("] ")) {
+                int closingBracketIndex = data.indexOf("] ");
+                if (closingBracketIndex > 1) { 
+                    String sender = data.substring(1, closingBracketIndex); 
+                    String chatMessage = data.substring(closingBracketIndex + 2); 
+                    logger.debug("Parsed using '[Sender] Message' format: [{}, {}]", sender, chatMessage);
+                    return new String[]{sender, chatMessage};
                 }
+            }
 
-                 for (String name : playerNames) {
-                     if (!name.equals(this.playerName) && !otherPlayers.containsKey(name)) {
-                         createVisualForRemotePlayer(name, 100, 100);
-                     }
-                 }
+            String[] parts = data.split(":", 2);
+            if (parts.length == 2) {
+                logger.debug("Parsed using colon: {}", (Object)parts);
+                return parts;
             }
+
+            parts = data.split(",", 2);
+            if (parts.length == 2) {
+                 logger.debug("Parsed using comma: {}", (Object)parts);
+                return parts;
+            }
+
+            int firstSpaceIndex = data.indexOf(' ');
+            if (firstSpaceIndex != -1) {
+                String sender = data.substring(0, firstSpaceIndex);
+                String chatMessage = data.substring(firstSpaceIndex + 1);
+                parts = new String[]{sender, chatMessage};
+                logger.debug("Parsed using space: {}", (Object)parts);
+                return parts;
+            }
+
+             logger.warn("Could not parse sender from message using known patterns: {}", msg);
+            return new String[]{ "System", data }; // Fallback to System sender
+        };
+
+        ChatMode mode;
+        String prefixString;
+        if (message.startsWith("lobbychat:")) {
+            mode = ChatMode.LOBBY;
+            prefixString = "lobbychat:";
+             logger.info("Received LOBBY chat message: {}", message);
+        } else if (message.startsWith("teamchat:")) {
+            mode = ChatMode.TEAM;
+            prefixString = "teamchat:";
+             logger.info("Received TEAM chat message: {}", message);
         } else if (message.startsWith("chat:")) {
-            String chatMessage = message.substring("chat:".length());
-             logger.info("CHAT: {}", chatMessage);
-        } else if (message.equals("game_started")) {
-            handleGameStarted();
-        } else if (message.startsWith("catch:")) {
-            String caughtPlayer = message.substring("catch:".length());
-            logger.info("{} was caught!", caughtPlayer);
-        } else if (message.startsWith("revive:")) {
-            String revivedPlayer = message.substring("revive:".length());
-            logger.info("{} was revived!", revivedPlayer);
-        } else if (message.startsWith("player_left:")) {
-            String leftPlayer = message.substring("player_left:".length());
-            if (!leftPlayer.equals(this.playerName)) {
-                removeRemotePlayer(leftPlayer);
+            mode = ChatMode.GLOBAL;
+            prefixString = "chat:";
+             logger.info("Received GLOBAL chat message: {}", message);
+        } else {
+            if (message.startsWith("getlobbyplayers:")) {
+                String playersData = message.substring("getlobbyplayers:".length());
+                if (!playersData.isEmpty()) {
+                    String[] playerNames = playersData.split(",");
+                    Set<String> currentPlayers = new HashSet<>(List.of(playerNames));
+                    currentPlayers.add(this.playerName);
+
+                    Set<String> playersToRemove = new HashSet<>(otherPlayers.keySet());
+                    playersToRemove.removeAll(currentPlayers);
+                    for (String nameToRemove : playersToRemove) {
+                        removeRemotePlayer(nameToRemove);
+                    }
+
+                    for (String name : playerNames) {
+                        if (!name.equals(this.playerName) && !otherPlayers.containsKey(name)) {
+                            createVisualForRemotePlayer(name, 100, 100);
+                        }
+                    }
+                }
+            } else if (message.equals("game_started")) {
+                handleGameStarted();
+            } else if (message.startsWith("catch:")) {
+                String caughtPlayer = message.substring("catch:".length());
+                logger.info("{} was caught!", caughtPlayer);
+            } else if (message.startsWith("revive:")) {
+                String revivedPlayer = message.substring("revive:".length());
+                logger.info("{} was revived!", revivedPlayer);
+            } else if (message.startsWith("player_left:")) {
+                String leftPlayer = message.substring("player_left:".length());
+                if (!leftPlayer.equals(this.playerName)) {
+                    removeRemotePlayer(leftPlayer);
+                }
+            } else {
+                 logger.warn("Received message with unknown prefix: {}", message);
             }
+            return; 
         }
+
+        String[] parsed = parseSenderAndContent.apply(prefixString, message);
+
+        String localNickname = serverHandler.getConfirmedNickname();
+        if (localNickname != null && localNickname.equals(parsed[0])) {
+             logger.debug("Ignoring echo of own message from sender: {}", parsed[0]);
+            return; 
+        }
+
+        logger.debug("Processing incoming chat message. Prefix: '{}', Determined Mode: {}, Parsed Sender: '{}', Parsed Message: '{}'", 
+                     prefixString, mode, parsed[0], parsed[1]);
+        addChatMessage(parsed[0], parsed[1], mode);
     }
     
     /**
@@ -392,8 +516,6 @@ public class Game extends Application {
      * @param update The UDP update message
      */
     private void processUdpUpdate(String update) {
-        //logger.info("Processing update: {}", update);
-        
         if (update.startsWith("player_position:")) {
             String[] parts = update.split(":");
             if (parts.length != 4) {
@@ -406,8 +528,6 @@ public class Game extends Application {
                 int x = Integer.parseInt(parts[2]);
                 int y = Integer.parseInt(parts[3]);
 
-                //logger.info("Parsed position update for {} at {}, {}'", remotePlayerName, x, y);
-
                 String confirmedNickname = serverHandler.getConfirmedNickname();
                 if (confirmedNickname == null) {
                     logger.error("Cannot process update - confirmed nickname is null");
@@ -418,11 +538,11 @@ public class Game extends Application {
                 }
                 if (otherPlayers.containsKey(remotePlayerName)) {
                     updateRemotePlayerPosition(remotePlayerName, x, y);
-                    return;
+                } else {
+                    createVisualForRemotePlayer(remotePlayerName, x, y);
                 }
-                createVisualForRemotePlayer(remotePlayerName, x, y);
             } catch (NumberFormatException e) {
-                logger.error("Invalid coordinates", e);
+                logger.error("Invalid coordinates in update: {}", update, e);
             }
         } else if (update.startsWith("udp_ack:")) {
             logger.info("Received UDP acknowledgment from server");
@@ -430,7 +550,7 @@ public class Game extends Application {
             logger.info("Unrecognized UDP message format: {}", update);
         }
     }
-    
+
     /**
      * Updates the position of a remote player.
      *
@@ -684,7 +804,235 @@ public class Game extends Application {
             }
         });
     }
-    
+
+    /**
+     * Initializes the chat UI components with proper styling and positioning
+     */
+    private void initializeChatUI() {
+        if (stage == null) return;
+        Scene gameScene = stage.getScene();
+        if (gameScene == null) {
+            logger.error("Cannot initialize chat UI: Scene is null.");
+            return;
+        }
+        
+        chatBox = new VBox(5);
+        chatBox.setPadding(new Insets(5));
+        chatBox.setStyle("-fx-background-color: rgba(0, 0, 0, 0); -fx-text-fill: white;");
+        chatBox.setPrefWidth(400);
+        chatBox.setPrefHeight(300);
+        chatBox.setMaxWidth(400);
+        chatBox.setMaxHeight(300);
+        chatBox.setMouseTransparent(false);
+        chatBox.setVisible(false);
+        chatBox.setOpacity(0.0);
+
+        chatBox.translateXProperty().bind(
+            stage.widthProperty().subtract(chatBox.widthProperty()).subtract(10)
+        );
+        chatBox.setTranslateY(10);
+
+        chatFadeOutTransition = new FadeTransition(Duration.millis(500), chatBox);
+        chatFadeOutTransition.setFromValue(1.0);
+        chatFadeOutTransition.setToValue(0.0);
+        chatFadeOutTransition.setCycleCount(1);
+        chatFadeOutTransition.setAutoReverse(false);
+        chatFadeOutTransition.setOnFinished(e -> chatBox.setVisible(false)); 
+
+        chatHideTimer = new javafx.animation.Timeline(new javafx.animation.KeyFrame(
+            Duration.seconds(4),
+            event -> {
+                if (chatBox.isVisible() && chatBox.getOpacity() == 1.0) { 
+                    chatFadeOutTransition.playFromStart();
+                }
+            }
+        ));
+        chatHideTimer.setCycleCount(1);
+        
+        chatFlow = new TextFlow();
+        chatFlow.setStyle("-fx-background-color: rgba(0, 0, 0, 0);");
+        
+        chatScrollPane = new ScrollPane(chatFlow);
+        chatScrollPane.setStyle("-fx-background: rgba(0, 0, 0, 0); -fx-background-color: rgba(0, 0, 0, 0.3); -fx-padding: 0;");
+        chatScrollPane.setFitToWidth(true);
+        chatScrollPane.setPrefViewportHeight(250);
+        chatScrollPane.setMaxHeight(250);
+        chatScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        chatScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        chatScrollPane.setMouseTransparent(false);
+        chatScrollPane.setPannable(false);
+        
+        chatInput = new TextArea();
+        chatInput.setPromptText("Press Enter to chat...");
+        chatInput.setPrefRowCount(1);
+        chatInput.setWrapText(true);
+        chatInput.setStyle("-fx-control-inner-background: rgba(0, 0, 0, 0.3); -fx-text-fill: white;");
+        chatInput.setMaxHeight(30);
+        chatInput.setVisible(false);
+
+        java.util.function.UnaryOperator<TextFormatter.Change> filter = change -> {
+            String newText = change.getText();
+            if (newText.contains("\t")) {
+                String correctedText = newText.replace("\t", ""); 
+                change.setText(correctedText);
+            }
+            return change;
+        };
+        TextFormatter<String> textFormatter = new TextFormatter<>(filter);
+        chatInput.setTextFormatter(textFormatter);
+        
+        chatModeIndicator = new Text("Lobby");
+        chatModeIndicator.setStyle("-fx-fill: white; -fx-font-size: 12px;");
+        
+        HBox modeBox = new HBox(5);
+        modeBox.setAlignment(Pos.CENTER_RIGHT);
+        modeBox.getChildren().add(chatModeIndicator);
+        
+        chatBox.getChildren().addAll(modeBox, chatScrollPane, chatInput);
+        
+        uiOverlay.getChildren().add(chatBox);
+        
+        gameScene.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER && !chatInput.isFocused()) { 
+                event.consume(); 
+                
+                chatFadeOutTransition.stop(); 
+                chatBox.setOpacity(1.0);      
+                chatBox.setVisible(true);     
+                
+                chatInput.setVisible(true);
+                chatInput.requestFocus();
+                chatHideTimer.stop(); 
+                return; 
+            }
+            
+            if (!chatInput.isFocused()) {
+                activeKeys.add(event.getCode());
+                if (event.getCode() == KeyCode.ESCAPE) {
+                    stage.setFullScreen(false);
+                }
+            }
+        });
+        
+        gameScene.setOnKeyReleased(event -> {
+            if (!chatInput.isFocused()) {
+                activeKeys.remove(event.getCode());
+            }
+        });
+        
+        chatInput.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.TAB) {
+                event.consume(); 
+                cycleChatMode();
+            } else if (event.getCode() == KeyCode.ENTER && !event.isShiftDown()) {
+                event.consume();
+                sendChatMessage();
+                chatInput.clear();
+                chatInput.setVisible(false);
+                gameScene.getRoot().requestFocus(); 
+                chatHideTimer.playFromStart(); 
+            } else if (event.getCode() == KeyCode.ESCAPE) {
+                event.consume();
+                chatInput.setVisible(false);
+                chatInput.clear();
+                gameScene.getRoot().requestFocus(); 
+                chatHideTimer.playFromStart(); 
+            }
+        });
+    }
+
+    /**
+     * Adds a chat message to the chat flow.
+     * Makes the chat box appear instantly without starting the hide timer.
+     * 
+     * @param sender The sender of the message.
+     * @param message The message.
+     * @param mode The chat mode.
+     */
+    private void addChatMessage(String sender, String message, ChatMode mode) {
+        Platform.runLater(() -> {
+            Text timeText = new Text(String.format("[%02d:%02d] ", 
+                java.time.LocalTime.now().getHour(),
+                java.time.LocalTime.now().getMinute()));
+            timeText.setFill(Color.GRAY);
+            
+            Text modeTag = new Text();
+            switch (mode) {
+                case LOBBY:
+                    modeTag.setText("[LOBBY] ");
+                    modeTag.setFill(Color.GREEN); 
+                    break;
+                case TEAM:
+                    modeTag.setText("[TEAM] ");
+                    modeTag.setFill(Color.BLUE); 
+                    break;
+                case GLOBAL:
+                default:
+                    modeTag.setText("[GLOBAL] ");
+                    modeTag.setFill(Color.ORANGE); 
+                    break;
+            }
+
+            Text senderText = new Text(sender + ": ");
+            senderText.setFill(Color.LIGHTBLUE);
+            
+            Text messageText = new Text(message + "\n");
+            messageText.setFill(Color.WHITE);
+            
+            chatFlow.getChildren().addAll(timeText, modeTag, senderText, messageText);
+            chatScrollPane.setVvalue(1.0); 
+            
+            chatFadeOutTransition.stop(); 
+            chatBox.setOpacity(1.0);
+            chatBox.setVisible(true);
+            
+            chatHideTimer.playFromStart(); 
+        });
+    }
+
+    /**
+     * Sends the current chat message and clears the input field
+     */
+    private void sendChatMessage() {
+        String message = chatInput.getText().trim(); // Trim leading and trailing spaces
+        if (!message.isEmpty()) {
+            if (serverHandler != null && serverHandler.isConnected()) {
+                String prefix;
+                switch (currentChatMode) {
+                    case LOBBY:
+                        prefix = "lobbychat:";
+                        break;
+                    case TEAM:
+                        prefix = "teamchat:";
+                        break;
+                    case GLOBAL:
+                    default:
+                        prefix = "chat:";
+                        break;
+                }
+                String chatMessage = prefix + message; 
+                logger.info("Sending chat message: {}", chatMessage); 
+                serverHandler.sendMessage(chatMessage);
+
+                String localSender = serverHandler.getConfirmedNickname() != null ? serverHandler.getConfirmedNickname() : this.username; 
+                addChatMessage(localSender, message, currentChatMode);
+
+            } else {
+                showError("Chat Error", "Cannot send message: Not connected to server");
+            }
+        }
+    }
+
+    /**
+     * Cycles through the available chat modes (GLOBAL -> LOBBY -> TEAM)
+     */
+    private void cycleChatMode() {
+        currentChatMode = ChatMode.values()[(currentChatMode.ordinal() + 1) % ChatMode.values().length];
+        String modeName = currentChatMode.getDisplayName();
+        chatInput.setPromptText(modeName + " Chat (Press Enter)"); 
+        chatModeIndicator.setText(modeName);
+    }
+
     /**
      * The main entry point for launching the Game application *directly*.
      * This is generally NOT used; Game should be launched via LobbyGUI.
