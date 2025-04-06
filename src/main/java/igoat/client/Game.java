@@ -527,7 +527,7 @@ public class Game extends Application {
                 } else {
                     logger.error("Invalid role message format: {}", message);
                 }
-            } /*else if (message.startsWith("roles:")) {
+            } else if (message.startsWith("roles:")) {
                 String rolesData = message.substring("roles:".length());
                 if (!rolesData.isEmpty()) {
                     String[] roleEntries = rolesData.split(",");
@@ -550,7 +550,7 @@ public class Game extends Application {
                         }
                     }
                 }
-            }*/ else if (message.equals("doors_open:")) {
+            } else if (message.equals("doors_open:")) {
                 Platform.runLater(this::handleDoorsOpen);
                 return;
             } else {
@@ -755,6 +755,11 @@ public class Game extends Application {
             updateRemotePlayerPosition(playerName, x, y);
             return;
         }
+
+        // Request role information for this player
+        if (serverHandler != null && serverHandler.isConnected()) {
+            serverHandler.sendMessage("getroles:");
+        }
         
         // Start with default color
         Color playerColor = Color.ORANGE;
@@ -786,12 +791,7 @@ public class Game extends Application {
             }
         } catch (Exception e) {
             logger.error("Error creating visual for player", e);
-        } /*finally {
-            // Request role information for this player
-            if (serverHandler != null && serverHandler.isConnected()) {
-                serverHandler.sendMessage("getroles:");
-            }
-        }*/
+        }
     }
 
     /**
