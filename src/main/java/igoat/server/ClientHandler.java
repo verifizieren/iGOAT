@@ -736,7 +736,7 @@ public class ClientHandler implements Runnable {
 
         appendToLobbyChat("Player " + nickname + " ist bereit.");
         int assignRole = assignRole();
-        sendMessage("role:" + assignRole);
+        sendMessage("role:" + nickname + ":" + assignRole);
     }
 
     private int assignRole() {

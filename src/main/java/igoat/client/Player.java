@@ -251,4 +251,11 @@ public class Player {
     public Text getUsernameLabel() {
         return usernameLabel;
     }
+
+    public void setColor(Color color) {
+        if (visualRepresentation != null) {
+            visualRepresentation.setFill(color);
+        }
+    }
+
 } 

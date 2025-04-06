@@ -194,6 +194,9 @@ public class Game extends Application {
             return;
         }
 
+        // Request role assignment from server
+        serverHandler.sendMessage("ready:");
+        
         gameMap = new igoat.client.Map();
         
         gamePane = new Pane();
@@ -247,7 +250,7 @@ public class Game extends Application {
         }
         
         player = new Player(gamePane, primaryStage.getWidth(), primaryStage.getHeight(), CAMERA_ZOOM,
-                100, 100, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, Color.BLUE, confirmedNickname, true);
+                100, 100, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, Color.GRAY, confirmedNickname, true);
         
         player.setSpectated(false);
         activeCamera = player.getCamera();
@@ -458,6 +461,40 @@ public class Game extends Application {
                 String leftPlayer = message.substring("player_left:".length());
                 if (!leftPlayer.equals(this.playerName)) {
                     removeRemotePlayer(leftPlayer);
+                }
+            } else if (message.startsWith("role:")) {
+                String[] parts = message.split(":");
+                if (parts.length == 3) {
+                    String playerName = parts[1];
+                    int roleId = Integer.parseInt(parts[2]);
+
+                    logger.info("Received role {} for player {}", roleId, playerName);
+
+                    Color roleColor = switch (roleId) {
+                        case 0 -> Color.DODGERBLUE;   // Goat
+                        case 1 -> Color.LIMEGREEN;    // Robot
+                        case 2 -> Color.CRIMSON;      // Guard
+                        default -> Color.ORANGE;      // Fallback/default
+                    };
+
+                    logger.info("Setting color {} for player {}", roleColor, playerName);
+
+                    if (player != null && playerName.equals(player.getUsername())) {
+                        Platform.runLater(() -> {
+                            logger.info("Setting local player color to {}", roleColor);
+                            player.setColor(roleColor);
+                        });
+                    } else if (otherPlayers.containsKey(playerName)) {
+                        Player remote = otherPlayers.get(playerName);
+                        Platform.runLater(() -> {
+                            logger.info("Setting remote player {} color to {}", playerName, roleColor);
+                            remote.setColor(roleColor);
+                        });
+                    } else {
+                        logger.warn("Received role for unknown player: {}", playerName);
+                    }
+                } else {
+                    logger.error("Invalid role message format: {}", message);
                 }
             } else {
                  logger.warn("Received message with unknown prefix: {}", message);
