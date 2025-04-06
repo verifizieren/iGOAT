@@ -1279,47 +1279,32 @@ public class Game extends Application {
      * Sends the current chat message or processes a command like /whisper.
      */
     private void sendChatMessage() {
-        String text = chatInput.getText().trim(); 
-        if (!text.isEmpty()) {
-            if (serverHandler != null && serverHandler.isConnected()) {
-                String localSender = serverHandler.getConfirmedNickname() != null ? serverHandler.getConfirmedNickname() : this.username; 
-                
-                if (text.toLowerCase().startsWith("/whisper ")) {
-                    String[] parts = text.split(" ", 3);
-                    if (parts.length == 3) {
-                        String targetUsername = parts[1];
-                        String whisperMessageContent = parts[2];
-                        
-                        if (targetUsername.equalsIgnoreCase(localSender)) {
-                            addChatMessage("System", null, "You cannot whisper to yourself.", null);
-                        } else {
-                            String whisperMarker = String.format("[WHISPER->%s] ", targetUsername);
-                            String messageWithMarker = whisperMarker + whisperMessageContent;
+        String text = chatInput.getText().trim();
+        chatInput.clear();
 
-                            String prefix;
-                            switch (currentChatMode) {
-                                case LOBBY:
-                                    prefix = "lobbychat:";
-                                    break;
-                                case TEAM:
-                                    prefix = "teamchat:";
-                                    break;
-                                case GLOBAL:
-                                default:
-                                    prefix = "chat:";
-                                    break;
-                            }
-                            String messageToSend = prefix + messageWithMarker; 
+        if (text.isEmpty()) {
+            return;
+        }
 
-                            logger.info("Sending whisper via {}: {}", prefix, messageToSend);
-                            serverHandler.sendMessage(messageToSend);
-                            
-                            addChatMessage(localSender, targetUsername, whisperMessageContent, null);
-                        }
-                    } else {
-                        addChatMessage("System", null, "Usage: /whisper <username> <message>", null);
-                    }
+        if (serverHandler == null || !serverHandler.isConnected()) {
+            showError("Chat Error", "Cannot send message: Not connected to server");
+            return;
+        }
+
+        String localSender = serverHandler.getConfirmedNickname() != null ? serverHandler.getConfirmedNickname() : this.username;
+
+        if (text.toLowerCase().startsWith("/whisper ")) {
+            String[] parts = text.split(" ", 3);
+            if (parts.length == 3) {
+                String targetUsername = parts[1];
+                String whisperMessageContent = parts[2];
+
+                if (targetUsername.equalsIgnoreCase(localSender)) {
+                    addChatMessage("System", null, "You cannot whisper to yourself.", null);
                 } else {
+                    String whisperMarker = String.format("[WHISPER->%s] ", targetUsername);
+                    String messageWithMarker = whisperMarker + whisperMessageContent;
+
                     String prefix;
                     switch (currentChatMode) {
                         case LOBBY:
@@ -1333,17 +1318,35 @@ public class Game extends Application {
                             prefix = "chat:";
                             break;
                     }
-                    String chatMessage = prefix + text; 
-                    logger.info("Sending {} message: {}", currentChatMode, chatMessage); 
-                    serverHandler.sendMessage(chatMessage);
-                    addChatMessage(localSender, null, text, currentChatMode);
-                }
+                    String messageToSend = prefix + messageWithMarker;
 
+                    logger.info("Sending whisper via {}: {}", prefix, messageToSend);
+                    serverHandler.sendMessage(messageToSend);
+
+                    addChatMessage(localSender, targetUsername, whisperMessageContent, null);
+                }
             } else {
-                showError("Chat Error", "Cannot send message: Not connected to server");
+                addChatMessage("System", null, "Usage: /whisper <username> <message>", null);
             }
+        } else {
+            String prefix;
+            switch (currentChatMode) {
+                case LOBBY:
+                    prefix = "lobbychat:";
+                    break;
+                case TEAM:
+                    prefix = "teamchat:";
+                    break;
+                case GLOBAL:
+                default:
+                    prefix = "chat:";
+                    break;
+            }
+            String chatMessage = prefix + text;
+            logger.info("Sending {} message: {}", currentChatMode, chatMessage);
+            serverHandler.sendMessage(chatMessage);
+            addChatMessage(localSender, null, text, currentChatMode);
         }
-        chatInput.clear(); 
     }
 
     /**

@@ -1,5 +1,6 @@
 package igoat.server;
 
+import igoat.Role;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -10,6 +11,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -56,14 +58,15 @@ public class ClientHandler implements Runnable {
 
     private int reportedTerminalCount = -1;
 
-    private int role;
+    private Role role;
 
     // Add role mapping
-    private static final Map<String, Integer> roleMap = new ConcurrentHashMap<>();
+    private static final Map<String, Role> roleMap = new ConcurrentHashMap<>();
+    public HashMap<String, Role> roles = new HashMap<>();
     
     // Add list for available roles (0 = goat, 1 = robot, 2 = guard)
-    private static final List<Integer> availableRoles = new CopyOnWriteArrayList<>();
-    private static final int[] INITIAL_ROLES = {0, 1, 1, 2}; // 1 goat, 2 igoat, 1 guard
+    private static final List<Role> availableRoles = new CopyOnWriteArrayList<>();
+    private static final Role[] INITIAL_ROLES = {Role.GUARD, Role.IGOAT, Role.IGOAT, Role.GOAT}; // 1 goat, 2 igoat, 1 guard
 
     private static DatagramSocket serverUpdateSocket;
 
@@ -162,7 +165,7 @@ public class ClientHandler implements Runnable {
         logger.info("UDP Listener ready on local port {}", udpListeningSocket.getLocalPort());
         logger.info("Waiting for incoming UDP packets...");
         
-        byte[] buffer = new byte[1024];
+        byte[] buffer = new byte[UDP_BUFFER_SIZE];
         
         try {
             udpListeningSocket.setSoTimeout(10);
@@ -182,7 +185,7 @@ public class ClientHandler implements Runnable {
 
                 //logger.info("Received: {} from {}:{}", message, clientIp, sourcePort);
                 
-                if (message.startsWith("register_udp:")) {
+                if (message.startsWith(UDP_REGISTRATION_PREFIX)) {
                     String[] parts = message.split(":");
                     if (parts.length == 3) {
                         String nickname = parts[1];
@@ -757,7 +760,7 @@ public class ClientHandler implements Runnable {
         appendToLobbyChat("Player " + nickname + " ist bereit.");
 
         // Assign role when ready
-        int assignedRole = assignRole();
+        Role assignedRole = assignRole();
         this.role = assignedRole;
         roleMap.put(nickname, assignedRole);
         
@@ -767,7 +770,7 @@ public class ClientHandler implements Runnable {
         appendToLobbyChat("Player " + nickname + " wurde Rolle " + assignedRole + " zugewiesen");
     }
 
-    private int assignRole() {
+    private Role assignRole() {
         synchronized (availableRoles) {
             if (availableRoles.isEmpty()) {
                 // Reset the roles list if empty
@@ -775,18 +778,19 @@ public class ClientHandler implements Runnable {
             }
             
             int randomIndex = (int)(Math.random() * availableRoles.size());
-            int selectedRole = availableRoles.remove(randomIndex);
+            Role selectedRole = availableRoles.remove(randomIndex);
             return selectedRole;
         }
     }
 
     private void handleRoleConfirmation(String roleString) {
         try {
-            int parsedRole = Integer.parseInt(roleString);
+            Role parsedRole = Role.valueOf(roleString);
             this.role = parsedRole;
             roleMap.put(nickname, parsedRole);
             appendToLobbyChat("Player " + nickname + " hat Rolle " + role + " erhalten");
         } catch (NumberFormatException e){
+            logger.error("Invalid Role {}",roleString ,e);
             sendError("Ungültige Rolle");
         }
     }
@@ -804,7 +808,7 @@ public class ClientHandler implements Runnable {
             return;
         }
 
-        if (this.role != 2) {
+        if (this.role != Role.GUARD) {
             sendError("Nur Wächter dürfen fangen.");
             return;
         }
@@ -830,13 +834,13 @@ public class ClientHandler implements Runnable {
             return;
         }
 
-        if (this.role != 0) {
+        if (this.role != Role.GOAT) {
             sendError("Nur Ziegen dürfen Roboter neu starten.");
             return;
         }
 
-        if (target.getRole() != 1 || !target.isDown()) {
-            sendError("Ziel ist kein ausgeschalltener ");
+        if (target.getRole() != Role.IGOAT || !target.isDown()) {
+            sendError("Ziel ist kein ausgeschaltener ");
             return;
         }
 
@@ -890,7 +894,7 @@ public class ClientHandler implements Runnable {
      * 
      * @return The current role of the client (e.g., hunter or runner)
      */
-    public int getRole() {
+    public Role getRole() {
         return role;
     }
 
@@ -1216,12 +1220,12 @@ public class ClientHandler implements Runnable {
 
         StringBuilder sb = new StringBuilder();
         for (ClientHandler member : currentLobby.getMembers()) {
-            Integer role = roleMap.get(member.getNickname());
+            Role role = roleMap.get(member.getNickname());
             if (role != null) {
                 sb.append(member.getNickname()).append("=").append(role).append(",");
             }
         }
-        if (sb.length() > 0) {
+        if (!sb.isEmpty()) {
             sb.setLength(sb.length() - 1);
         }
         sendMessage("roles:" + sb.toString());
