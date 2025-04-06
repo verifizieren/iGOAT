@@ -35,7 +35,7 @@ public class Main {
                 Platform.startup(() -> {});
                 Application.launch(MainMenuGUI.class, args);
             } catch (Exception e) {
-                logger.error("Error launching GUI: ", e);
+                logger.error("Error launching GUI", e);
                 System.exit(1);
             }
         } else {
@@ -72,16 +72,11 @@ public class Main {
                         
                         Platform.startup(() -> {
                             try {
-                                ServerHandler handler = new ServerHandler(host, port, username);
-                                if (!handler.isConnected()) {
-                                    logger.error("Failed to connect to server at: {}:{} with username {}", host, port, username);
-                                    System.exit(1);
-                                }
-                                
                                 Stage stage = new Stage();
-                                LobbyGUI.setServerHandler(handler);
-                                LobbyGUI lobby = new LobbyGUI(stage);
-                                lobby.show(stage);
+                                MainMenuGUI mainMenu = new MainMenuGUI();
+                                mainMenu.start(stage);
+                                mainMenu.join(host, port, username);
+
                             } catch (Exception e) {
                                 logger.error("Couldn't start client: ", e);
                                 System.exit(1);

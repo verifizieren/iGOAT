@@ -90,7 +90,7 @@ public class MainMenuGUI extends Application {
                             return;
                         }
                         username = name;
-                        join(serverIP, port, username);
+                        join(serverIP, Integer.parseInt(port), username);
                     });
                 });
             });
@@ -120,7 +120,7 @@ public class MainMenuGUI extends Application {
      * @param port the port number of the server
      * @param username the player's username for the game session
      */
-    private void join(String serverIP, String port, String username) {
+    public void join(String serverIP, int port, String username) {
         if (serverIP.isEmpty()) {
             logger.error("Invalid server IP entered.");
             showAlert(Alert.AlertType.ERROR, "Invalid server IP.");
@@ -128,7 +128,7 @@ public class MainMenuGUI extends Application {
         }
 
         logger.info("Attempting to connect to server: {}:{}", serverIP.trim(), port);
-        handler = new ServerHandler(serverIP.trim(), Integer.parseInt(port), username);
+        handler = new ServerHandler(serverIP.trim(), port, username);
 
         if (!handler.isConnected()) {
             logger.error("Failed to connect to server at: {}:{}", serverIP, port);
