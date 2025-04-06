@@ -12,7 +12,7 @@ public class DoorHandler {
     }
 
     public void activateTerminal(Rectangle terminal) {
-        if (!doorOpen && gameMap.getSpecialElements().contains(terminal) && terminal.getFill() == javafx.scene.paint.Color.RED) {
+        if (!doorOpen && gameMap.getTerminalList().contains(terminal) && terminal.getFill() == javafx.scene.paint.Color.RED) {
             terminal.setFill(javafx.scene.paint.Color.YELLOW);
             activatedTerminals++;
             checkDoorCondition();

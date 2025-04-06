@@ -883,11 +883,13 @@ public class Game extends Application {
         double x = player.getX() + (player.getWidth() / 2.0);
         double y = player.getY() + (player.getHeight() / 2.0);
 
-        for (Rectangle terminal : gameMap.getSpecialElements()) {
+        for (Terminal terminal : gameMap.getTerminalList()) {
             double tx = terminal.getX() + (terminal.getWidth() / 2.0);
             double ty = terminal.getY() + (terminal.getHeight() / 2.0);
             if (sqrt(pow(tx - x, 2) + pow(ty - y, 2)) < 35.0) {
                 logger.info("Activating terminal");
+                serverHandler.sendMessage("terminal:" + terminal.getTerminalID());
+
                 Platform.runLater(() -> {
                     terminalActivationBanner.setVisible(true);
                     terminalActivationBanner.setOpacity(1.0);

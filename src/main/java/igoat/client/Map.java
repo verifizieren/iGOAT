@@ -22,7 +22,7 @@ public class Map {
     
     private List<Rectangle> visualWalls;
     private List<Wall> collisionWalls;
-    private List<Rectangle> specialElements;
+    private List<Terminal> terminalList;
     
     /**
      * Creates a new Map with the layout from the design.
@@ -30,9 +30,9 @@ public class Map {
     public Map() {
         visualWalls = new ArrayList<>();
         collisionWalls = new ArrayList<>();
-        specialElements = new ArrayList<>();
+        terminalList = new ArrayList<>();
         createMapLayout();
-        createSpecialElement();
+        createTerminals();
         createDoor();
     }
     
@@ -115,27 +115,29 @@ public class Map {
 
     }
 
-    private void createSpecialElement(){
+    /**
+     * adds terminals to the map
+     */
+    private void createTerminals(){
         //create Terminals
-        addSpecialElement(1380, 20, SPECIAL_ELEMENT_WIDTH, 20);
-        addSpecialElement(1460, 1450, 20, SPECIAL_ELEMENT_WIDTH);
-        addSpecialElement(950, 1560, SPECIAL_ELEMENT_WIDTH, 20);
-        addSpecialElement(480, 1450, 20, SPECIAL_ELEMENT_WIDTH);
-        addSpecialElement(20, 800,20, SPECIAL_ELEMENT_WIDTH);
-        addSpecialElement(800, 20, SPECIAL_ELEMENT_WIDTH, 20);
-        addSpecialElement(760, 620, 20, SPECIAL_ELEMENT_WIDTH);
-        addSpecialElement(1080, 680, SPECIAL_ELEMENT_WIDTH, 20);
-
-
+        addTerminal(1380, 20, SPECIAL_ELEMENT_WIDTH, 20, 0);
+        addTerminal(1460, 1450, 20, SPECIAL_ELEMENT_WIDTH, 1);
+        addTerminal(950, 1560, SPECIAL_ELEMENT_WIDTH, 20, 2);
+        addTerminal(480, 1450, 20, SPECIAL_ELEMENT_WIDTH, 3);
+        addTerminal(20, 800,20, SPECIAL_ELEMENT_WIDTH, 4);
+        addTerminal(800, 20, SPECIAL_ELEMENT_WIDTH, 20, 5);
+        addTerminal(760, 620, 20, SPECIAL_ELEMENT_WIDTH, 6);
+        addTerminal(1080, 680, SPECIAL_ELEMENT_WIDTH, 20, 7);
     }
 
-    private void createDoor(){
+    /**
+     * adds the doors to the map
+     */
+    private void createDoor() {
        addDoor(0, 500, 20, DOOR_WIDTH);
        addDoor(1480, 500, 20, DOOR_WIDTH);
 
     }
-
-
 
     /**
      * Creates a wall with both visual and collision components.
@@ -150,12 +152,12 @@ public class Map {
     }
     
     /**
-     * Adds a special element (terminal) to the map.
+     * Adds a terminal to the map.
      */
-    private void addSpecialElement(int x, int y, int width, int height) {
-        Rectangle specialElement = new Rectangle(x, y, width, height);
-        specialElement.setFill(Color.RED);
-        specialElements.add(specialElement);
+    private void addTerminal(int x, int y, int width, int height, int id) {
+        Terminal terminal = new Terminal(x, y, width, height, id);
+        terminal.setFill(Color.RED);
+        terminalList.add(terminal);
 
         Wall collisionWall = new Wall(x, y, width, height);
         collisionWalls.add(collisionWall);
@@ -171,11 +173,11 @@ public class Map {
 
         Wall collisionWall = new Wall(x, y, width, height);
         collisionWalls.add(collisionWall);
-
-
-
     }
 
+    /**
+     * opens the doors
+     */
     public void removeDoor() {
         if (door != null) {
             door.setFill(Color.BLUE);
@@ -183,16 +185,13 @@ public class Map {
         }
     }
 
-
-
-
     /**
      * Gets all visual elements including walls and special elements.
      * @return a list containing the elements
      */
     public List<Rectangle> getVisualWalls() {
         List<Rectangle> allElements = new ArrayList<>(visualWalls);
-        allElements.addAll(specialElements);
+        allElements.addAll(terminalList);
         return allElements;
     }
     
@@ -226,7 +225,7 @@ public class Map {
     public void clearWalls() {
         visualWalls.clear();
         collisionWalls.clear();
-        specialElements.clear();
+        terminalList.clear();
     }
     
     /**
@@ -241,8 +240,8 @@ public class Map {
         createWall(x, y, width, height);
     }
 
-    public List<Rectangle> getSpecialElements(){
-        return specialElements;
+    public List<Terminal> getTerminalList(){
+        return terminalList;
     }
 
 }
