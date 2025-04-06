@@ -1,5 +1,8 @@
 package igoat.client;
 
+import static java.lang.Math.pow;
+import static java.lang.Math.sqrt;
+
 import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -85,8 +88,9 @@ public class Game extends Application {
     private boolean gameStarted = false;
     
     private Map<String, Player> otherPlayers = new HashMap<>();
+    private boolean pressedE = false;
 
-    
+
     /**
      * Enum for defining the chat modes available in the game.
      * 
@@ -760,6 +764,15 @@ public class Game extends Application {
         if (activeKeys.contains(KeyCode.D) || activeKeys.contains(KeyCode.RIGHT)) {
             direction = direction.add(1, 0);
         }
+        if (activeKeys.contains(KeyCode.E)) {
+            if (!pressedE) {
+                pressedE = true;
+                activateTerminal();
+            }
+        }
+        else {
+            pressedE = false;
+        }
         
         if (!direction.equals(Point2D.ZERO)) {
             direction = direction.normalize();
@@ -810,16 +823,26 @@ public class Game extends Application {
         }
 
         if (activeCamera != null) {
-            activeCamera.centerOn(player.getX() + (player.getWidth() / 2), player.getY() + (player.getHeight() / 2));
+            activeCamera.centerOn(player.getX() + (player.getWidth() / 2.0), player.getY() + (player.getHeight() / 2.0));
         }
 
         updateVisuals();
+    }
 
-        if (activeKeys.contains(KeyCode.E)) {
-           // doorHandler.activateTerminal();
+    private void activateTerminal() {
+        double x = player.getX() + (player.getWidth() / 2.0);
+        double y = player.getY() + (player.getHeight() / 2.0);
+
+        for (Rectangle terminal : gameMap.getSpecialElements()) {
+            double tx = terminal.getX() + (terminal.getWidth() / 2.0);
+            double ty = terminal.getY() + (terminal.getHeight() / 2.0);
+            if (sqrt(pow(tx - x, 2) + pow(ty - y, 2)) < 35.0) {
+                logger.info("Activating terminal");
+                return;
+            }
         }
     }
-    
+
     /**
      * Sends the local player's current position to the server via UDP.
      * The update includes:
