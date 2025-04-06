@@ -736,7 +736,12 @@ public class ClientHandler implements Runnable {
 
         appendToLobbyChat("Player " + nickname + " ist bereit.");
         int assignRole = assignRole();
-        sendMessage("role:" + nickname + ":" + assignRole);
+        this.role = assignRole;
+        
+        // Broadcast role to all players in the lobby
+        String roleMessage = "role:" + this.nickname + ":" + assignRole;
+        currentLobby.broadcastToLobby(roleMessage);
+        logger.info("Broadcasting role to lobby {}: {}", currentLobby.getCode(), roleMessage);
     }
 
     private int assignRole() {
