@@ -1,10 +1,13 @@
 package igoat.client;
 
+import igoat.Role;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents a player in the game.
@@ -12,6 +15,8 @@ import javafx.scene.text.Text;
  * and camera view. Can represent either the local player or a remote player.
  */
 public class Player {
+    private static final Logger logger = LoggerFactory.getLogger(Player.class);
+
     private double x;
     private double y;
     private final int width;
@@ -21,6 +26,7 @@ public class Player {
     private final Camera camera;
     private boolean isBeingSpectated;
     private String username;
+    private Role role;
 
     /**
      * Creates a new player with the specified position and dimensions.
@@ -252,10 +258,23 @@ public class Player {
         return usernameLabel;
     }
 
-    public void setColor(Color color) {
-        if (visualRepresentation != null) {
-            visualRepresentation.setFill(color);
+    public void setRole(Role role) {
+        this.role = role;
+
+        if (visualRepresentation == null) {
+            logger.error("Couldn't find visual");
+            return;
         }
+
+        visualRepresentation.setFill(switch (role) {
+            case Role.GOAT -> Color.DODGERBLUE;   // Goat
+            case Role.IGOAT -> Color.LIMEGREEN;    // Robot
+            case Role.GUARD  -> Color.CRIMSON;      // Guard
+            default -> Color.ORANGE;      // Fallback/default
+        });
     }
 
+    public Role getRole() {
+        return role;
+    }
 } 

@@ -150,6 +150,12 @@ public class Lobby {
      * 
      * @param message The message to broadcast to all lobby members
      */
+    public void broadcastChatToLobby(String message) {
+        for (ClientHandler member : members) {
+            member.sendMessage("lobbychat:" + message);
+        }
+    }
+
     public void broadcastToLobby(String message) {
         for (ClientHandler member : members) {
             member.sendMessage(message);
@@ -187,9 +193,9 @@ public class Lobby {
             if (totalTerminalsInMap > 0 && activatedTerminals.size() >= totalTerminalsInMap) {
                 logger.info("Lobby {}: All {}/{} terminals activated! Triggering game event...", code, activatedTerminals.size(), totalTerminalsInMap);
 
-                broadcastToLobby("chat:System:All terminals have been activated!");
+                broadcastChatToLobby("chat:System:All terminals have been activated!");
 
-                broadcastToLobby("doors_open:");
+                broadcastChatToLobby("doors_open:");
                 logger.info("Lobby {}: Sent doors_open command.", code);
             }
             return true;

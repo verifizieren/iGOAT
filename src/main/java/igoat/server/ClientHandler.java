@@ -413,14 +413,14 @@ public class ClientHandler implements Runnable {
                     break;
                 case "lobbychat":
                     if (currentLobby != null) {
-                        currentLobby.broadcastToLobby("lobbychat:" + nickname + ":" + params);
+                        currentLobby.broadcastChatToLobby(nickname + ":" + params);
                     } else {
                         sendError("Du bist in keiner Lobby");
                     }
                     break;
-                case "teamchat":
+                case "teamchat": // WORK IN PROGRESS
                     if (currentLobby != null) {
-                        currentLobby.broadcastToLobby("teamchat:" + nickname + ":" + params);
+                        broadcast(nickname + ":" + params);
                     } else {
                         sendError("Du bist in keiner Lobby");
                     }
@@ -648,7 +648,7 @@ public class ClientHandler implements Runnable {
         currentLobby.addMember(this);
 
         sendMessage("lobby:" + code);
-        currentLobby.broadcastToLobby("chat:" + nickname + " ist der Lobby " + code + " beigetreten");
+        currentLobby.broadcastChatToLobby(nickname + " ist der Lobby " + code + " beigetreten");
 
         broadcastGetLobbiesToAll();
         broadcastLobbyPlayerList();
@@ -671,7 +671,7 @@ public class ClientHandler implements Runnable {
         currentLobby.addMember(this);
 
         sendMessage("lobby:" + code);
-        currentLobby.broadcastToLobby("chat:" + nickname + " hat eine neue Lobby erstellt (" + code + ")");
+        currentLobby.broadcastChatToLobby(nickname + " hat eine neue Lobby erstellt (" + code + ")");
 
         broadcastGetLobbiesToAll();
         broadcastLobbyPlayerList();
@@ -680,7 +680,7 @@ public class ClientHandler implements Runnable {
     private void leaveCurrentLobby() {
         if (currentLobby != null) {
             currentLobby.removeMember(this);
-            currentLobby.broadcastToLobby(("chat:" + nickname + " hat die Lobby verlassen"));
+            currentLobby.broadcastChatToLobby(nickname + " hat die Lobby verlassen");
 
             if (currentLobby.getMembers().isEmpty()) {
                 lobbyList.remove(currentLobby);
@@ -757,17 +757,17 @@ public class ClientHandler implements Runnable {
         currentLobby.broadcastToLobby(statusMessage);
         logger.info("Broadcasting ready status to lobby {}: {}", currentLobby.getCode(), statusMessage);
 
-        appendToLobbyChat("Player " + nickname + " ist bereit.");
+        appendToLobbyChat("Player " + nickname + " ist bereit.", false);
 
         // Assign role when ready
         Role assignedRole = assignRole();
         this.role = assignedRole;
         roleMap.put(nickname, assignedRole);
-        
+
         // Broadcast role assignment
         String roleMessage = "role:" + nickname + ":" + assignedRole;
-        currentLobby.broadcastToLobby(roleMessage);
-        appendToLobbyChat("Player " + nickname + " wurde Rolle " + assignedRole + " zugewiesen");
+        currentLobby.broadcastToLobby(roleMessage); //delete later
+        appendToLobbyChat("Player " + nickname + " wurde Rolle " + assignedRole + " zugewiesen", false);
     }
 
     private Role assignRole() {
@@ -788,16 +788,23 @@ public class ClientHandler implements Runnable {
             Role parsedRole = Role.valueOf(roleString);
             this.role = parsedRole;
             roleMap.put(nickname, parsedRole);
-            appendToLobbyChat("Player " + nickname + " hat Rolle " + role + " erhalten");
+            appendToLobbyChat("Player " + nickname + " hat Rolle " + role + " erhalten", false);
         } catch (NumberFormatException e){
             logger.error("Invalid Role {}",roleString ,e);
             sendError("Ungültige Rolle");
         }
     }
 
-    private void appendToLobbyChat(String message) {
-        if (currentLobby != null) {
-            currentLobby.broadcastToLobby("chat:" + nickname + " " + message);
+    private void appendToLobbyChat(String message, boolean chatMSG) {
+        if (currentLobby == null) {
+            logger.error("Couldn't find lobby");
+            return;
+        }
+
+        if (chatMSG) {
+            currentLobby.broadcastChatToLobby(nickname + " " + message);
+        } else {
+            currentLobby.broadcastChatToLobby(message);
         }
     }
 

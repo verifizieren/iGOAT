@@ -481,7 +481,7 @@ public class LobbyGUI {
                      appendToMessageArea(displayPrefix + sender + ": " + chatMessage);
                  } else {
                       logger.warn("Could not parse sender/message from {} data: {}", chatPrefix, chatData);
-                      appendToMessageArea("[System] " + chatData); 
+                      //appendToMessageArea("[System] " + chatData);
                  }
                  continue;
             }

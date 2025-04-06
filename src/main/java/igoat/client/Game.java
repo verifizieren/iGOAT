@@ -514,33 +514,19 @@ public class Game extends Application {
 
                     logger.info("Received role {} for player {}", role, playerName);
 
-                    Color roleColor = switch (role) {
-                        case Role.GOAT -> Color.DODGERBLUE;   // Goat
-                        case Role.IGOAT -> Color.LIMEGREEN;    // Robot
-                        case Role.GUARD -> Color.CRIMSON;      // Guard
-                        default -> Color.ORANGE;      // Fallback/default
-                    };
-
-                    logger.info("Setting color {} for player {}", roleColor, playerName);
-
                     if (player != null && playerName.equals(player.getUsername())) {
-                        Platform.runLater(() -> {
-                            logger.info("Setting local player color to {}", roleColor);
-                            player.setColor(roleColor);
-                        });
+                        player.setRole(role);
                     } else if (otherPlayers.containsKey(playerName)) {
-                        Player remote = otherPlayers.get(playerName);
-                        Platform.runLater(() -> {
-                            logger.info("Setting remote player {} color to {}", playerName, roleColor);
-                            remote.setColor(roleColor);
-                        });
-                    } else {
+                        otherPlayers.get(playerName).setRole(role);
+                    }
+                    else {
                         logger.warn("Received role for unknown player: {}", playerName);
                     }
+
                 } else {
                     logger.error("Invalid role message format: {}", message);
                 }
-            } else if (message.startsWith("roles:")) {
+            } /*else if (message.startsWith("roles:")) {
                 String rolesData = message.substring("roles:".length());
                 if (!rolesData.isEmpty()) {
                     String[] roleEntries = rolesData.split(",");
@@ -549,30 +535,21 @@ public class Game extends Application {
                         if (parts.length == 2) {
                             String playerName = parts[0];
                             Role role = Role.valueOf(parts[1]);
-
-                            Color roleColor = switch (role) {
-                                case Role.GOAT -> Color.DODGERBLUE;   // Goat
-                                case Role.IGOAT -> Color.LIMEGREEN;    // Robot
-                                case Role.GUARD  -> Color.CRIMSON;      // Guard
-                                default -> Color.ORANGE;      // Fallback/default
-                            };
+                            logger.info("Received role {} for player {}", role, playerName);
+                            logger.info("Original message: {}", message);
 
                             if (player != null && playerName.equals(player.getUsername())) {
-                                Platform.runLater(() -> {
-                                    logger.info("Setting local player color to {}", roleColor);
-                                    player.setColor(roleColor);
-                                });
+                                player.setRole(role);
                             } else if (otherPlayers.containsKey(playerName)) {
-                                Player remote = otherPlayers.get(playerName);
-                                Platform.runLater(() -> {
-                                    logger.info("Setting remote player {} color to {}", playerName, roleColor);
-                                    remote.setColor(roleColor);
-                                });
+                                otherPlayers.get(playerName).setRole(role);
+                            }
+                            else {
+                                logger.warn("Received role for unknown player: {}", playerName);
                             }
                         }
                     }
                 }
-            } else if (message.equals("doors_open:")) {
+            }*/ else if (message.equals("doors_open:")) {
                 Platform.runLater(this::handleDoorsOpen);
                 return;
             } else {
@@ -778,11 +755,6 @@ public class Game extends Application {
             return;
         }
         
-        // Request role information for this player
-        if (serverHandler != null && serverHandler.isConnected()) {
-            serverHandler.sendMessage("getroles:");
-        }
-        
         // Start with default color
         Color playerColor = Color.ORANGE;
         
@@ -798,7 +770,7 @@ public class Game extends Application {
                     logger.info("Added visual for player {}", playerName);
                 }
             });
-            
+
             Thread.sleep(50);
             
             if (remotePlayerRef[0] != null) {
@@ -813,7 +785,12 @@ public class Game extends Application {
             }
         } catch (Exception e) {
             logger.error("Error creating visual for player", e);
-        }
+        } /*finally {
+            // Request role information for this player
+            if (serverHandler != null && serverHandler.isConnected()) {
+                serverHandler.sendMessage("getroles:");
+            }
+        }*/
     }
 
     /**
@@ -906,7 +883,17 @@ public class Game extends Application {
         if (activeKeys.contains(KeyCode.E)) {
             if (!pressedE) {
                 pressedE = true;
-                pressTerminal();
+                switch (player.getRole()){
+                    case Role.GUARD:
+                        pressCatch();
+                        break;
+                    case Role.IGOAT:
+                        pressTerminal();
+                        break;
+                    case Role.GOAT:
+                        pressRevive();
+                }
+
             }
         }
         else {
@@ -966,6 +953,34 @@ public class Game extends Application {
         }
 
         updateVisuals();
+    }
+
+    private void pressCatch() {
+        double x = player.getX() + (player.getWidth() / 2.0);
+        double y = player.getY() + (player.getHeight() / 2.0);
+
+        for (Player target : otherPlayers.values()) {
+            double tx = target.getX() + (target.getWidth() / 2.0);
+            double ty = target.getY() + (target.getHeight() / 2.0);
+            if (sqrt(pow(tx - x, 2) + pow(ty - y, 2)) < 35.0) {
+                serverHandler.sendMessage("catch:" + target.getUsername());
+                return;
+            }
+        }
+    }
+
+    private void pressRevive() {
+        double x = player.getX() + (player.getWidth() / 2.0);
+        double y = player.getY() + (player.getHeight() / 2.0);
+
+        for (Player target : otherPlayers.values()) {
+            double tx = target.getX() + (target.getWidth() / 2.0);
+            double ty = target.getY() + (target.getHeight() / 2.0);
+            if (target.getRole() == Role.IGOAT && sqrt(pow(tx - x, 2) + pow(ty - y, 2)) < 35.0) {
+                serverHandler.sendMessage("revive:" + target.getUsername());
+                return;
+            }
+        }
     }
 
     /**
