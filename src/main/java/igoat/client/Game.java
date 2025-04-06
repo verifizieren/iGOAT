@@ -2,7 +2,6 @@ package igoat.client;
 
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
-
 import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,24 +11,27 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.Node;
-import javafx.stage.Screen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import animatefx.animation.FadeInDown;
+import animatefx.animation.FadeOutUp;
 import javafx.animation.AnimationTimer;
 import javafx.animation.FadeTransition;
+import javafx.animation.KeyFrame;
+import javafx.animation.PauseTransition;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextFormatter;
@@ -42,6 +44,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -133,6 +136,8 @@ public class Game extends Application {
     private Timeline chatHideTimer;
     private FadeTransition chatFadeOutTransition;
     private ChatMode currentChatMode = ChatMode.LOBBY;
+
+    private Label terminalActivationBanner;
 
     /**
      * Constructor for Game
@@ -258,6 +263,13 @@ public class Game extends Application {
         primaryStage.setScene(scene);
 
         primaryStage.show();
+
+        terminalActivationBanner = new Label("Terminal Activated!");
+        terminalActivationBanner.setStyle("-fx-background-color: rgba(0, 200, 0, 0.7); -fx-text-fill: white; -fx-font-size: 24px; -fx-padding: 10px; -fx-background-radius: 5px;");
+        terminalActivationBanner.setVisible(false);
+        terminalActivationBanner.layoutXProperty().bind(uiOverlay.widthProperty().subtract(terminalActivationBanner.widthProperty()).divide(2));
+        terminalActivationBanner.setLayoutY(20);
+        uiOverlay.getChildren().add(terminalActivationBanner);
 
         for (Node wall : gameMap.getVisualWalls()) {
             gamePane.getChildren().add(wall);
@@ -876,6 +888,18 @@ public class Game extends Application {
             double ty = terminal.getY() + (terminal.getHeight() / 2.0);
             if (sqrt(pow(tx - x, 2) + pow(ty - y, 2)) < 35.0) {
                 logger.info("Activating terminal");
+                Platform.runLater(() -> {
+                    terminalActivationBanner.setVisible(true);
+                    terminalActivationBanner.setOpacity(1.0);
+                    new FadeInDown(terminalActivationBanner).play();
+
+                    PauseTransition delay = new PauseTransition(Duration.seconds(2.5));
+                    delay.setOnFinished(event -> {
+                        new FadeOutUp(terminalActivationBanner).play();
+                        // terminalActivationBanner.setVisible(false); 
+                    });
+                    delay.play();
+                });
                 return;
             }
         }
