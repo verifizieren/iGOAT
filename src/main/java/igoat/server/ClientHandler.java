@@ -11,7 +11,9 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +55,13 @@ public class ClientHandler implements Runnable {
     private boolean isCaught = false;
 
     private int role;
+
+    // Add role mapping
+    private static final Map<String, Integer> roleMap = new ConcurrentHashMap<>();
+    
+    // Add list for available roles (0 = goat, 1 = robot, 2 = guard)
+    private static final List<Integer> availableRoles = new CopyOnWriteArrayList<>();
+    private static final int[] INITIAL_ROLES = {0, 1, 1, 2}; // 1 goat, 2 igoat, 1 guard
 
     private static DatagramSocket serverUpdateSocket;
 
@@ -453,6 +462,9 @@ public class ClientHandler implements Runnable {
                 case "startgame":
                     handleStartGame();
                     break;
+                case "getroles":
+                    handleGetRoles();
+                    break;
                 default:
                     sendError("Unbekannter Befehl: " + command);
             }
@@ -735,23 +747,36 @@ public class ClientHandler implements Runnable {
         logger.info("Broadcasting ready status to lobby {}: {}", currentLobby.getCode(), statusMessage);
 
         appendToLobbyChat("Player " + nickname + " ist bereit.");
-        int assignRole = assignRole();
-        this.role = assignRole;
+
+        // Assign role when ready
+        int assignedRole = assignRole();
+        this.role = assignedRole;
+        roleMap.put(nickname, assignedRole);
         
-        // Broadcast role to all players in the lobby
-        String roleMessage = "role:" + this.nickname + ":" + assignRole;
+        // Broadcast role assignment
+        String roleMessage = "role:" + nickname + ":" + assignedRole;
         currentLobby.broadcastToLobby(roleMessage);
-        logger.info("Broadcasting role to lobby {}: {}", currentLobby.getCode(), roleMessage);
+        appendToLobbyChat("Player " + nickname + " wurde Rolle " + assignedRole + " zugewiesen");
     }
 
     private int assignRole() {
-        return (int) (Math.random() * 3);
+        synchronized (availableRoles) {
+            if (availableRoles.isEmpty()) {
+                // Reset the roles list if empty
+                availableRoles.addAll(Arrays.asList(INITIAL_ROLES[0], INITIAL_ROLES[1], INITIAL_ROLES[2], INITIAL_ROLES[3]));
+            }
+            
+            int randomIndex = (int)(Math.random() * availableRoles.size());
+            int selectedRole = availableRoles.remove(randomIndex);
+            return selectedRole;
+        }
     }
 
     private void handleRoleConfirmation(String roleString) {
         try {
             int parsedRole = Integer.parseInt(roleString);
             this.role = parsedRole;
+            roleMap.put(nickname, parsedRole);
             appendToLobbyChat("Player " + nickname + " hat Rolle " + role + " erhalten");
         } catch (NumberFormatException e){
             sendError("Ungültige Rolle");
@@ -1133,6 +1158,12 @@ public class ClientHandler implements Runnable {
         logger.info("Broadcasted: {}", gameStartedMessage);
 
         sendMessage(gameStartedMessage);
+        
+        // Reset available roles when game starts
+        synchronized (availableRoles) {
+            availableRoles.clear();
+            availableRoles.addAll(Arrays.asList(INITIAL_ROLES[0], INITIAL_ROLES[1], INITIAL_ROLES[2], INITIAL_ROLES[3]));
+        }
     }
 
     /**
@@ -1157,5 +1188,24 @@ public class ClientHandler implements Runnable {
      */
     public int getUdpPort() {
         return udpPort;
+    }
+
+    private void handleGetRoles() {
+        if (currentLobby == null) {
+            sendError("Du bist in keiner Lobby");
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (ClientHandler member : currentLobby.getMembers()) {
+            Integer role = roleMap.get(member.getNickname());
+            if (role != null) {
+                sb.append(member.getNickname()).append("=").append(role).append(",");
+            }
+        }
+        if (sb.length() > 0) {
+            sb.setLength(sb.length() - 1);
+        }
+        sendMessage("roles:" + sb.toString());
     }
 }

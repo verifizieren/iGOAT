@@ -274,10 +274,10 @@ public class LobbyGUI {
         Button exitButton = new Button("Exit");
 
         startButton.setOnAction(event -> {
-            String selected = lobbyListView.getSelectionModel().getSelectedItem();
-            if (selected != null && !selected.isEmpty() && serverHandler != null && serverHandler.isConnected()) {
-                String code = selected.split(" ")[0];
-                serverHandler.sendMessage("lobby:" + code);
+            if (serverHandler != null && serverHandler.isConnected() && currentLobbyCode != null) {
+                serverHandler.sendMessage("startgame:");
+            } else {
+                appendToMessageArea("Error: Cannot start game. Make sure you are in a lobby and connected to the server.");
             }
         });
 
@@ -607,7 +607,7 @@ public class LobbyGUI {
                                    .map(item -> item.replace(" ✓", ""))
                                    .toArray(String[]::new);
                              logger.info("Checking all players ready immediately after ready_status update for {} ...", playerName);
-                            checkAllPlayersReady(currentPlayersArray);
+                             checkAllPlayersReady(currentPlayersArray);
                         });
                     } else {
                          logger.error("Invalid ready_status content format: {}", content);
@@ -726,12 +726,8 @@ public class LobbyGUI {
          }
 
          if (allReady) {
-             logger.info("All players are ready! Sending startgame command...");
-             if (serverHandler != null && serverHandler.isConnected()) {
-                 serverHandler.sendMessage("startgame:");
-             } else {
-                  logger.error("Cannot send startgame command: ServerHandler not ready.");
-             }
+             logger.info("All players are ready! Waiting for game start command...");
+             appendToMessageArea("All players are ready! The lobby creator can now start the game.");
          } else {
              logger.info("Not all players are ready yet.");
          }
