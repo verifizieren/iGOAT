@@ -2,6 +2,8 @@ package igoat.client;
 
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
+
+import igoat.Role;
 import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -508,14 +510,14 @@ public class Game extends Application {
                 String[] parts = message.split(":");
                 if (parts.length == 3) {
                     String playerName = parts[1];
-                    int roleId = Integer.parseInt(parts[2]);
+                    Role role = Role.valueOf(parts[2]);
 
-                    logger.info("Received role {} for player {}", roleId, playerName);
+                    logger.info("Received role {} for player {}", role, playerName);
 
-                    Color roleColor = switch (roleId) {
-                        case 0 -> Color.DODGERBLUE;   // Goat
-                        case 1 -> Color.LIMEGREEN;    // Robot
-                        case 2 -> Color.CRIMSON;      // Guard
+                    Color roleColor = switch (role) {
+                        case Role.GOAT -> Color.DODGERBLUE;   // Goat
+                        case Role.IGOAT -> Color.LIMEGREEN;    // Robot
+                        case Role.GUARD -> Color.CRIMSON;      // Guard
                         default -> Color.ORANGE;      // Fallback/default
                     };
 
@@ -546,12 +548,12 @@ public class Game extends Application {
                         String[] parts = entry.split("=");
                         if (parts.length == 2) {
                             String playerName = parts[0];
-                            int roleId = Integer.parseInt(parts[1]);
+                            Role role = Role.valueOf(parts[1]);
 
-                            Color roleColor = switch (roleId) {
-                                case 0 -> Color.DODGERBLUE;   // Goat
-                                case 1 -> Color.LIMEGREEN;    // Robot
-                                case 2 -> Color.CRIMSON;      // Guard
+                            Color roleColor = switch (role) {
+                                case Role.GOAT -> Color.DODGERBLUE;   // Goat
+                                case Role.IGOAT -> Color.LIMEGREEN;    // Robot
+                                case Role.GUARD  -> Color.CRIMSON;      // Guard
                                 default -> Color.ORANGE;      // Fallback/default
                             };
 
