@@ -66,7 +66,7 @@ public class LobbyGUI {
     private String currentLobbyCode = null;
 
     // Configuration constants
-    private boolean isGlobalChat = false;
+    private boolean isGlobalChat = true;
     private final int MAX_PLAYERS = 4;
 
     /**
@@ -155,7 +155,7 @@ public class LobbyGUI {
      * @return a VBox containing the right panel UI elements
      */
     private VBox setupRightPanel() {
-        chatModeLabel = new Label("Lobby Chat");
+        chatModeLabel = new Label("Global Chat");
         chatModeLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
 
         messageArea = new TextArea();
@@ -170,7 +170,7 @@ public class LobbyGUI {
         sendButton = new Button("Send");
         sendButton.setDisable(true);
 
-        toggleChatButton = new Button("Switch to Global Chat");
+        toggleChatButton = new Button("Switch to Lobby Chat");
 
         setupChatEvents();
         VBox buttonBox = setupButtonActions();
@@ -256,6 +256,7 @@ public class LobbyGUI {
             if (serverHandler != null && serverHandler.isConnected()) {
                 serverHandler.sendMessage(isGlobalChat ? "getplayers:" : "getlobbyplayers:");
             }
+            updateChatUIForMode();
         });
     }
 
@@ -369,22 +370,56 @@ public class LobbyGUI {
      * After sending, the input field is cleared. Adds the message locally first for immediate display.
      */
     private void sendChatMessage() {
-        String text = chatInput.getText().trim();
-        if (!text.isEmpty()) {
-            if (serverHandler != null && serverHandler.isConnected()) {
-                String prefix = isGlobalChat ? "chat:" : "lobbychat:";
-                String messageToSend = prefix + text;
-                
-                String senderDisplay = (username != null) ? username : "You";
-                appendToMessageArea(senderDisplay + ": " + text); 
+        if (serverHandler != null && serverHandler.isConnected()) {
+            String prefix = isGlobalChat ? "chat:" : "lobbychat:";
+            String text = chatInput.getText().trim();
 
-                serverHandler.sendMessage(messageToSend);
-                logger.info("Sent message: {}", messageToSend);
+            if (!text.isEmpty()) {
+                // Get the confirmed nickname, fallback to username if needed
+                String confirmedNickname = serverHandler.getConfirmedNickname();
+                String localSender = (confirmedNickname != null) ? confirmedNickname : ((username != null) ? username : "You");
+
+                if (!isGlobalChat && currentLobbyCode == null) {
+                    appendToMessageArea("Error: You must be in a lobby to use Lobby Chat.");
+                    chatInput.setText("");
+                    return;
+                }
+
+                if (text.toLowerCase().startsWith("/whisper ")) {
+                    String[] parts = text.split(" ", 3);
+                    if (parts.length == 3) {
+                        String targetUsername = parts[1];
+                        String whisperMessageContent = parts[2];
+
+                        if (targetUsername.equalsIgnoreCase(localSender)) {
+                            appendToMessageArea("[System] You cannot whisper to yourself.");
+                        } else {
+                            String whisperMarker = String.format("[WHISPER->%s] ", targetUsername);
+                            String messageWithMarker = whisperMarker + whisperMessageContent;
+                            String messageToSend = prefix + messageWithMarker;
+
+                            logger.info("Sending whisper via {}: {}", prefix, messageToSend);
+                            serverHandler.sendMessage(messageToSend);
+
+                            appendToMessageArea(String.format("[To %s]: %s", targetUsername, whisperMessageContent));
+                        }
+                    } else {
+                        appendToMessageArea("[System] Usage: /whisper <username> <message>");
+                    }
+                } else {
+                    String messageToSend = prefix + text;
+                    String displayPrefix = isGlobalChat ? "[GLOBAL] " : "[LOBBY] ";
+                    
+                    appendToMessageArea(displayPrefix + localSender + ": " + text);
+                    serverHandler.sendMessage(messageToSend);
+                    logger.info("Sent {} message: {}", isGlobalChat ? "Global" : "Lobby", messageToSend);
+                }
+
+                chatInput.setText(""); // Clear input field after processing
             } else {
                  logger.error("Cannot send chat message: ServerHandler not available or connected.");
                  appendToMessageArea("Error: Not connected to server.");
             }
-            chatInput.setText(""); // Clear input field AFTER sending
         }
     }
     /**
@@ -421,11 +456,29 @@ public class LobbyGUI {
                           continue; 
                      }
 
+                     final String whisperMarkerStart = "[WHISPER->";
+                     if (chatMessage.startsWith(whisperMarkerStart)) {
+                         int markerEnd = chatMessage.indexOf("]");
+                         if (markerEnd > whisperMarkerStart.length()) {
+                             String targetUser = chatMessage.substring(whisperMarkerStart.length(), markerEnd);
+                             String whisperContent = chatMessage.substring(markerEnd + 2); // Skip "] "
+
+                             if (localNickname != null && localNickname.equalsIgnoreCase(targetUser)) {
+                                 logger.info("Received lobby whisper from {}: {}", sender, whisperContent);
+                                 appendToMessageArea(String.format("[From %s]: %s", sender, whisperContent));
+                             } else {
+                                 logger.debug("Ignoring whisper not intended for this client (target: {}, local: {})", targetUser, localNickname);
+                             }
+                             continue;
+                         }
+                     }
+
                      logger.info("Parsed {} message - Sender: '{}', Message: '{}'", chatPrefix.substring(0, chatPrefix.length() - 1).toUpperCase(), sender, chatMessage);
-                     appendToMessageArea(sender + ": " + chatMessage);
+                     String displayPrefix = chatPrefix.equals("chat:") ? "[GLOBAL] " : "[LOBBY] ";
+                     appendToMessageArea(displayPrefix + sender + ": " + chatMessage);
                  } else {
                       logger.warn("Could not parse sender/message from {} data: {}", chatPrefix, chatData);
-                      appendToMessageArea("[" + chatPrefix.substring(0, chatPrefix.length() - 1).toUpperCase() + "] " + chatData); 
+                      appendToMessageArea("[System] " + chatData); 
                  }
                  continue;
             }
@@ -462,10 +515,19 @@ public class LobbyGUI {
                         readyButton.setDisable(true);
                         currentLobbyCode = null;
                         playerReadyStatus.clear();
+                        if (!isGlobalChat) {
+                            isGlobalChat = true;
+                            updateChatUIForMode();
+                            serverHandler.sendMessage("getplayers:");
+                        }
                     } else {
                         appendToMessageArea("Info: Du bist Lobby " + content + " beigetreten.");
                         currentLobbyCode = content;
                         readyButton.setDisable(false);
+                        if (isGlobalChat) {
+                            isGlobalChat = false;
+                            updateChatUIForMode();
+                        }
                         serverHandler.sendMessage("getlobbyplayers:");
                     }
                     break;
@@ -680,5 +742,25 @@ public class LobbyGUI {
      */
     private void appendToMessageArea(String message) {
         Platform.runLater(() -> messageArea.appendText(message + "\n"));
+    }
+
+    /**
+     * Updates the chat UI elements (labels, buttons) based on the current chat mode (isGlobalChat).
+     * Also displays a notification message about the mode change.
+     */
+    private void updateChatUIForMode() {
+        Platform.runLater(() -> {
+            String modeName = isGlobalChat ? "Global" : "Lobby";
+            String toggleButtonText = isGlobalChat ? "Switch to Lobby Chat" : "Switch to Global Chat";
+            String playerListText = isGlobalChat ? "All Connected Players" : "Players in Lobby";
+
+            chatModeLabel.setText(modeName + " Chat");
+            toggleChatButton.setText(toggleButtonText);
+            playerListLabel.setText(playerListText);
+            //appendToMessageArea("Now chatting in " + modeName + " Chat");
+
+            boolean inLobby = currentLobbyCode != null;
+            readyButton.setDisable(!inLobby);
+        });
     }
 }

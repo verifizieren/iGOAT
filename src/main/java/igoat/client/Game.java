@@ -378,57 +378,42 @@ public class Game extends Application {
      */
     private void processServerMessage(String message) {
         java.util.function.BiFunction<String, String, String[]> parseSenderAndContent = (prefix, msg) -> {
-            String data = msg.substring(prefix.length()); // Content after prefix
+            String data = msg.substring(prefix.length()); 
 
             if (data.startsWith("[") && data.contains("] ")) {
                 int closingBracketIndex = data.indexOf("] ");
                 if (closingBracketIndex > 1) { 
-                    String sender = data.substring(1, closingBracketIndex); 
-                    String chatMessage = data.substring(closingBracketIndex + 2); 
-                    logger.debug("Parsed using '[Sender] Message' format: [{}, {}]", sender, chatMessage);
-                    return new String[]{sender, chatMessage};
+                    String sender = data.substring(1, closingBracketIndex);
+                    String content = data.substring(closingBracketIndex + 2);
+                    return new String[]{sender, content};
                 }
             }
-
+            
             String[] parts = data.split(":", 2);
-            if (parts.length == 2) {
-                logger.debug("Parsed using colon: {}", (Object)parts);
-                return parts;
-            }
-
-            parts = data.split(",", 2);
-            if (parts.length == 2) {
-                 logger.debug("Parsed using comma: {}", (Object)parts);
-                return parts;
-            }
-
+            if (parts.length == 2) return parts;
+            
             int firstSpaceIndex = data.indexOf(' ');
             if (firstSpaceIndex != -1) {
-                String sender = data.substring(0, firstSpaceIndex);
-                String chatMessage = data.substring(firstSpaceIndex + 1);
-                parts = new String[]{sender, chatMessage};
-                logger.debug("Parsed using space: {}", (Object)parts);
-                return parts;
+                 String sender = data.substring(0, firstSpaceIndex);
+                 String content = data.substring(firstSpaceIndex + 1);
+                 return new String[]{sender, content};
             }
-
-             logger.warn("Could not parse sender from message using known patterns: {}", msg);
-            return new String[]{ "System", data }; // Fallback to System sender
+            
+            logger.warn("Could not parse sender from message using known patterns: {}", msg);
+            return new String[]{ "System", data }; 
         };
 
-        ChatMode mode;
-        String prefixString;
+        ChatMode mode = null;
+        String prefixString = null;
         if (message.startsWith("lobbychat:")) {
             mode = ChatMode.LOBBY;
             prefixString = "lobbychat:";
-             logger.info("Received LOBBY chat message: {}", message);
         } else if (message.startsWith("teamchat:")) {
             mode = ChatMode.TEAM;
             prefixString = "teamchat:";
-             logger.info("Received TEAM chat message: {}", message);
         } else if (message.startsWith("chat:")) {
             mode = ChatMode.GLOBAL;
             prefixString = "chat:";
-             logger.info("Received GLOBAL chat message: {}", message);
         } else {
             if (message.startsWith("getlobbyplayers:")) {
                 String playersData = message.substring("getlobbyplayers:".length());
@@ -499,20 +484,40 @@ public class Game extends Application {
             } else {
                  logger.warn("Received message with unknown prefix: {}", message);
             }
-            return; 
+            return;
         }
 
         String[] parsed = parseSenderAndContent.apply(prefixString, message);
+        String sender = parsed[0];
+        String content = parsed[1];
 
         String localNickname = serverHandler.getConfirmedNickname();
-        if (localNickname != null && localNickname.equals(parsed[0])) {
-             logger.debug("Ignoring echo of own message from sender: {}", parsed[0]);
+
+        if (localNickname != null && localNickname.equals(sender)) {
+             logger.debug("Ignoring echo of own message from sender: {}", sender);
             return; 
         }
 
-        logger.debug("Processing incoming chat message. Prefix: '{}', Determined Mode: {}, Parsed Sender: '{}', Parsed Message: '{}'", 
-                     prefixString, mode, parsed[0], parsed[1]);
-        addChatMessage(parsed[0], parsed[1], mode);
+        final String whisperMarkerStart = "[WHISPER->";
+        if (content.startsWith(whisperMarkerStart)) {
+            int markerEnd = content.indexOf("]");
+            if (markerEnd > whisperMarkerStart.length()) {
+                String targetUser = content.substring(whisperMarkerStart.length(), markerEnd);
+                String whisperContent = content.substring(markerEnd + 2); // Skip "] "
+
+                if (localNickname != null && localNickname.equalsIgnoreCase(targetUser)) {
+                    logger.info("Received whisper from {}: {}", sender, whisperContent);
+                    addChatMessage(sender, null, whisperContent, null);
+                } else {
+                    logger.debug("Ignoring whisper not intended for this client (target: {}, local: {})", targetUser, localNickname);
+                }
+                return;
+            }
+        }
+
+        logger.debug("Processing incoming {} chat message. Sender: '{}', Message: '{}'", 
+                     mode, sender, content);
+        addChatMessage(sender, null, content, mode);
     }
     
     /**
@@ -981,42 +986,79 @@ public class Game extends Application {
     /**
      * Adds a chat message to the chat flow.
      * Makes the chat box appear instantly without starting the hide timer.
+     * Handles different message types including regular chat, whispers (sent/received).
      * 
-     * @param sender The sender of the message.
-     * @param message The message.
-     * @param mode The chat mode.
+     * @param sender The sender of the message ("You" for sent whispers).
+     * @param recipient The recipient of the message ("Target" for sent whispers, null otherwise).
+     * @param message The message content.
+     * @param mode The chat mode (GLOBAL, LOBBY, TEAM) or null for whispers.
      */
-    private void addChatMessage(String sender, String message, ChatMode mode) {
+    private void addChatMessage(String sender, String recipient, String message, ChatMode mode) {
+        final String timeString = String.format("[%02d:%02d] ", 
+                                java.time.LocalTime.now().getHour(),
+                                java.time.LocalTime.now().getMinute());
+        final String prefixDisplay;
+        final Color prefixColor;
+        final String senderDisplay;
+        final Color senderColor;
+
+        if (mode != null) { 
+             switch (mode) {
+                 case LOBBY:
+                     prefixDisplay = "[LOBBY] ";
+                     prefixColor = Color.GREEN; 
+                     break;
+                 case TEAM:
+                     prefixDisplay = "[TEAM] ";
+                     prefixColor = Color.BLUE; 
+                     break;
+                 case GLOBAL:
+                 default:
+                     prefixDisplay = "[GLOBAL] ";
+                     prefixColor = Color.ORANGE; 
+                     break;
+             }
+             senderDisplay = sender + ":";
+             senderColor = Color.LIGHTBLUE;
+        } else if (recipient != null) { 
+             prefixDisplay = "[To " + recipient + "] ";
+             prefixColor = Color.MAGENTA;
+             senderDisplay = "You:";
+             senderColor = Color.MAGENTA;
+        } else { 
+             prefixDisplay = "[From " + sender + "] ";
+             prefixColor = Color.MAGENTA;
+             senderDisplay = "";
+             senderColor = Color.MAGENTA;
+        }
+
+        final String messageContent = message + "\n";
+
         Platform.runLater(() -> {
-            Text timeText = new Text(String.format("[%02d:%02d] ", 
-                java.time.LocalTime.now().getHour(),
-                java.time.LocalTime.now().getMinute()));
+            Text timeText = new Text(timeString);
             timeText.setFill(Color.GRAY);
+
+            Text prefixText = new Text(prefixDisplay);
+            prefixText.setFill(prefixColor);
+
+            Text senderText = new Text(senderDisplay);
+            senderText.setFill(senderColor);
             
-            Text modeTag = new Text();
-            switch (mode) {
-                case LOBBY:
-                    modeTag.setText("[LOBBY] ");
-                    modeTag.setFill(Color.GREEN); 
-                    break;
-                case TEAM:
-                    modeTag.setText("[TEAM] ");
-                    modeTag.setFill(Color.BLUE); 
-                    break;
-                case GLOBAL:
-                default:
-                    modeTag.setText("[GLOBAL] ");
-                    modeTag.setFill(Color.ORANGE); 
-                    break;
+            Text messageText = new Text(messageContent);
+            messageText.setFill(Color.WHITE); 
+            
+            chatFlow.getChildren().add(timeText);
+            chatFlow.getChildren().add(prefixText);
+
+            if (!senderDisplay.isEmpty()) {
+                chatFlow.getChildren().add(senderText);
+                Text spaceBuffer = new Text(" ");
+                spaceBuffer.setFill(Color.WHITE);
+                chatFlow.getChildren().add(spaceBuffer);
             }
 
-            Text senderText = new Text(sender + ": ");
-            senderText.setFill(Color.LIGHTBLUE);
+            chatFlow.getChildren().add(messageText);
             
-            Text messageText = new Text(message + "\n");
-            messageText.setFill(Color.WHITE);
-            
-            chatFlow.getChildren().addAll(timeText, modeTag, senderText, messageText);
             chatScrollPane.setVvalue(1.0); 
             
             chatFadeOutTransition.stop(); 
@@ -1028,36 +1070,74 @@ public class Game extends Application {
     }
 
     /**
-     * Sends the current chat message and clears the input field
+     * Sends the current chat message or processes a command like /whisper.
      */
     private void sendChatMessage() {
-        String message = chatInput.getText().trim(); // Trim leading and trailing spaces
-        if (!message.isEmpty()) {
+        String text = chatInput.getText().trim(); 
+        if (!text.isEmpty()) {
             if (serverHandler != null && serverHandler.isConnected()) {
-                String prefix;
-                switch (currentChatMode) {
-                    case LOBBY:
-                        prefix = "lobbychat:";
-                        break;
-                    case TEAM:
-                        prefix = "teamchat:";
-                        break;
-                    case GLOBAL:
-                    default:
-                        prefix = "chat:";
-                        break;
-                }
-                String chatMessage = prefix + message; 
-                logger.info("Sending chat message: {}", chatMessage); 
-                serverHandler.sendMessage(chatMessage);
-
                 String localSender = serverHandler.getConfirmedNickname() != null ? serverHandler.getConfirmedNickname() : this.username; 
-                addChatMessage(localSender, message, currentChatMode);
+                
+                if (text.toLowerCase().startsWith("/whisper ")) {
+                    String[] parts = text.split(" ", 3);
+                    if (parts.length == 3) {
+                        String targetUsername = parts[1];
+                        String whisperMessageContent = parts[2];
+                        
+                        if (targetUsername.equalsIgnoreCase(localSender)) {
+                            addChatMessage("System", null, "You cannot whisper to yourself.", null);
+                        } else {
+                            String whisperMarker = String.format("[WHISPER->%s] ", targetUsername);
+                            String messageWithMarker = whisperMarker + whisperMessageContent;
+
+                            String prefix;
+                            switch (currentChatMode) {
+                                case LOBBY:
+                                    prefix = "lobbychat:";
+                                    break;
+                                case TEAM:
+                                    prefix = "teamchat:";
+                                    break;
+                                case GLOBAL:
+                                default:
+                                    prefix = "chat:";
+                                    break;
+                            }
+                            String messageToSend = prefix + messageWithMarker; 
+
+                            logger.info("Sending whisper via {}: {}", prefix, messageToSend);
+                            serverHandler.sendMessage(messageToSend);
+                            
+                            addChatMessage(localSender, targetUsername, whisperMessageContent, null);
+                        }
+                    } else {
+                        addChatMessage("System", null, "Usage: /whisper <username> <message>", null);
+                    }
+                } else {
+                    String prefix;
+                    switch (currentChatMode) {
+                        case LOBBY:
+                            prefix = "lobbychat:";
+                            break;
+                        case TEAM:
+                            prefix = "teamchat:";
+                            break;
+                        case GLOBAL:
+                        default:
+                            prefix = "chat:";
+                            break;
+                    }
+                    String chatMessage = prefix + text; 
+                    logger.info("Sending {} message: {}", currentChatMode, chatMessage); 
+                    serverHandler.sendMessage(chatMessage);
+                    addChatMessage(localSender, null, text, currentChatMode);
+                }
 
             } else {
                 showError("Chat Error", "Cannot send message: Not connected to server");
             }
         }
+        chatInput.clear(); 
     }
 
     /**
