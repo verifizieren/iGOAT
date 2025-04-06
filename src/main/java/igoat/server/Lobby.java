@@ -186,8 +186,11 @@ public class Lobby {
             logger.info("Lobby {}: Terminal {} activated.", code, terminalId);
             if (totalTerminalsInMap > 0 && activatedTerminals.size() >= totalTerminalsInMap) {
                 logger.info("Lobby {}: All {}/{} terminals activated! Triggering game event...", code, activatedTerminals.size(), totalTerminalsInMap);
+
                 broadcastToLobby("chat:System:All terminals have been activated!");
-                broadcastToLobby("chat:System:All terminals have been activated!");
+
+                broadcastToLobby("doors_open:");
+                logger.info("Lobby {}: Sent doors_open command.", code);
             }
             return true;
         } else {

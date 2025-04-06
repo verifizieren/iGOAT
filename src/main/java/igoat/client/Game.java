@@ -570,6 +570,9 @@ public class Game extends Application {
                         }
                     }
                 }
+            } else if (message.equals("doors_open:")) {
+                Platform.runLater(this::handleDoorsOpen);
+                return;
             } else {
                  logger.warn("Received message with unknown prefix: {}", message);
             }
@@ -650,6 +653,17 @@ public class Game extends Application {
     }
     
     /**
+     * Handles the opening of doors when all terminals are activated.
+     */
+    private void handleDoorsOpen() {
+        logger.info("Handling doors open command.");
+        if (gameMap != null) {
+            gameMap.openDoors();
+             logger.info("Doors have been opened.");
+        }
+    }
+
+    /**
      * Starts a background thread that processes UDP position updates from the server.
      * This thread runs at a higher frequency than the TCP message processor to ensure
      * smooth player movement updates. Also initiates the first position update for
@@ -717,6 +731,8 @@ public class Game extends Application {
             }
         } else if (update.startsWith("udp_ack:")) {
             logger.info("Received UDP acknowledgment from server");
+        } else if (update.equals("doors_open:")) {
+            Platform.runLater(this::handleDoorsOpen);
         } else {
             logger.info("Unrecognized UDP message format: {}", update);
         }

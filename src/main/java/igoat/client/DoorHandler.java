@@ -27,7 +27,7 @@ public class DoorHandler {
 
     private void openDoor() {
         doorOpen = true;
-        gameMap.removeDoor();
+        gameMap.openDoors();
     }
 }
 

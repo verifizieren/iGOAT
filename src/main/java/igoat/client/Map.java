@@ -18,11 +18,11 @@ public class Map {
     private static final int MAP_WIDTH = 1500;
     private static final int MAP_HEIGHT = 1600;
 
-    private Rectangle door;
-    
     private List<Rectangle> visualWalls;
     private List<Wall> collisionWalls;
     private List<Terminal> terminalList;
+    private List<Rectangle> doorVisuals;
+    private List<Wall> doorCollisions;
     
     /**
      * Creates a new Map with the layout from the design.
@@ -31,6 +31,8 @@ public class Map {
         visualWalls = new ArrayList<>();
         collisionWalls = new ArrayList<>();
         terminalList = new ArrayList<>();
+        doorVisuals = new ArrayList<>();
+        doorCollisions = new ArrayList<>();
         createMapLayout();
         createTerminals();
         createDoor();
@@ -167,21 +169,31 @@ public class Map {
      * Add two exits to the map
      */
     private void addDoor(int x, int y, int width, int height) {
-        door = new Rectangle(x, y, width, height);
-        door.setFill(Color.GREEN);
-        visualWalls.add(door);
+        Rectangle doorVisual = new Rectangle(x, y, width, height);
+        doorVisual.setFill(Color.LIMEGREEN);
+        visualWalls.add(doorVisual);
+        doorVisuals.add(doorVisual);
 
         Wall collisionWall = new Wall(x, y, width, height);
         collisionWalls.add(collisionWall);
+        doorCollisions.add(collisionWall);
     }
 
     /**
-     * opens the doors
+     * Opens the doors by making them visually slightly transparent and removing their collision.
      */
-    public void removeDoor() {
-        if (door != null) {
-            door.setFill(Color.BLUE);
-            collisionWalls.clear();
+    public void openDoors() {
+        for (Rectangle doorVisual : doorVisuals) {
+            doorVisual.setFill(Color.LIMEGREEN.deriveColor(0, 1, 1, 0.5));
+            //visualWalls.remove(doorVisual);
+        }
+
+        collisionWalls.removeAll(doorCollisions);
+
+        doorCollisions.clear();
+
+        if (!doorVisuals.isEmpty()) {
+            System.out.println("Doors opened and collision removed.");
         }
     }
 
