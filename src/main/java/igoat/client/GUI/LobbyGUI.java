@@ -342,9 +342,12 @@ public class LobbyGUI {
      */
     private void initializeServerCommunication() {
         if (serverHandler != null && serverHandler.isConnected()) {
-            logger.info("Initializing Server Communication. Sending getlobbies, getlobbyplayers.");
+            logger.info("Initializing Server Communication. Sending getlobbies, getplayers.");
             serverHandler.sendMessage("getlobbies:");
-            serverHandler.sendMessage("getlobbyplayers:");
+            serverHandler.sendMessage("getplayers:");
+
+            isGlobalChat = true;
+            updateChatUIForMode();
 
             chatInput.setDisable(false);
             sendButton.setDisable(false);
