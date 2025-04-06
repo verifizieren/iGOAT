@@ -1,5 +1,6 @@
 package igoat.client;
 
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 public class Terminal extends Rectangle {
@@ -17,6 +18,7 @@ public class Terminal extends Rectangle {
 
     public void activate() {
         activated = true;
+        setFill(Color.BLUE);
     }
 
     public boolean isActivated() {

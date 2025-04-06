@@ -473,6 +473,11 @@ public class Game extends Application {
                 if (!leftPlayer.equals(this.playerName)) {
                     removeRemotePlayer(leftPlayer);
                 }
+            } else if (message.startsWith("terminal:")) {
+                String[] parts = message.split(":");
+                if (parts.length == 2) {
+                    activateTerminal(Integer.parseInt(parts[1]));
+                }
             } else if (message.startsWith("role:")) {
                 String[] parts = message.split(":");
                 if (parts.length == 3) {
@@ -817,7 +822,7 @@ public class Game extends Application {
         if (activeKeys.contains(KeyCode.E)) {
             if (!pressedE) {
                 pressedE = true;
-                activateTerminal();
+                pressTerminal();
             }
         }
         else {
@@ -879,7 +884,10 @@ public class Game extends Application {
         updateVisuals();
     }
 
-    private void activateTerminal() {
+    /**
+     * Sends checks if the player is in range of a terminal to activate. If so, then a message is sent to the server
+     */
+    private void pressTerminal() {
         double x = player.getX() + (player.getWidth() / 2.0);
         double y = player.getY() + (player.getHeight() / 2.0);
 
@@ -889,19 +897,34 @@ public class Game extends Application {
             if (sqrt(pow(tx - x, 2) + pow(ty - y, 2)) < 35.0) {
                 logger.info("Activating terminal");
                 serverHandler.sendMessage("terminal:" + terminal.getTerminalID());
+                // TEMPORARY
+                activateTerminal(terminal.getTerminalID());
+                return;
+            }
+        }
+    }
 
-                Platform.runLater(() -> {
-                    terminalActivationBanner.setVisible(true);
-                    terminalActivationBanner.setOpacity(1.0);
-                    new FadeInDown(terminalActivationBanner).play();
+    /**
+     * Activates a terminal and displays a banner
+     * @param id The ID of the terminal
+     */
+    private void activateTerminal(int id) {
+        // display terminal activation banner
+        Platform.runLater(() -> {
+            terminalActivationBanner.setVisible(true);
+            terminalActivationBanner.setOpacity(1.0);
+            new FadeInDown(terminalActivationBanner).play();
 
-                    PauseTransition delay = new PauseTransition(Duration.seconds(2.5));
-                    delay.setOnFinished(event -> {
-                        new FadeOutUp(terminalActivationBanner).play();
-                        // terminalActivationBanner.setVisible(false); 
-                    });
-                    delay.play();
-                });
+            PauseTransition delay = new PauseTransition(Duration.seconds(2.5));
+            delay.setOnFinished(event -> {
+                new FadeOutUp(terminalActivationBanner).play();
+                // terminalActivationBanner.setVisible(false);
+            });
+            delay.play();
+        });
+        for (Terminal terminal : gameMap.getTerminalList()) {
+            if (terminal.getTerminalID() == id) {
+                terminal.activate();
                 return;
             }
         }
