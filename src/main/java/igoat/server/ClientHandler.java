@@ -12,8 +12,8 @@ import java.net.SocketException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +53,8 @@ public class ClientHandler implements Runnable {
     private boolean isReady = false;
     private boolean isDown = false;
     private boolean isCaught = false;
+
+    private int reportedTerminalCount = -1;
 
     private int role;
 
@@ -462,8 +464,14 @@ public class ClientHandler implements Runnable {
                 case "startgame":
                     handleStartGame();
                     break;
+                case "terminal":
+                    handleTerminalActivation(params.trim());
+                    break;
                 case "getroles":
                     handleGetRoles();
+                    break;
+                case "mapinfo":
+                    handleMapInfo(params.trim());
                     break;
                 default:
                     sendError("Unbekannter Befehl: " + command);
@@ -1153,6 +1161,16 @@ public class ClientHandler implements Runnable {
 
         currentLobby.setState(Lobby.GameState.IN_GAME);
         
+        if (this.reportedTerminalCount >= 0) {
+            currentLobby.setTotalTerminalsInMap(this.reportedTerminalCount);
+            logger.info("Lobby {}: Set required terminals to {} (reported by client {})", 
+                        currentLobby.getCode(), this.reportedTerminalCount, this.nickname);
+        } else {
+            logger.error("Lobby {}: Client {} did not report map info before game start. Using default terminal count 3.", 
+                         currentLobby.getCode(), this.nickname);
+            currentLobby.setTotalTerminalsInMap(8);
+        }
+
         String gameStartedMessage = "game_started:";
         currentLobby.broadcastToLobby(gameStartedMessage);
         logger.info("Broadcasted: {}", gameStartedMessage);
@@ -1207,5 +1225,60 @@ public class ClientHandler implements Runnable {
             sb.setLength(sb.length() - 1);
         }
         sendMessage("roles:" + sb.toString());
+    }
+
+    /**
+     * Handles the activation of a terminal by a player.
+     * Parses the terminal ID, activates it in the lobby, and broadcasts the event.
+     * 
+     * @param params The terminal ID sent by the client.
+     */
+    private void handleTerminalActivation(String params) {
+        if (currentLobby == null) {
+            sendError("You must be in a lobby to activate a terminal.");
+            return;
+        }
+
+        try {
+            int terminalId = Integer.parseInt(params);
+            logger.info("Player {} attempting to activate terminal {} in lobby {}", nickname, terminalId, currentLobby.getCode());
+
+            boolean newlyActivated = currentLobby.activateTerminal(terminalId);
+
+            if (newlyActivated) {
+                String activationMessage = "terminal:" + terminalId;
+                currentLobby.broadcastToLobby(activationMessage);
+                logger.info("Broadcasted terminal activation: {} to lobby {}", activationMessage, currentLobby.getCode());
+            } else {
+                sendMessage("chat:System:Terminal " + terminalId + " was already activated.");
+            }
+
+        } catch (NumberFormatException e) {
+            sendError("Invalid terminal ID format: " + params);
+            logger.warn("Invalid terminal ID received from {}: {}", nickname, params);
+        } catch (Exception e) {
+            sendError("Error processing terminal activation.");
+            logger.error("Error during terminal activation for player {} in lobby {}", nickname, currentLobby.getCode(), e);
+        }
+    }
+
+    /**
+     * Handles the map information (e.g., terminal count) sent by the client.
+     * 
+     * @param params The parameters containing map info (currently just terminal count).
+     */
+    private void handleMapInfo(String params) {
+        try {
+            int count = Integer.parseInt(params);
+            if (count >= 0) {
+                this.reportedTerminalCount = count;
+                logger.info("Received map info from {}: Terminal count = {}", nickname, count);
+            } else {
+                logger.warn("Received invalid terminal count from {}: {}", nickname, params);
+            }
+        } catch (NumberFormatException e) {
+            logger.error("Invalid map info format received from {}: {}", nickname, params);
+            sendError("Invalid map info format: " + params);
+        }
     }
 }

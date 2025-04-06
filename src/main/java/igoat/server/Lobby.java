@@ -1,7 +1,10 @@
 package igoat.server;
 
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +41,9 @@ public class Lobby {
 
     private GameState state = GameState.OPEN;
 
+    private Set<Integer> activatedTerminals = ConcurrentHashMap.newKeySet();
+    private int totalTerminalsInMap = 0;
+
     /**
      * Gets the current state of the lobby.
      * 
@@ -56,6 +62,16 @@ public class Lobby {
         this.state = state;
     }
 
+    /**
+     * Sets the total number of terminals required for the map being played in this lobby.
+     * Should be called when the game starts.
+     * 
+     * @param count The number of terminals on the map.
+     */
+    public void setTotalTerminalsInMap(int count) {
+        this.totalTerminalsInMap = count;
+        this.activatedTerminals.clear(); 
+    }
 
     /**
      * Creates a new lobby with the specified code.
@@ -155,6 +171,28 @@ public class Lobby {
             }
             
             member.sendUpdate(message);
+        }
+    }
+
+    /**
+     * Activates a terminal within this lobby.
+     * Checks if all terminals are activated after this activation.
+     * 
+     * @param terminalId The ID of the terminal being activated.
+     * @return true if the terminal was newly activated, false if it was already active.
+     */
+    public boolean activateTerminal(int terminalId) {
+        if (activatedTerminals.add(terminalId)) {
+            logger.info("Lobby {}: Terminal {} activated.", code, terminalId);
+            if (totalTerminalsInMap > 0 && activatedTerminals.size() >= totalTerminalsInMap) {
+                logger.info("Lobby {}: All {}/{} terminals activated! Triggering game event...", code, activatedTerminals.size(), totalTerminalsInMap);
+                broadcastToLobby("chat:System:All terminals have been activated!");
+                broadcastToLobby("chat:System:All terminals have been activated!");
+            }
+            return true;
+        } else {
+            logger.warn("Lobby {}: Terminal {} was already activated.", code, terminalId);
+            return false;
         }
     }
 }

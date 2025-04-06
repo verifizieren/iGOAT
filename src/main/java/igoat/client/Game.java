@@ -15,7 +15,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import animatefx.animation.FadeInDown;
+import animatefx.animation.FadeOutDown;
 import animatefx.animation.FadeOutUp;
+import animatefx.animation.Tada;
 import javafx.animation.AnimationTimer;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
@@ -138,6 +140,7 @@ public class Game extends Application {
     private ChatMode currentChatMode = ChatMode.LOBBY;
 
     private Label terminalActivationBanner;
+    private Label allTerminalsBanner;
 
     /**
      * Constructor for Game
@@ -225,6 +228,13 @@ public class Game extends Application {
         gamePane.setStyle("-fx-background-color: white;");
         gamePane.setClip(new Rectangle(0, 0, gameMap.getWidth(), gameMap.getHeight()));
 
+        if (serverHandler != null && serverHandler.isConnected()) {
+            int terminalCount = gameMap.getTerminalList().size();
+            String mapInfoMessage = "mapinfo:" + terminalCount;
+            serverHandler.sendMessage(mapInfoMessage);
+            logger.info("Sent map info to server: {}", mapInfoMessage);
+        }
+
         Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
         double screenWidth = screenBounds.getWidth() * 0.8;
         double screenHeight = screenBounds.getHeight() * 0.8;
@@ -270,6 +280,13 @@ public class Game extends Application {
         terminalActivationBanner.layoutXProperty().bind(uiOverlay.widthProperty().subtract(terminalActivationBanner.widthProperty()).divide(2));
         terminalActivationBanner.setLayoutY(20);
         uiOverlay.getChildren().add(terminalActivationBanner);
+    
+        allTerminalsBanner = new Label("All Terminals Activated! Exits Open!");
+        allTerminalsBanner.setStyle("-fx-background-color: rgba(0, 100, 255, 0.8); -fx-text-fill: white; -fx-font-size: 28px; -fx-padding: 15px; -fx-background-radius: 8px; -fx-border-color: white; -fx-border-width: 2; -fx-border-radius: 8;");
+        allTerminalsBanner.setVisible(false);
+        allTerminalsBanner.layoutXProperty().bind(uiOverlay.widthProperty().subtract(allTerminalsBanner.widthProperty()).divide(2));
+        allTerminalsBanner.setLayoutY(60); 
+        uiOverlay.getChildren().add(allTerminalsBanner);
 
         for (Node wall : gameMap.getVisualWalls()) {
             gamePane.getChildren().add(wall);
@@ -553,6 +570,22 @@ public class Game extends Application {
         String[] parsed = parseSenderAndContent.apply(prefixString, message);
         String sender = parsed[0];
         String content = parsed[1];
+
+        if ("System".equals(sender) && "All terminals have been activated!".equals(content)) {
+            logger.info("Received notification: All terminals activated.");
+            Platform.runLater(() -> {
+                allTerminalsBanner.setVisible(true);
+                allTerminalsBanner.setOpacity(1.0);
+                new Tada(allTerminalsBanner).play();
+
+                PauseTransition delay = new PauseTransition(Duration.seconds(4));
+                delay.setOnFinished(event -> {
+                    new FadeOutDown(allTerminalsBanner).play();
+                });
+                delay.play();
+            });
+            return;
+        }
 
         String localNickname = serverHandler.getConfirmedNickname();
 
@@ -911,6 +944,8 @@ public class Game extends Application {
     private void activateTerminal(int id) {
         // display terminal activation banner
         Platform.runLater(() -> {
+            terminalActivationBanner.setText("Terminal " + id + " Activated!");
+
             terminalActivationBanner.setVisible(true);
             terminalActivationBanner.setOpacity(1.0);
             new FadeInDown(terminalActivationBanner).play();
