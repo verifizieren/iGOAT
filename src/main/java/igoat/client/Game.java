@@ -160,6 +160,11 @@ public class Game extends Application {
         startMessageProcessor();
         startUdpUpdateProcessor();
 
+        // Request role information for all players
+        if (this.serverHandler != null && this.serverHandler.isConnected()) {
+            this.serverHandler.sendMessage("getroles:");
+        }
+
         Platform.runLater(() -> {
             String confirmedNickname = serverHandler.getConfirmedNickname();
             if (confirmedNickname == null) {
@@ -173,11 +178,6 @@ public class Game extends Application {
                 }
             }
         });
-
-        if (this.serverHandler != null) {
-            // muss vlt angepasst werden
-            // serverHandler.sendUdpRegistrationPacketIfNeeded(this.playerName);
-        }
     }
 
     /**
@@ -495,6 +495,38 @@ public class Game extends Application {
                 } else {
                     logger.error("Invalid role message format: {}", message);
                 }
+            } else if (message.startsWith("roles:")) {
+                String rolesData = message.substring("roles:".length());
+                if (!rolesData.isEmpty()) {
+                    String[] roleEntries = rolesData.split(",");
+                    for (String entry : roleEntries) {
+                        String[] parts = entry.split("=");
+                        if (parts.length == 2) {
+                            String playerName = parts[0];
+                            int roleId = Integer.parseInt(parts[1]);
+
+                            Color roleColor = switch (roleId) {
+                                case 0 -> Color.DODGERBLUE;   // Goat
+                                case 1 -> Color.LIMEGREEN;    // Robot
+                                case 2 -> Color.CRIMSON;      // Guard
+                                default -> Color.ORANGE;      // Fallback/default
+                            };
+
+                            if (player != null && playerName.equals(player.getUsername())) {
+                                Platform.runLater(() -> {
+                                    logger.info("Setting local player color to {}", roleColor);
+                                    player.setColor(roleColor);
+                                });
+                            } else if (otherPlayers.containsKey(playerName)) {
+                                Player remote = otherPlayers.get(playerName);
+                                Platform.runLater(() -> {
+                                    logger.info("Setting remote player {} color to {}", playerName, roleColor);
+                                    remote.setColor(roleColor);
+                                });
+                            }
+                        }
+                    }
+                }
             } else {
                  logger.warn("Received message with unknown prefix: {}", message);
             }
@@ -645,6 +677,12 @@ public class Game extends Application {
             return;
         }
         
+        // Request role information for this player
+        if (serverHandler != null && serverHandler.isConnected()) {
+            serverHandler.sendMessage("getroles:");
+        }
+        
+        // Start with default color
         Color playerColor = Color.ORANGE;
         
         try {
