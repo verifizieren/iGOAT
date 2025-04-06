@@ -10,7 +10,7 @@
 - [ ] game manual
 - [x] list all players on the server
 - [ ] protocol documentation? check again
-- [ ] whisper? check if it works everywhere
+- [x] whisper? check if it works everywhere
 - [ ] **update project plan**
 
 ### smaller things
