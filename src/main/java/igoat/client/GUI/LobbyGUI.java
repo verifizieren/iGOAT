@@ -579,7 +579,8 @@ public class LobbyGUI {
                             logger.info("game.start() returned. Closing lobby window...");
 
                             stage.hide();
-                            logger.info("Lobby window closed.");
+                            running = false; // Stop the message receiver thread
+                            logger.info("Lobby window closed and message receiver stopped.");
                         } catch (Exception ex) {
                             logger.error("Error starting game", ex);
                             appendToMessageArea("Error starting game: " + ex.getMessage());

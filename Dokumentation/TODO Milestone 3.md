@@ -3,7 +3,7 @@
 - [ ] Broadcast
 - [x] correct build script with params
 - [ ] diary
-- [ ] **in game chat**
+- [x] **in game chat**
 - [ ] **various in game mechanics**
 - [ ] list open, ongoing and finished games with status
 - [ ] **game state on server**
