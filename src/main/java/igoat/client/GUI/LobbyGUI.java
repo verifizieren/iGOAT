@@ -325,7 +325,7 @@ public class LobbyGUI {
      * Stops the message receiver thread, sends exit message to server,
      * closes the connection, and returns to the main menu.
      */
-    private void exit() {
+    public void exit() {
         running = false;
         if (serverHandler != null) {
             serverHandler.sendMessage("exit");
@@ -632,7 +632,7 @@ public class LobbyGUI {
 
                         try {
                             logger.info("Creating and initializing Game instance...");
-                            Game game = new Game(stage);
+                            Game game = new Game(this);
                             game.initialize(serverHandler, username, currentLobbyCode, playerNames);
                             logger.info("Game instance initialized.");
 

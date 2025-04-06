@@ -4,6 +4,7 @@ import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 
 import igoat.Role;
+import igoat.client.GUI.LobbyGUI;
 import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -76,7 +77,7 @@ public class Game extends Application {
     private Pane gamePane;
     private Pane uiOverlay;
     private Stage stage;
-    private Stage lobbyStage;
+    private LobbyGUI lobby;
     private double windowWidth;
     private double windowHeight;
     private Set<KeyCode> activeKeys;
@@ -148,10 +149,10 @@ public class Game extends Application {
 
     /**
      * Constructor for Game
-     * @param lobbyStage The JavaFX stage of the lobby window. This will be used to return to the lobby after the game window closes.
+     * @param lobby The Lobby GUI. This is used to call the lobby exit method after the game window closes.
      */
-    public Game(Stage lobbyStage) {
-        this.lobbyStage = lobbyStage;
+    public Game(LobbyGUI lobby) {
+        this.lobby = lobby;
     }
 
     /**
@@ -369,7 +370,7 @@ public class Game extends Application {
      */
     private void exit() {
         stage.close();
-        lobbyStage.show();
+        lobby.exit();
     }
 
     /**
