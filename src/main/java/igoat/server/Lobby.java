@@ -36,7 +36,9 @@ public class Lobby {
         /** All players in the lobby are ready to start */
         READY,
         /** Game is currently in progress */
-        IN_GAME
+        IN_GAME,
+        /** Game finished */
+        FINISHED
     }
 
     private GameState state = GameState.OPEN;

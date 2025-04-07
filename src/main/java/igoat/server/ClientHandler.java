@@ -51,6 +51,7 @@ public class ClientHandler implements Runnable {
     private static final List<Lobby> lobbyList = new CopyOnWriteArrayList<>();
     private Lobby currentLobby;
     private static int nextLobbyCode = 1000;
+    private GameState gameState;
 
     private boolean isReady = false;
     private boolean isDown = false;
@@ -252,6 +253,9 @@ public class ClientHandler implements Runnable {
                 }
                 
                 String broadcastMessage = "player_position:" + senderName + ":" + x + ":" + y;
+                if (x < 0) {
+                    logger.info("yeet");
+                }
                 
                 sender.currentLobby.broadcastUpdateToLobby(broadcastMessage, sender);
             } else {
@@ -481,6 +485,18 @@ public class ClientHandler implements Runnable {
             }
         } catch (Exception e) {
             sendError("Fehler beim Verarbeiten des Befehls: " + e.getMessage());
+        }
+        // check game state
+        if (gameState == null) {
+            return;
+        }
+        if (gameState.isDoorOpen()) {
+            currentLobby.broadcastChatToLobby("Exits have been opened!");
+            currentLobby.broadcastToLobby("door");
+            logger.info("Exits have been opened!");
+        }
+        if (gameState.isGameOver()) {
+            endGame(true);
         }
     }
 
@@ -833,6 +849,7 @@ public class ClientHandler implements Runnable {
         target.setCaught(true);
         target.setDown(true);
         broadcast("catch:" + targetName);
+        gameState.caught();
     }
 
     private  void handleRevive(String targetName) {
@@ -859,6 +876,7 @@ public class ClientHandler implements Runnable {
 
         target.setDown(false);
         broadcast("revive:" + targetName);
+        gameState.revive();
     }
 
     /**
@@ -1178,10 +1196,12 @@ public class ClientHandler implements Runnable {
             logger.info("Lobby {}: Set required terminals to {} (reported by client {})", 
                         currentLobby.getCode(), this.reportedTerminalCount, this.nickname);
         } else {
-            logger.error("Lobby {}: Client {} did not report map info before game start. Using default terminal count 3.", 
+            logger.error("Lobby {}: Client {} did not report map info before game start. Using default terminal count 8.",
                          currentLobby.getCode(), this.nickname);
             currentLobby.setTotalTerminalsInMap(8);
         }
+
+        gameState = new GameState(reportedTerminalCount);
 
         String gameStartedMessage = "game_started:";
         currentLobby.broadcastToLobby(gameStartedMessage);
@@ -1260,6 +1280,7 @@ public class ClientHandler implements Runnable {
             if (newlyActivated) {
                 String activationMessage = "terminal:" + terminalId;
                 currentLobby.broadcastToLobby(activationMessage);
+                gameState.activateTerminal();
                 logger.info("Broadcasted terminal activation: {} to lobby {}", activationMessage, currentLobby.getCode());
             } else {
                 sendMessage("chat:System:Terminal " + terminalId + " was already activated.");
@@ -1292,5 +1313,10 @@ public class ClientHandler implements Runnable {
             logger.error("Invalid map info format received from {}: {}", nickname, params);
             sendError("Invalid map info format: " + params);
         }
+    }
+
+    private void endGame(boolean result) {
+        currentLobby.setState(Lobby.GameState.FINISHED);
+        sendMessage("gameover:" + result);
     }
 }
