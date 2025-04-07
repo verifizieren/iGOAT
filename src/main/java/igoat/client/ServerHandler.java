@@ -95,7 +95,7 @@ public class ServerHandler {
     public void sendUpdate(String msg) {
         try {
             if (updateSocket == null || !connected) {
-                logger.error("[UDP_CLIENT] Cannot send - socket is null or not connected");
+                logger.error("Cannot send - socket is null or not connected");
                 return;
             }
 
@@ -264,7 +264,7 @@ public class ServerHandler {
         try {
             while (connected) {
                 if (updateSocket == null || updateSocket.isClosed()) {
-                    logger.error("[UDP_CLIENT] Cannot receive - socket is null or closed");
+                    logger.error("Cannot receive - socket is null or closed");
                     break;
                 }
                 
@@ -287,8 +287,7 @@ public class ServerHandler {
             }
         } catch (Exception e) {
             if (connected && updateSocket != null && !updateSocket.isClosed()) {
-                logger.error("[UDP_CLIENT] Receive error: " + e.getMessage());
-                e.printStackTrace();
+                logger.error("Receive error", e);
             }
         }
         
@@ -301,7 +300,7 @@ public class ServerHandler {
      */
     private void sendUdpRegistrationPacket() {
         if (this.confirmedNickname == null || updateSocket == null || updateSocket.isClosed()) {
-            logger.error("[UDP_CLIENT] Cannot register - nickname or socket unavailable");
+            logger.error("Cannot register - nickname or socket unavailable");
             return;
         }
 
