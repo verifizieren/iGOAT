@@ -725,7 +725,7 @@ public class LobbyGUI {
              }
          }
 
-         if (allReady) {
+         if (allReady && players.length == 4) {
              logger.info("All players are ready! Waiting for game start command...");
              appendToMessageArea("All players are ready! The lobby creator can now start the game.");
          } else {

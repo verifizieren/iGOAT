@@ -1062,7 +1062,6 @@ public class Game extends Application {
             double ty = target.getY() + (target.getHeight() / 2.0);
             if (sqrt(pow(tx - x, 2) + pow(ty - y, 2)) < 35.0) {
                 serverHandler.sendMessage("catch:" + target.getUsername());
-                return;
             }
         }
     }
