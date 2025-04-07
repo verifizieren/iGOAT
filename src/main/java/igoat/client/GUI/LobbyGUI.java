@@ -654,7 +654,7 @@ public class LobbyGUI {
                     });
                     break;
                 default:
-                    appendToMessageArea("[Server] " + message);
+                    //appendToMessageArea("[Server] " + message);
                     break;
             }
 
