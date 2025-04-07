@@ -257,9 +257,7 @@ public class ClientHandler implements Runnable {
                     sender.gameState.setX(x);
                     sender.gameState.setY(y);
                     if (sender.gameState.getPlayerX() < 0 || sender.gameState.getPlayerX() > 1500) {
-                        if (!sender.gameState.gameOver && sender.role == Role.GOAT) {
-                            logger.info("game ended");
-                            sender.gameState.gameOver = true;
+                        if (sender.role == Role.GOAT) {
                             sender.endGame(false);
                         }
                     } else if (sender.gameState.isGuardWin()) {
@@ -663,6 +661,10 @@ public class ClientHandler implements Runnable {
             sendError("Die Lobby " + code + " ist voll");
             sendMessage("lobby:0");
             return;
+        }
+
+        if (lobbyToJoin.getState() == Lobby.GameState.IN_GAME || lobbyToJoin.getState() == Lobby.GameState.FINISHED) {
+            sendError("Game is already in progress");
         }
 
         leaveCurrentLobby();
@@ -1170,9 +1172,9 @@ public class ClientHandler implements Runnable {
         }
 
         boolean allReadyCheck = true;
-        if (currentLobby.getMembers().isEmpty() || currentLobby.getMembers().size() < 1) {
+        if (currentLobby.getMembers().isEmpty() || currentLobby.getMembers().size() < 4) {
             logger.warn("Lobby not full, can't start game in {}", currentLobby.getCode());
-            allReadyCheck = false;
+            return;
         } else {
              for (ClientHandler member : currentLobby.getMembers()) {
                 if (!member.isReady()) {
@@ -1197,6 +1199,7 @@ public class ClientHandler implements Runnable {
         logger.info("Starting game in lobby {} (Initiated by creator: {})", currentLobby.getCode(), nickname);
 
         currentLobby.setState(Lobby.GameState.IN_GAME);
+        broadcastGetLobbiesToAll();
         
         if (this.reportedTerminalCount >= 0) {
             currentLobby.setTotalTerminalsInMap(this.reportedTerminalCount);
@@ -1323,7 +1326,11 @@ public class ClientHandler implements Runnable {
     }
 
     private void endGame(boolean result) {
-        currentLobby.setState(Lobby.GameState.FINISHED);
-        currentLobby.broadcastToLobby("gameover:" + result);
+        if (!gameState.gameOver) {
+            gameState.gameOver = true;
+            currentLobby.setState(Lobby.GameState.FINISHED);
+            broadcastGetLobbiesToAll();
+            currentLobby.broadcastToLobby("gameover:" + result);
+        }
     }
 }
