@@ -126,6 +126,14 @@ public class Lobby {
         }
     }
 
+    public void startGame() {
+        state = GameState.IN_GAME;
+    }
+
+    public void endGame() {
+        state = GameState.FINISHED;
+    }
+
     /**
      * Adds a new player to the lobby and updates the lobby state.
      * 
@@ -193,12 +201,12 @@ public class Lobby {
         if (activatedTerminals.add(terminalId)) {
             logger.info("Lobby {}: Terminal {} activated.", code, terminalId);
             if (totalTerminalsInMap > 0 && activatedTerminals.size() >= totalTerminalsInMap) {
-                logger.info("Lobby {}: All {}/{} terminals activated! Triggering game event...", code, activatedTerminals.size(), totalTerminalsInMap);
+//                logger.info("Lobby {}: All {}/{} terminals activated! Triggering game event...", code, activatedTerminals.size(), totalTerminalsInMap);
 
-                broadcastChatToLobby("chat:System:All terminals have been activated!");
+//                broadcastChatToLobby("chat:System:All terminals have been activated!");
 
-                broadcastChatToLobby("doors_open:");
-                logger.info("Lobby {}: Sent doors_open command.", code);
+                broadcastToLobby("doors");
+//                logger.info("Lobby {}: Sent doors_open command.", code);
             }
             return true;
         } else {

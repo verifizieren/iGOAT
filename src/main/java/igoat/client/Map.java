@@ -5,12 +5,16 @@ import java.util.List;
 
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents a game map containing walls and their layout.
  * This class handles the creation and management of walls in the game.
  */
 public class Map {
+    private static final Logger logger = LoggerFactory.getLogger(Map.class);
+
     private static final int WALL_THICKNESS = 20;
     private static final int SPECIAL_ELEMENT_WIDTH = 40;
     private static final int DOOR_WIDTH = 60;
@@ -185,7 +189,7 @@ public class Map {
     public void openDoors() {
         for (Rectangle doorVisual : doorVisuals) {
             doorVisual.setFill(Color.LIMEGREEN.deriveColor(0, 1, 1, 0.5));
-            //visualWalls.remove(doorVisual);
+            visualWalls.remove(doorVisual);
         }
 
         collisionWalls.removeAll(doorCollisions);
@@ -193,7 +197,7 @@ public class Map {
         doorCollisions.clear();
 
         if (!doorVisuals.isEmpty()) {
-            System.out.println("Doors opened and collision removed.");
+            logger.info("Doors opened and collision removed.");
         }
     }
 

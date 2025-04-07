@@ -14,6 +14,8 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
 
+import javafx.scene.control.Button;
+import javafx.scene.text.Font;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -270,7 +272,7 @@ public class Game extends Application {
     container.getChildren().add(uiOverlay);
     
     Scene scene = new Scene(container);
-        scene.setFill(Color.WHITE);
+        scene.setFill(Color.BLACK);
         
         String windowTitle = "iGoat Game - Lobby " + lobbyCode + " - Player: " + confirmedNickname;
         primaryStage.setTitle(windowTitle);
@@ -560,9 +562,14 @@ public class Game extends Application {
                         }
                     }
                 }
-            } else if (message.equals("doors_open:")) {
+            } else if (message.equals("doors")) {
                 Platform.runLater(this::handleDoorsOpen);
                 return;
+            } else if (message.startsWith("gameover:")) {
+                String[] parts = message.split(":");
+                if (parts.length == 2) {
+                    endGame(parts[1].equals("true"));
+                }
             } else {
                  logger.warn("Received message with unknown prefix: {}", message);
             }
@@ -573,21 +580,21 @@ public class Game extends Application {
         String sender = parsed[0];
         String content = parsed[1];
 
-        if ("System".equals(sender) && "All terminals have been activated!".equals(content)) {
-            logger.info("Received notification: All terminals activated.");
-            Platform.runLater(() -> {
-                allTerminalsBanner.setVisible(true);
-                allTerminalsBanner.setOpacity(1.0);
-                new Tada(allTerminalsBanner).play();
-
-                PauseTransition delay = new PauseTransition(Duration.seconds(4));
-                delay.setOnFinished(event -> {
-                    new FadeOutDown(allTerminalsBanner).play();
-                });
-                delay.play();
-            });
-            return;
-        }
+//        if ("System".equals(sender) && "All terminals have been activated!".equals(content)) {
+//            logger.info("Received notification: All terminals activated.");
+//            Platform.runLater(() -> {
+//                allTerminalsBanner.setVisible(true);
+//                allTerminalsBanner.setOpacity(1.0);
+//                new Tada(allTerminalsBanner).play();
+//
+//                PauseTransition delay = new PauseTransition(Duration.seconds(4));
+//                delay.setOnFinished(event -> {
+//                    new FadeOutDown(allTerminalsBanner).play();
+//                });
+//                delay.play();
+//            });
+//            return;
+//        }
 
         final String alreadyActiveSuffix = " was already activated.";
         if ("System".equals(sender) && content.endsWith(alreadyActiveSuffix) && content.startsWith("Terminal ")) {
@@ -641,7 +648,75 @@ public class Game extends Application {
                      mode, sender, content);
         addChatMessage(sender, null, content, mode);
     }
-    
+
+    private void endGame(boolean result) {
+        if (player.getRole() == Role.GUARD) {
+            if (result) {
+                Platform.runLater(() -> {
+                    Text victoryText = new Text("🎉 You Win! 🎉");
+                    victoryText.setFont(Font.font("Verdana", 40));
+                    victoryText.setFill(Color.GREEN);
+
+                    Button exitButton = new Button("Exit Game");
+                    exitButton.setOnAction(e -> exit());
+
+                    VBox layout = new VBox(20, victoryText, exitButton);
+                    layout.setStyle("-fx-alignment: center; -fx-background-color: #dff0d8; -fx-padding: 50;");
+                    Scene victoryScene = new Scene(layout, 400, 300);
+                    stage.setScene(victoryScene);
+                    stage.show();
+                });
+            } else {
+                Platform.runLater(() -> {
+                    Text loseText = new Text("💀 You Lost... 💀");
+                    loseText.setFont(Font.font("Verdana", 40));
+                    loseText.setFill(Color.RED);
+
+                    Button exitButton = new Button("Exit Game");
+                    exitButton.setOnAction(e -> exit());
+
+                    VBox layout = new VBox(20, loseText, exitButton);
+                    layout.setStyle("-fx-alignment: center; -fx-background-color: #dff0d8; -fx-padding: 50;");
+                    Scene loseScene = new Scene(layout, 400, 300);
+                    stage.setScene(loseScene);
+                    stage.show();
+                });
+            }
+        } else {
+            if (result) {
+                Platform.runLater(() -> {
+                    Text loseText = new Text("💀 You Lost... 💀");
+                    loseText.setFont(Font.font("Verdana", 40));
+                    loseText.setFill(Color.RED);
+
+                    Button exitButton = new Button("Exit Game");
+                    exitButton.setOnAction(e -> exit());
+
+                    VBox layout = new VBox(20, loseText, exitButton);
+                    layout.setStyle("-fx-alignment: center; -fx-background-color: #dff0d8; -fx-padding: 50;");
+                    Scene loseScene = new Scene(layout, 400, 300);
+                    stage.setScene(loseScene);
+                    stage.show();
+                });
+            } else {
+                Platform.runLater(() -> {
+                    Text victoryText = new Text("🎉 You Win! 🎉");
+                    victoryText.setFont(Font.font("Verdana", 40));
+                    victoryText.setFill(Color.GREEN);
+
+                    Button exitButton = new Button("Exit Game");
+                    exitButton.setOnAction(e -> exit());
+
+                    VBox layout = new VBox(20, victoryText, exitButton);
+                    layout.setStyle("-fx-alignment: center; -fx-background-color: #dff0d8; -fx-padding: 50;");
+                    Scene victoryScene = new Scene(layout, 400, 300);
+                    stage.setScene(victoryScene);
+                    stage.show();
+                });
+            }
+        }
+    }
+
     /**
      * Handles the opening of doors when all terminals are activated.
      */
@@ -651,6 +726,18 @@ public class Game extends Application {
             gameMap.openDoors();
              logger.info("Doors have been opened.");
         }
+
+        Platform.runLater(() -> {
+            allTerminalsBanner.setVisible(true);
+            allTerminalsBanner.setOpacity(1.0);
+            new Tada(allTerminalsBanner).play();
+
+            PauseTransition delay = new PauseTransition(Duration.seconds(4));
+            delay.setOnFinished(event -> {
+                new FadeOutDown(allTerminalsBanner).play();
+            });
+            delay.play();
+        });
     }
 
     /**
@@ -721,7 +808,7 @@ public class Game extends Application {
             }
         } else if (update.startsWith("udp_ack:")) {
             logger.info("Received UDP acknowledgment from server");
-        } else if (update.equals("doors_open:")) {
+        } else if (update.equals("doors")) {
             Platform.runLater(this::handleDoorsOpen);
         } else {
             logger.info("Unrecognized UDP message format: {}", update);

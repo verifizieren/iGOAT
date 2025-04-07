@@ -51,7 +51,7 @@ public class ClientHandler implements Runnable {
     private static final List<Lobby> lobbyList = new CopyOnWriteArrayList<>();
     private Lobby currentLobby;
     private static int nextLobbyCode = 1000;
-    private GameState gameState;
+    private GameState gameState = new GameState(8);;
 
     private boolean isReady = false;
     private boolean isDown = false;
@@ -253,10 +253,20 @@ public class ClientHandler implements Runnable {
                 }
                 
                 String broadcastMessage = "player_position:" + senderName + ":" + x + ":" + y;
-                if (x < 0) {
-                    logger.info("yeet");
+                if (sender.gameState != null) {
+                    sender.gameState.setX(x);
+                    sender.gameState.setY(y);
+                    if (sender.gameState.getPlayerX() < 0 || sender.gameState.getPlayerX() > 1500) {
+                        if (!sender.gameState.gameOver && sender.role == Role.GOAT) {
+                            logger.info("game ended");
+                            sender.gameState.gameOver = true;
+                            sender.endGame(false);
+                        }
+                    } else if (sender.gameState.isGuardWin()) {
+                        sender.endGame(true);
+                    }
                 }
-                
+
                 sender.currentLobby.broadcastUpdateToLobby(broadcastMessage, sender);
             } else {
                 logger.warn("Player {} not in a lobby", senderName);
@@ -494,9 +504,6 @@ public class ClientHandler implements Runnable {
             currentLobby.broadcastChatToLobby("Exits have been opened!");
             currentLobby.broadcastToLobby("door");
             logger.info("Exits have been opened!");
-        }
-        if (gameState.isGameOver()) {
-            endGame(true);
         }
     }
 
@@ -1164,8 +1171,8 @@ public class ClientHandler implements Runnable {
 
         boolean allReadyCheck = true;
         if (currentLobby.getMembers().isEmpty() || currentLobby.getMembers().size() < 1) {
-            logger.info("Warning: Starting game with < 1 player in lobby {}", currentLobby.getCode());
-            allReadyCheck = true;
+            logger.warn("Lobby not full, can't start game in {}", currentLobby.getCode());
+            allReadyCheck = false;
         } else {
              for (ClientHandler member : currentLobby.getMembers()) {
                 if (!member.isReady()) {
@@ -1201,7 +1208,7 @@ public class ClientHandler implements Runnable {
             currentLobby.setTotalTerminalsInMap(8);
         }
 
-        gameState = new GameState(reportedTerminalCount);
+        //gameState = new GameState(reportedTerminalCount);
 
         String gameStartedMessage = "game_started:";
         currentLobby.broadcastToLobby(gameStartedMessage);
@@ -1317,6 +1324,6 @@ public class ClientHandler implements Runnable {
 
     private void endGame(boolean result) {
         currentLobby.setState(Lobby.GameState.FINISHED);
-        sendMessage("gameover:" + result);
+        currentLobby.broadcastToLobby("gameover:" + result);
     }
 }

@@ -15,19 +15,39 @@ public class GameState {
     private int maxTerminals;
 
     // if goats lose this is true
-    private boolean gameOver = false;
+    private boolean guardWin = false;
+    public boolean gameOver = false;
     private boolean doorOpen = false;
+
+    private double playerX = 0;
+    private double playerY = 0;
 
     public GameState(int maxTerminals) {
         this.maxTerminals = maxTerminals;
     }
 
-    public boolean isGameOver() {
-        return gameOver;
+    public boolean isGuardWin() {
+        return guardWin;
     }
 
     public boolean isDoorOpen() {
         return doorOpen;
+    }
+
+    public void setX(double playerX) {
+        this.playerX = playerX;
+    }
+
+    public void setY(double playerY) {
+        this.playerY = playerY;
+    }
+
+    public double getPlayerX() {
+        return playerX;
+    }
+
+    public double getPlayerY() {
+        return playerY;
     }
 
     /**
@@ -35,8 +55,10 @@ public class GameState {
      */
     public void caught() {
         caughtPlayers++;
+        logger.info("caught player");
         if (caughtPlayers == 3) {
-            gameOver = true;
+            logger.info("guard wins");
+            guardWin = true;
         }
     }
 
@@ -46,6 +68,7 @@ public class GameState {
     public void revive() {
         if (caughtPlayers > 0) {
             caughtPlayers--;
+            logger.info("revived player");
         }
         else {
             logger.warn("Revive was triggered but no caught players were found");
