@@ -823,11 +823,8 @@ public class Game extends Application {
             otherPlayer.getUsernameLabel().setClip(labelClip);
         }
 
-        for (Node node : gameMap.getVisualWalls()) {
-            if (node instanceof Rectangle rectangle && rectangle.getFill() == Color.RED) { // Special elemente die rot sind
-                Circle elementClip = new Circle(centerX, centerY, 100);
-                node.setClip(elementClip);
-            }
+        for (Terminal terminal : gameMap.getTerminalList()) {
+            terminal.setClip(new Circle(centerX, centerY, 100));
         }
     }
 
