@@ -60,4 +60,9 @@
 * Die Gruppe sammelten die bisherigen Ergebnisse zusammen und testeten diese auch.
 * Die Ergebnisse waren zufriedenstellend.
 * ToDo: Meilenstein drei fertigstellen.
-* Das nächste wurde für den Sonntag, den 06.04.2025 festgelegt.
+* Das nächste Treffen wurde für den Sonntag, den 06.04.2025 festgelegt.
+## <p align ="center"> 06.04.2025
+* Die Gruppe überprüfte, ob alle Punkte des dritten Meilensteins abgeschlossen waren, und passte den Zeitplan gezielt für die letzten Meilensteine an. Später testete die Gruppe das Spiel, um mögliche Bugs zu identifizieren.
+* Es wurden Bugs gefunden, von denen die meisten behoben werden konnten, sodass das Spiel als Prototyp funktionsfähig ist.
+* ToDo: Präsentation fertigstellen und üben.
+* Das nächste Treffen wurde für den Dienstag, den 08.04.2025 festgelegt.
