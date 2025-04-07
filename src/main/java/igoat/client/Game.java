@@ -494,9 +494,19 @@ public class Game extends Application {
             } else if (message.startsWith("catch:")) {
                 String caughtPlayer = message.substring("catch:".length());
                 logger.info("{} was caught!", caughtPlayer);
+                if (caughtPlayer.equals(player.getUsername())) {
+                    player.setDown(true);
+                } else if (otherPlayers.containsKey(caughtPlayer)) {
+                    otherPlayers.get(caughtPlayer).setDown(true);
+                }
             } else if (message.startsWith("revive:")) {
                 String revivedPlayer = message.substring("revive:".length());
                 logger.info("{} was revived!", revivedPlayer);
+                if (revivedPlayer.equals(player.getUsername())) {
+                    player.setDown(false);
+                } else if (otherPlayers.containsKey(revivedPlayer)) {
+                    otherPlayers.get(revivedPlayer).setDown(false);
+                }
             } else if (message.startsWith("player_left:")) {
                 String leftPlayer = message.substring("player_left:".length());
                 if (!leftPlayer.equals(this.playerName)) {
@@ -869,18 +879,22 @@ public class Game extends Application {
 
         Point2D direction = new Point2D(0, 0);
         
-        if (activeKeys.contains(KeyCode.W) || activeKeys.contains(KeyCode.UP)) {
-            direction = direction.add(0, -1);
+        // Only process movement if player is not down
+        if (!player.isDown()) {
+            if (activeKeys.contains(KeyCode.W) || activeKeys.contains(KeyCode.UP)) {
+                direction = direction.add(0, -1);
+            }
+            if (activeKeys.contains(KeyCode.S) || activeKeys.contains(KeyCode.DOWN)) {
+                direction = direction.add(0, 1);
+            }
+            if (activeKeys.contains(KeyCode.A) || activeKeys.contains(KeyCode.LEFT)) {
+                direction = direction.add(-1, 0);
+            }
+            if (activeKeys.contains(KeyCode.D) || activeKeys.contains(KeyCode.RIGHT)) {
+                direction = direction.add(1, 0);
+            }
         }
-        if (activeKeys.contains(KeyCode.S) || activeKeys.contains(KeyCode.DOWN)) {
-            direction = direction.add(0, 1);
-        }
-        if (activeKeys.contains(KeyCode.A) || activeKeys.contains(KeyCode.LEFT)) {
-            direction = direction.add(-1, 0);
-        }
-        if (activeKeys.contains(KeyCode.D) || activeKeys.contains(KeyCode.RIGHT)) {
-            direction = direction.add(1, 0);
-        }
+        
         if (activeKeys.contains(KeyCode.E)) {
             if (!pressedE) {
                 pressedE = true;
@@ -894,7 +908,6 @@ public class Game extends Application {
                     case Role.GOAT:
                         pressRevive();
                 }
-
             }
         }
         else {

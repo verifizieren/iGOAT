@@ -831,6 +831,7 @@ public class ClientHandler implements Runnable {
         }
 
         target.setCaught(true);
+        target.setDown(true);
         broadcast("catch:" + targetName);
     }
 

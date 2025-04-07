@@ -27,6 +27,7 @@ public class Player {
     private boolean isBeingSpectated;
     private String username;
     private Role role;
+    private boolean isDown;
 
     /**
      * Creates a new player with the specified position and dimensions.
@@ -276,5 +277,23 @@ public class Player {
 
     public Role getRole() {
         return role;
+    }
+
+    /**
+     * Checks if the player is down (unable to move).
+     * 
+     * @return true if the player is down, false otherwise
+     */
+    public boolean isDown() {
+        return isDown;
+    }
+
+    /**
+     * Sets whether the player is down (unable to move).
+     * 
+     * @param down true to mark the player as down, false otherwise
+     */
+    public void setDown(boolean down) {
+        this.isDown = down;
     }
 } 
