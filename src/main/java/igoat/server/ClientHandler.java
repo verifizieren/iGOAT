@@ -861,7 +861,7 @@ public class ClientHandler implements Runnable {
         gameState.caught();
     }
 
-    private  void handleRevive(String targetName) {
+    private void handleRevive(String targetName) {
         ClientHandler target = findPlayer(targetName);
         if (target == null) {
             sendError("Spieler " + targetName + " nicht gefunden.");
@@ -884,6 +884,7 @@ public class ClientHandler implements Runnable {
         }
 
         target.setDown(false);
+        target.setCaught(false);
         broadcast("revive:" + targetName);
         gameState.revive();
     }

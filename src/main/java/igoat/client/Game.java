@@ -557,7 +557,7 @@ public class Game extends Application {
                                 otherPlayers.get(playerName).setRole(role);
                             }
                             else {
-                                logger.warn("Received role for unknown player: {}", playerName);
+                                logger.warn("[roles] Received role for unknown player: {}", playerName);
                             }
                         }
                     }
@@ -1060,7 +1060,8 @@ public class Game extends Application {
         for (Player target : otherPlayers.values()) {
             double tx = target.getX() + (target.getWidth() / 2.0);
             double ty = target.getY() + (target.getHeight() / 2.0);
-            if (!target.isDown() && (pow(tx - x, 2) + pow(ty - y, 2)) < 35.0) {
+            if (!target.isDown() && sqrt(pow(tx - x, 2) + pow(ty - y, 2)) < 40.0) {
+                logger.info("sent catch msg");
                 serverHandler.sendMessage("catch:" + target.getUsername());
                 return;
             }
@@ -1074,7 +1075,7 @@ public class Game extends Application {
         for (Player target : otherPlayers.values()) {
             double tx = target.getX() + (target.getWidth() / 2.0);
             double ty = target.getY() + (target.getHeight() / 2.0);
-            if (target.isDown() && target.getRole() == Role.IGOAT && sqrt(pow(tx - x, 2) + pow(ty - y, 2)) < 35.0) {
+            if (target.isDown() && target.getRole() == Role.IGOAT && sqrt(pow(tx - x, 2) + pow(ty - y, 2)) < 40.0) {
                 serverHandler.sendMessage("revive:" + target.getUsername());
                 return;
             }
