@@ -1,6 +1,7 @@
 package igoat.server;
 
 import igoat.Role;
+import igoat.server.Lobby.LobbyState;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -51,7 +52,6 @@ public class ClientHandler implements Runnable {
     private static final List<Lobby> lobbyList = new CopyOnWriteArrayList<>();
     private Lobby currentLobby;
     private static int nextLobbyCode = 1000;
-    private GameState gameState = new GameState(8);;
 
     private boolean isReady = false;
     private boolean isDown = false;
@@ -253,14 +253,14 @@ public class ClientHandler implements Runnable {
                 }
                 
                 String broadcastMessage = "player_position:" + senderName + ":" + x + ":" + y;
-                if (sender.gameState != null) {
-                    sender.gameState.setX(x);
-                    sender.gameState.setY(y);
-                    if (sender.gameState.getPlayerX() < 0 || sender.gameState.getPlayerX() > 1500) {
+                if (sender.currentLobby.getGameState() != null) {
+                    sender.currentLobby.getGameState().setX(x);
+                    sender.currentLobby.getGameState().setY(y);
+                    if (sender.currentLobby.getGameState().getPlayerX() < 0 || sender.currentLobby.getGameState().getPlayerX() > 1500) {
                         if (sender.role == Role.GOAT) {
                             sender.endGame(false);
                         }
-                    } else if (sender.gameState.isGuardWin()) {
+                    } else if (sender.currentLobby.getGameState().isGuardWin()) {
                         sender.endGame(true);
                     }
                 }
@@ -495,10 +495,10 @@ public class ClientHandler implements Runnable {
             sendError("Fehler beim Verarbeiten des Befehls: " + e.getMessage());
         }
         // check game state
-        if (gameState == null) {
+        if (currentLobby == null || currentLobby.getGameState() == null) {
             return;
         }
-        if (gameState.isDoorOpen()) {
+        if (currentLobby.getGameState().isDoorOpen()) {
             currentLobby.broadcastChatToLobby("Exits have been opened!");
             currentLobby.broadcastToLobby("door");
             logger.info("Exits have been opened!");
@@ -663,7 +663,7 @@ public class ClientHandler implements Runnable {
             return;
         }
 
-        if (lobbyToJoin.getState() == Lobby.GameState.IN_GAME || lobbyToJoin.getState() == Lobby.GameState.FINISHED) {
+        if (lobbyToJoin.getState() == LobbyState.IN_GAME || lobbyToJoin.getState() == LobbyState.FINISHED) {
             sendError("Game is already in progress");
         }
 
@@ -858,7 +858,7 @@ public class ClientHandler implements Runnable {
         target.setCaught(true);
         target.setDown(true);
         broadcast("catch:" + targetName);
-        gameState.caught();
+        currentLobby.getGameState().caught();
     }
 
     private void handleRevive(String targetName) {
@@ -886,7 +886,7 @@ public class ClientHandler implements Runnable {
         target.setDown(false);
         target.setCaught(false);
         broadcast("revive:" + targetName);
-        gameState.revive();
+        currentLobby.getGameState().revive();
     }
 
     /**
@@ -1199,7 +1199,7 @@ public class ClientHandler implements Runnable {
 
         logger.info("Starting game in lobby {} (Initiated by creator: {})", currentLobby.getCode(), nickname);
 
-        currentLobby.setState(Lobby.GameState.IN_GAME);
+        currentLobby.setState(LobbyState.IN_GAME);
         broadcastGetLobbiesToAll();
         
         if (this.reportedTerminalCount >= 0) {
@@ -1291,7 +1291,7 @@ public class ClientHandler implements Runnable {
             if (newlyActivated) {
                 String activationMessage = "terminal:" + terminalId;
                 currentLobby.broadcastToLobby(activationMessage);
-                gameState.activateTerminal();
+                currentLobby.getGameState().activateTerminal();
                 logger.info("Broadcasted terminal activation: {} to lobby {}", activationMessage, currentLobby.getCode());
             } else {
                 sendMessage("chat:System:Terminal " + terminalId + " was already activated.");
@@ -1327,9 +1327,9 @@ public class ClientHandler implements Runnable {
     }
 
     private void endGame(boolean result) {
-        if (!gameState.gameOver) {
-            gameState.gameOver = true;
-            currentLobby.setState(Lobby.GameState.FINISHED);
+        if (!currentLobby.getGameState().gameOver) {
+            currentLobby.getGameState().gameOver = true;
+            currentLobby.setState(LobbyState.FINISHED);
             broadcastGetLobbiesToAll();
             currentLobby.broadcastToLobby("gameover:" + result);
         }

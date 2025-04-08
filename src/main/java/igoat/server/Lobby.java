@@ -28,7 +28,7 @@ public class Lobby {
      * - READY: All players are ready to start
      * - IN_GAME: Game is currently in progress
      */
-    public enum GameState {
+    public enum LobbyState {
         /** Lobby is accepting new players */
         OPEN,
         /** Lobby has reached maximum player capacity */
@@ -41,8 +41,8 @@ public class Lobby {
         FINISHED
     }
 
-    private GameState state = GameState.OPEN;
-
+    private LobbyState state = LobbyState.OPEN;
+    private GameState gameState = new GameState(8);
     private Set<Integer> activatedTerminals = ConcurrentHashMap.newKeySet();
     private int totalTerminalsInMap = 0;
 
@@ -51,7 +51,7 @@ public class Lobby {
      * 
      * @return The current GameState of the lobby
      */
-    public GameState getState() {
+    public LobbyState getState() {
         return state;
     }
 
@@ -60,7 +60,7 @@ public class Lobby {
      * 
      * @param state The new GameState to set
      */
-    public void setState(GameState state) {
+    public void setState(LobbyState state) {
         this.state = state;
     }
 
@@ -95,6 +95,9 @@ public class Lobby {
         return code;
     }
 
+    public GameState getGameState() {
+        return gameState;
+    }
     /**
      * Gets the list of players currently in the lobby.
      * The list is thread-safe and can be modified while being iterated.
@@ -120,18 +123,18 @@ public class Lobby {
      */
     private void updateState() {
         if (members.size() >= MAX_PLAYERS) {
-            state = GameState.FULL;
+            state = LobbyState.FULL;
         } else {
-            state = GameState.OPEN;
+            state = LobbyState.OPEN;
         }
     }
 
     public void startGame() {
-        state = GameState.IN_GAME;
+        state = LobbyState.IN_GAME;
     }
 
     public void endGame() {
-        state = GameState.FINISHED;
+        state = LobbyState.FINISHED;
     }
 
     /**

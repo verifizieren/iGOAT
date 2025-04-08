@@ -55,7 +55,7 @@ public class GameState {
      */
     public void caught() {
         caughtPlayers++;
-        logger.info("caught player");
+        logger.info("caught player ({} caught)", caughtPlayers);
         if (caughtPlayers == 3) {
             logger.info("guard wins");
             guardWin = true;
@@ -68,10 +68,10 @@ public class GameState {
     public void revive() {
         if (caughtPlayers > 0) {
             caughtPlayers--;
-            logger.info("revived player");
+            logger.info("revived player ({} caught)", caughtPlayers);
         }
         else {
-            logger.warn("Revive was triggered but no caught players were found");
+            logger.warn("Revive was triggered but no caught players were found ({})", caughtPlayers);
         }
     }
 
