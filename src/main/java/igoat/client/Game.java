@@ -176,7 +176,6 @@ public class Game extends Application {
         startMessageProcessor();
         startUdpUpdateProcessor();
 
-        // Request role information for all players after message processors are started
         if (this.serverHandler != null && this.serverHandler.isConnected()) {
             logger.info("Game initialized, requesting initial roles...");
             this.serverHandler.sendMessage("getroles:");
