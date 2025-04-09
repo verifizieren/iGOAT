@@ -175,7 +175,6 @@ public class Game extends Application {
         startMessageProcessor();
         startUdpUpdateProcessor();
 
-        // Request role information for all players
         if (this.serverHandler != null && this.serverHandler.isConnected()) {
             this.serverHandler.sendMessage("getroles:");
         }
@@ -187,11 +186,15 @@ public class Game extends Application {
                 return;
             }
             
-            for (String pName : initialPlayerNames) {
-                if (!pName.equals(confirmedNickname)) {
-                    createVisualForRemotePlayer(pName, 100, 100);
+            PauseTransition delay = new PauseTransition(Duration.millis(200));
+            delay.setOnFinished(event -> {
+                for (String pName : initialPlayerNames) {
+                    if (!pName.equals(confirmedNickname)) {
+                        createVisualForRemotePlayer(pName, 100, 100);
+                    }
                 }
-            }
+            });
+            delay.play();
         });
     }
 
@@ -853,44 +856,38 @@ public class Game extends Application {
             return;
         }
 
-        // Request role information for this player
         if (serverHandler != null && serverHandler.isConnected()) {
             serverHandler.sendMessage("getroles:");
         }
         
-        // Start with default color
         Color playerColor = Color.ORANGE;
         
         try {
-            final Player[] remotePlayerRef = new Player[1];
             Platform.runLater(() -> {
                 if (!otherPlayers.containsKey(playerName)) { 
                     Player remotePlayer = new Player(gamePane, gamePane.getWidth(), gamePane.getHeight(), CAMERA_ZOOM,
-                x, y, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, playerColor, playerName, false);
+                        x, y, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, playerColor, playerName, false);
                     
                     otherPlayers.put(playerName, remotePlayer);
+                    logger.info("Created player instance for {}", playerName);
                     
-                    logger.info("Added visual for player {}", playerName);
+                    PauseTransition delay = new PauseTransition(Duration.millis(100));
+                    delay.setOnFinished(event -> {
+                        if (!gamePane.getChildren().contains(remotePlayer.getVisualRepresentation())) {
+                            gamePane.getChildren().add(remotePlayer.getVisualRepresentation());
+                        }
+                        if (!gamePane.getChildren().contains(remotePlayer.getUsernameLabel())) {
+                            gamePane.getChildren().add(remotePlayer.getUsernameLabel());
+                        }
+                        logger.info("Added visual elements for player {}", playerName);
+                    });
+                    delay.play();
                 }
             });
-
-            Thread.sleep(50);
-            
-            if (remotePlayerRef[0] != null) {
-                Platform.runLater(() -> {
-                    if (!gamePane.getChildren().contains(remotePlayerRef[0].getVisualRepresentation())) {
-                        gamePane.getChildren().add(remotePlayerRef[0].getVisualRepresentation());
-                    }
-                    if (!gamePane.getChildren().contains(remotePlayerRef[0].getUsernameLabel())) {
-                        gamePane.getChildren().add(remotePlayerRef[0].getUsernameLabel());
-                    }
-                });
-            }
         } catch (Exception e) {
             logger.error("Error creating visual for player", e);
         }
     }
-
     /**
      * Updates the visual elements of the game based on the local player's position.
      * This includes:
