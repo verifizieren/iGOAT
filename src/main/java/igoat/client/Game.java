@@ -2,20 +2,16 @@ package igoat.client;
 
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
-
-import igoat.Role;
-import igoat.client.GUI.LobbyGUI;
 import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
 
-import javafx.scene.control.Button;
-import javafx.scene.text.Font;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +20,8 @@ import animatefx.animation.FadeOutDown;
 import animatefx.animation.FadeOutUp;
 import animatefx.animation.Shake;
 import animatefx.animation.Tada;
+import igoat.Role;
+import igoat.client.GUI.LobbyGUI;
 import javafx.animation.AnimationTimer;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
@@ -39,6 +37,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
@@ -50,6 +49,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Screen;
@@ -99,6 +99,7 @@ public class Game extends Application {
     private boolean gameStarted = false;
     
     private Map<String, Player> otherPlayers = new HashMap<>();
+    private Map<String, Role> pendingRoles = new ConcurrentHashMap<>();
     private boolean pressedE = false;
 
 
@@ -175,7 +176,9 @@ public class Game extends Application {
         startMessageProcessor();
         startUdpUpdateProcessor();
 
+        // Request role information for all players after message processors are started
         if (this.serverHandler != null && this.serverHandler.isConnected()) {
+            logger.info("Game initialized, requesting initial roles...");
             this.serverHandler.sendMessage("getroles:");
         }
 
@@ -186,15 +189,12 @@ public class Game extends Application {
                 return;
             }
             
-            PauseTransition delay = new PauseTransition(Duration.millis(200));
-            delay.setOnFinished(event -> {
-                for (String pName : initialPlayerNames) {
-                    if (!pName.equals(confirmedNickname)) {
-                        createVisualForRemotePlayer(pName, 100, 100);
-                    }
+            logger.info("Initializing visuals for players present at start: {}", initialPlayerNames);
+            for (String pName : initialPlayerNames) {
+                if (!pName.equals(confirmedNickname)) {
+                    createVisualForRemotePlayer(pName, 100, 100);
                 }
-            });
-            delay.play();
+            }
         });
     }
 
@@ -497,21 +497,31 @@ public class Game extends Application {
             } else if (message.equals("game_started")) {
                 handleGameStarted();
             } else if (message.startsWith("catch:")) {
-                String caughtPlayer = message.substring("catch:".length());
-                logger.info("{} was caught!", caughtPlayer);
-                if (caughtPlayer.equals(player.getUsername())) {
-                    player.setDown(true);
-                } else if (otherPlayers.containsKey(caughtPlayer)) {
-                    otherPlayers.get(caughtPlayer).setDown(true);
-                }
+                String caughtPlayerName = message.substring("catch:".length());
+                logger.info("{} was caught!", caughtPlayerName);
+                Platform.runLater(() -> {
+                    if (player != null && caughtPlayerName.equals(player.getUsername())) {
+                        player.setDown(true);
+                    } else {
+                        Player other = otherPlayers.get(caughtPlayerName);
+                        if (other != null) {
+                            other.setDown(true);
+                        }
+                    }
+                });
             } else if (message.startsWith("revive:")) {
-                String revivedPlayer = message.substring("revive:".length());
-                logger.info("{} was revived!", revivedPlayer);
-                if (revivedPlayer.equals(player.getUsername())) {
-                    player.setDown(false);
-                } else if (otherPlayers.containsKey(revivedPlayer)) {
-                    otherPlayers.get(revivedPlayer).setDown(false);
-                }
+                String revivedPlayerName = message.substring("revive:".length());
+                logger.info("{} was revived!", revivedPlayerName);
+                Platform.runLater(() -> {
+                    if (player != null && revivedPlayerName.equals(player.getUsername())) {
+                        player.setDown(false);
+                    } else {
+                        Player other = otherPlayers.get(revivedPlayerName);
+                        if (other != null) {
+                            other.setDown(false);
+                        }
+                    }
+                });
             } else if (message.startsWith("player_left:")) {
                 String leftPlayer = message.substring("player_left:".length());
                 if (!leftPlayer.equals(this.playerName)) {
@@ -526,19 +536,25 @@ public class Game extends Application {
                 String[] parts = message.split(":");
                 if (parts.length == 3) {
                     String playerName = parts[1];
-                    Role role = Role.valueOf(parts[2]);
-
-                    logger.info("Received role {} for player {}", role, playerName);
-
-                    if (player != null && playerName.equals(player.getUsername())) {
-                        player.setRole(role);
-                    } else if (otherPlayers.containsKey(playerName)) {
-                        otherPlayers.get(playerName).setRole(role);
+                    try {
+                        Role role = Role.valueOf(parts[2]);
+                        logger.info("Received role {} for player {}", role, playerName);
+                        Platform.runLater(() -> {
+                            if (player != null && playerName.equals(player.getUsername())) {
+                                player.setRole(role);
+                            } else {
+                                Player other = otherPlayers.get(playerName);
+                                if (other != null) {
+                                    other.setRole(role);
+                                } else {
+                                    pendingRoles.put(playerName, role);
+                                    logger.warn("[role] Received role for unknown player {}. Storing temporarily.", playerName);
+                                }
+                            }
+                        });
+                    } catch (IllegalArgumentException e) {
+                         logger.error("Invalid role value in message: {}", message);
                     }
-                    else {
-                        logger.warn("Received role for unknown player: {}", playerName);
-                    }
-
                 } else {
                     logger.error("Invalid role message format: {}", message);
                 }
@@ -546,24 +562,51 @@ public class Game extends Application {
                 String rolesData = message.substring("roles:".length());
                 if (!rolesData.isEmpty()) {
                     String[] roleEntries = rolesData.split(",");
+                    Map<String, Role> rolesToApply = new HashMap<>();
+                    Map<String, Role> rolesToPend = new HashMap<>();
+
                     for (String entry : roleEntries) {
                         String[] parts = entry.split("=");
                         if (parts.length == 2) {
                             String playerName = parts[0];
-                            Role role = Role.valueOf(parts[1]);
-                            logger.info("Received role {} for player {}", role, playerName);
-                            logger.info("Original message: {}", message);
-
-                            if (player != null && playerName.equals(player.getUsername())) {
-                                player.setRole(role);
-                            } else if (otherPlayers.containsKey(playerName)) {
-                                otherPlayers.get(playerName).setRole(role);
-                            }
-                            else {
-                                logger.warn("[roles] Received role for unknown player: {}", playerName);
+                            try {
+                                Role role = Role.valueOf(parts[1]);
+                                logger.info("[roles] Processing role {} for player {}", role, playerName);
+                                Platform.runLater(() -> {
+                                    if (player != null && playerName.equals(player.getUsername())) {
+                                        player.setRole(role);
+                                    } else {
+                                        Player other = otherPlayers.get(playerName);
+                                        if (other != null) {
+                                            other.setRole(role);
+                                            rolesToApply.put(playerName, role);
+                                        } else {
+                                            rolesToPend.put(playerName, role);
+                                            logger.warn("[roles] Received role for unknown player {}. Storing temporarily.", playerName);
+                                        }
+                                    }
+                                });
+                            } catch (IllegalArgumentException e) {
+                                logger.error("Invalid role value in roles message entry: {}", entry);
                             }
                         }
                     }
+
+                    Platform.runLater(() -> {
+                        for (Map.Entry<String, Role> entry : rolesToApply.entrySet()) {
+                            String playerName = entry.getKey();
+                            Role role = entry.getValue();
+                            Player other = otherPlayers.get(playerName);
+                            if (other != null) {
+                                other.setRole(role);
+                                rolesToPend.remove(playerName);
+                            } else {
+                                pendingRoles.put(playerName, role);
+                                logger.warn("[roles] Received role for unknown player {}. Storing temporarily.", playerName);
+                            }
+                        }
+                        pendingRoles.putAll(rolesToPend);
+                    });
                 }
             } else if (message.equals("doors")) {
                 Platform.runLater(this::handleDoorsOpen);
@@ -573,8 +616,16 @@ public class Game extends Application {
                 if (parts.length == 2) {
                     endGame(parts[1].equals("true"));
                 }
+            } else if (mode != null) {
+                 String[] parsed = parseSenderAndContent.apply(prefixString, message);
+                 String sender = parsed[0];
+                 String content = parsed[1];
+
+                 logger.debug("Processing incoming {} chat message. Sender: '{}', Message: '{}'", 
+                              mode, sender, content);
+                 addChatMessage(sender, null, content, mode);
             } else {
-                 logger.warn("Received message with unknown prefix: {}", message);
+                 logger.warn("Received message with unknown prefix or format: {}", message);
             }
             return;
         }
@@ -842,52 +893,61 @@ public class Game extends Application {
     
     /**
      * Creates a visual representation for a remote player.
+     * If the player object already exists (placeholder from role message), adds visuals.
+     * Otherwise, creates a new player object and adds visuals.
+     * Applies any pending role after creation/visual addition.
      *
      * @param playerName The name of the remote player
      * @param x The x-coordinate
      * @param y The y-coordinate
      */
     private void createVisualForRemotePlayer(String playerName, int x, int y) {
-        logger.info("Creating visual for player: {}", playerName);
-        
-        if (otherPlayers.containsKey(playerName)) {
-            logger.info("Player {} already exists, updating position instead", playerName);
-            updateRemotePlayerPosition(playerName, x, y);
-            return;
-        }
+        logger.info("Creating or updating visual for player: {}", playerName);
 
-        if (serverHandler != null && serverHandler.isConnected()) {
-            serverHandler.sendMessage("getroles:");
-        }
-        
-        Color playerColor = Color.ORANGE;
-        
-        try {
-            Platform.runLater(() -> {
-                if (!otherPlayers.containsKey(playerName)) { 
-                    Player remotePlayer = new Player(gamePane, gamePane.getWidth(), gamePane.getHeight(), CAMERA_ZOOM,
-                        x, y, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, playerColor, playerName, false);
-                    
-                    otherPlayers.put(playerName, remotePlayer);
-                    logger.info("Created player instance for {}", playerName);
-                    
-                    PauseTransition delay = new PauseTransition(Duration.millis(100));
-                    delay.setOnFinished(event -> {
-                        if (!gamePane.getChildren().contains(remotePlayer.getVisualRepresentation())) {
-                            gamePane.getChildren().add(remotePlayer.getVisualRepresentation());
-                        }
-                        if (!gamePane.getChildren().contains(remotePlayer.getUsernameLabel())) {
-                            gamePane.getChildren().add(remotePlayer.getUsernameLabel());
-                        }
-                        logger.info("Added visual elements for player {}", playerName);
-                    });
-                    delay.play();
+        Platform.runLater(() -> {
+            Player remotePlayer = otherPlayers.get(playerName);
+
+            if (remotePlayer != null) {
+                logger.info("Player {} already exists in map, updating position and ensuring visuals.", playerName);
+                remotePlayer.updatePosition(x, y);
+
+                if (!gamePane.getChildren().contains(remotePlayer.getVisualRepresentation())) {
+                    gamePane.getChildren().add(remotePlayer.getVisualRepresentation());
+                    logger.info("Added missing visual representation for {}", playerName);
                 }
-            });
-        } catch (Exception e) {
-            logger.error("Error creating visual for player", e);
-        }
+                if (!gamePane.getChildren().contains(remotePlayer.getUsernameLabel())) {
+                    gamePane.getChildren().add(remotePlayer.getUsernameLabel());
+                     logger.info("Added missing username label for {}", playerName);
+                }
+                Role pendingRole = pendingRoles.remove(playerName);
+                if (pendingRole != null) {
+                    remotePlayer.setRole(pendingRole);
+                    logger.info("Applied pending role {} to existing player {}", pendingRole, playerName);
+                }
+
+            } else {
+                logger.info("Player {} not found, creating new Player object.", playerName);
+                Color defaultColor = Color.ORANGE;
+                remotePlayer = new Player(gamePane, gamePane.getWidth(), gamePane.getHeight(), CAMERA_ZOOM,
+                        x, y, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, defaultColor, playerName, false);
+
+                otherPlayers.put(playerName, remotePlayer);
+                logger.info("Added new player {} to otherPlayers map.", playerName);
+
+                Role pendingRole = pendingRoles.remove(playerName);
+                if (pendingRole != null) {
+                    remotePlayer.setRole(pendingRole);
+                    logger.info("Applied pending role {} to newly created player {}", pendingRole, playerName);
+                } else {
+                    if (serverHandler != null && serverHandler.isConnected()) {
+                         logger.info("Requesting roles again as new player {} was created without a pending role.", playerName);
+                         serverHandler.sendMessage("getroles:");
+                    }
+                }
+            }
+        });
     }
+
     /**
      * Updates the visual elements of the game based on the local player's position.
      * This includes:
