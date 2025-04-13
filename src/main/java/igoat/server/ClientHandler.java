@@ -1173,7 +1173,7 @@ public class ClientHandler implements Runnable {
         }
 
         boolean allReadyCheck = true;
-        if (currentLobby.getMembers().isEmpty() || currentLobby.getMembers().size() < 4) {
+        if (currentLobby.getMembers().isEmpty() /*|| currentLobby.getMembers().size() < 4*/) {
             logger.warn("Lobby not full, can't start game in {}", currentLobby.getCode());
             return;
         } else {

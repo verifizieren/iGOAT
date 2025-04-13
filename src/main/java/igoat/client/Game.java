@@ -11,10 +11,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import animatefx.animation.FadeInDown;
 import animatefx.animation.FadeOutDown;
 import animatefx.animation.FadeOutUp;
@@ -234,8 +232,12 @@ public class Game extends Application {
         gamePane.setMinSize(gameMap.getWidth(), gameMap.getHeight());
         gamePane.setMaxSize(gameMap.getWidth(), gameMap.getHeight());
         gamePane.setPrefSize(gameMap.getWidth(), gameMap.getHeight());
-        gamePane.setStyle("-fx-background-color: white;");
+        //gamePane.setStyle("-fx-background-color: white;");
         gamePane.setClip(new Rectangle(0, 0, gameMap.getWidth(), gameMap.getHeight()));
+
+        // background image
+        Sprite floor = new Sprite("sprites/floor_tile01.png", 64, 64);
+        gamePane.setBackground(floor.getBackground());
 
         if (serverHandler != null && serverHandler.isConnected()) {
             int terminalCount = gameMap.getTerminalList().size();
