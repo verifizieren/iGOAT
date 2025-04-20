@@ -15,17 +15,11 @@ import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import animatefx.animation.FadeInDown;
-import animatefx.animation.FadeOutDown;
-import animatefx.animation.FadeOutUp;
-import animatefx.animation.Shake;
-import animatefx.animation.Tada;
 import igoat.Role;
 import igoat.client.GUI.LobbyGUI;
 import javafx.animation.AnimationTimer;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
-import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -89,7 +83,6 @@ public class Game extends Application {
     
     private Player player;
     private igoat.client.Map gameMap;
-    private DoorHandler doorHandler;
     private Camera activeCamera;
     private ServerHandler serverHandler;
     private String playerName;
@@ -228,8 +221,6 @@ public class Game extends Application {
         serverHandler.sendMessage("ready:");
         
         gameMap = new igoat.client.Map();
-        doorHandler = new DoorHandler(gameMap);
-        
         gamePane = new Pane();
         gamePane.setMinSize(gameMap.getWidth(), gameMap.getHeight());
         gamePane.setMaxSize(gameMap.getWidth(), gameMap.getHeight());
@@ -632,18 +623,6 @@ public class Game extends Application {
 
                 Banner.showAnimation(alreadyActiveBanner, "Terminal " + terminalIdStr + " is already active!", 1.5);
                 Banner.shake(alreadyActiveBanner);
-//                Platform.runLater(() -> {
-//                    alreadyActiveBanner.setText("Terminal " + terminalIdStr + " is already active!");
-//                    alreadyActiveBanner.setVisible(true);
-//                    alreadyActiveBanner.setOpacity(1.0);
-//                    new Shake(alreadyActiveBanner).play();
-//
-//                    PauseTransition delay = new PauseTransition(Duration.seconds(1.5));
-//                    delay.setOnFinished(event -> {
-//                        alreadyActiveBanner.setVisible(false);
-//                    });
-//                    delay.play();
-//                });
             } catch (Exception e) {
                 logger.error("Failed to parse already activated message: {}", message, e);
             }
