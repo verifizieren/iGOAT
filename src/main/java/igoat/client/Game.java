@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
+import javafx.scene.image.ImageView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import igoat.Role;
@@ -288,6 +289,11 @@ public class Game extends Application {
 
         for (Node wall : gameMap.getVisualWalls()) {
             gamePane.getChildren().add(wall);
+        }
+
+        // decoration implementation
+        for (ImageView decor : gameMap.getDecorItems()) {
+            gamePane.getChildren().add(decor);
         }
         
         player = new Player(gamePane, primaryStage.getWidth(), primaryStage.getHeight(), CAMERA_ZOOM,
