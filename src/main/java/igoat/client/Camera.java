@@ -133,7 +133,7 @@ public class Camera {
                 false, CycleMethod.NO_CYCLE,
                 new Stop(0, Color.TRANSPARENT),   // Fully transparent at the center
                 new Stop(0.8, Color.TRANSPARENT), // Stays transparent up to 80% of the radius
-                new Stop(1, Color.rgb(50, 50, 50, FOG_OPACITY)) // Fog appears at the edge
+                new Stop(1, Color.rgb(0, 0, 0, FOG_OPACITY)) // Fog appears at the edge
         );
 
         // Apply the gradient to erase part of the fog

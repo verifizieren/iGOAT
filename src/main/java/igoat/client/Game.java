@@ -225,7 +225,6 @@ public class Game extends Application {
         gamePane.setMinSize(gameMap.getWidth(), gameMap.getHeight());
         gamePane.setMaxSize(gameMap.getWidth(), gameMap.getHeight());
         gamePane.setPrefSize(gameMap.getWidth(), gameMap.getHeight());
-        //gamePane.setStyle("-fx-background-color: white;");
         gamePane.setClip(new Rectangle(0, 0, gameMap.getWidth(), gameMap.getHeight()));
 
         // background image
@@ -253,11 +252,12 @@ public class Game extends Application {
             windowHeight = screenWidth / mapAspectRatio;
         }
         
-        primaryStage.setWidth(windowWidth);
-        primaryStage.setHeight(windowHeight);
-        primaryStage.setFullScreenExitHint("");
+        stage.setWidth(windowWidth);
+        stage.setHeight(windowHeight);
+        stage.setFullScreenExitHint("");
 
         Pane container = new Pane();
+        container.setStyle("-fx-background-color: black;");
         container.getChildren().add(gamePane);
 
         uiOverlay = new Pane();
