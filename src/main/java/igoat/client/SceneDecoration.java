@@ -9,7 +9,7 @@ public class SceneDecoration {
 
         // Top wall
         decorList.add(new Decoration(
-            Sprite.class.getResource("/sprites/Wall.png").toExternalForm(),
+            Sprite.class.getResource("/sprites/wall.png").toExternalForm(),
             20, -44, 1460, 64,
             true,
             0, 0, 64, 64
