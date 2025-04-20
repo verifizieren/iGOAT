@@ -8,6 +8,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.Stop;
+import javafx.scene.shape.ArcTo;
+import javafx.scene.shape.ClosePath;
+import javafx.scene.shape.LineTo;
+import javafx.scene.shape.MoveTo;
+import javafx.scene.shape.Path;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Scale;
 
@@ -31,6 +36,7 @@ public class Camera {
     private static final double FOG_OPACITY = 0.8;
     private static final double LIGHT_RADIUS = 100;
     private boolean isLocal = false;
+    private Canvas cone = null;
 
     /**
      * Creates a new Camera with the specified viewport size and zoom level.
@@ -85,6 +91,11 @@ public class Camera {
             drawFog(viewportWidth / (2 * zoom), viewportHeight / (2 * zoom));
             fogCanvas.setWidth(newWidth);
             fogCanvas.setHeight(newHeight);
+
+            if (cone != null) {
+                cone.setWidth(newWidth);
+                cone.setHeight(newHeight);
+            }
         }
     }
 
@@ -112,6 +123,11 @@ public class Camera {
         if (isLocal) {
             fogCanvas.setTranslateX(targetX);
             fogCanvas.setTranslateY(targetY);
+
+            if (cone != null) {
+                cone.setTranslateX(targetX);
+                cone.setTranslateY(targetY);
+            }
         }
     }
 
@@ -142,6 +158,39 @@ public class Camera {
         fogGC.fillRect(0, 0, fogCanvas.getWidth(), fogCanvas.getHeight());
     }
 
+    public void updateCone(double angle) {
+        if (cone == null) {
+            cone = new Canvas(viewportWidth, viewportHeight);
+            gamePane.getChildren().add(cone);
+        }
+        GraphicsContext gc = cone.getGraphicsContext2D();
+
+        gc.clearRect(0, 0, cone.getWidth(), cone.getHeight());
+        gc.setGlobalBlendMode(BlendMode.SRC_OVER);
+        gc.setFill(Color.rgb(0, 0, 0, FOG_OPACITY));
+        gc.fillRect(0, 0, viewportWidth, viewportHeight);
+
+        cone.setClip(getCone(viewportWidth / (2 * zoom), viewportHeight / (2 * zoom), angle, false));
+    }
+
+    /**
+     * Creates a cone / slice of a circle using JavaFX paths
+     * @param x x position
+     * @param y y position
+     * @param angle angle where the cone points in radians
+     * @param inverse If this is true, the function returns a circle minus the cone.
+     */
+    public static Path getCone(double x, double y, double angle, boolean inverse) {
+        Path cone = new Path();
+        cone.getElements().add(new MoveTo(x, y));
+        cone.getElements().add(new LineTo(x + 100.0 * Math.cos(angle - Math.PI / 4.0), y + 100.0 * Math.sin(angle - Math.PI / 4.0)));
+        cone.getElements().add(new ArcTo(100, 100, 0,
+            x + 100.0 * Math.cos(angle + Math.PI / 4.0), y + 100.0 * Math.sin(angle + Math.PI / 4.0), !inverse, false));
+        cone.getElements().add(new ClosePath());
+        cone.setFill(Color.BLACK);
+
+        return cone;
+    }
     /**
      * Adds a JavaFX node to the game world.
      * The node will be affected by camera movement and zoom.

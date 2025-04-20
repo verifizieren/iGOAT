@@ -14,6 +14,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
 import javafx.scene.image.ImageView;
+import javafx.scene.shape.ArcTo;
+import javafx.scene.shape.ClosePath;
+import javafx.scene.shape.LineTo;
+import javafx.scene.shape.MoveTo;
+import javafx.scene.shape.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import igoat.Role;
@@ -95,6 +100,8 @@ public class Game extends Application {
     private Map<String, Player> otherPlayers = new HashMap<>();
     private Map<String, Role> pendingRoles = new ConcurrentHashMap<>();
     private boolean pressedE = false;
+    private double mouseX;
+    private double mouseY;
 
 
     /**
@@ -269,6 +276,11 @@ public class Game extends Application {
 
         Scene scene = new Scene(container);
         scene.setFill(Color.BLACK);
+        scene.setOnMouseMoved(event -> {
+            mouseX = event.getSceneX();
+            mouseY = event.getSceneY();
+            updateVisuals();
+        });
         
         String windowTitle = "iGoat Game - Lobby " + lobbyCode + " - Player: " + confirmedNickname;
         primaryStage.setTitle(windowTitle);
@@ -862,6 +874,17 @@ public class Game extends Application {
     }
 
     /**
+     * Calculates the angle of the mouse position relative to the middle of the screen
+     * @return angle in radians
+     */
+    private double getMouseAngle() {
+        double x = mouseX - (windowWidth / 2.0);
+        double y = mouseY - (windowHeight / 2.0);
+
+        return Math.atan2(y, x);
+    }
+
+    /**
      * Updates the visual elements of the game based on the local player's position.
      * This includes:
      * - Updating the fog of war effect around other players
@@ -883,6 +906,8 @@ public class Game extends Application {
         for (Terminal terminal : gameMap.getTerminalList()) {
             terminal.setClip(new Circle(centerX, centerY, 100));
         }
+
+        activeCamera.updateCone(getMouseAngle());
     }
 
     /**
