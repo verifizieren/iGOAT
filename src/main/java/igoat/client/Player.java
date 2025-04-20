@@ -26,7 +26,7 @@ public class Player {
     private final Camera camera;
     private boolean isBeingSpectated;
     private String username;
-    private Role role;
+    private Role role = null;
     private boolean isDown;
 
     /**

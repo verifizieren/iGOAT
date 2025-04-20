@@ -14,6 +14,7 @@ import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 import javafx.scene.transform.Scale;
 
 /**
@@ -36,7 +37,7 @@ public class Camera {
     private static final double FOG_OPACITY = 0.8;
     private static final double LIGHT_RADIUS = 100;
     private boolean isLocal = false;
-    private Canvas cone = null;
+    private Canvas coneCanvas = null;
 
     /**
      * Creates a new Camera with the specified viewport size and zoom level.
@@ -92,9 +93,9 @@ public class Camera {
             fogCanvas.setWidth(newWidth);
             fogCanvas.setHeight(newHeight);
 
-            if (cone != null) {
-                cone.setWidth(newWidth);
-                cone.setHeight(newHeight);
+            if (coneCanvas != null) {
+                coneCanvas.setWidth(newWidth);
+                coneCanvas.setHeight(newHeight);
             }
         }
     }
@@ -124,9 +125,9 @@ public class Camera {
             fogCanvas.setTranslateX(targetX);
             fogCanvas.setTranslateY(targetY);
 
-            if (cone != null) {
-                cone.setTranslateX(targetX);
-                cone.setTranslateY(targetY);
+            if (coneCanvas != null) {
+                coneCanvas.setTranslateX(targetX);
+                coneCanvas.setTranslateY(targetY);
             }
         }
     }
@@ -159,33 +160,40 @@ public class Camera {
     }
 
     public void updateCone(double angle) {
-        if (cone == null) {
-            cone = new Canvas(viewportWidth, viewportHeight);
-            gamePane.getChildren().add(cone);
+        if (coneCanvas == null) {
+            coneCanvas = new Canvas(viewportWidth, viewportHeight);
+            gamePane.getChildren().add(coneCanvas);
         }
-        GraphicsContext gc = cone.getGraphicsContext2D();
+        GraphicsContext gc = coneCanvas.getGraphicsContext2D();
 
-        gc.clearRect(0, 0, cone.getWidth(), cone.getHeight());
+        gc.clearRect(0, 0, coneCanvas.getWidth(), coneCanvas.getHeight());
         gc.setGlobalBlendMode(BlendMode.SRC_OVER);
         gc.setFill(Color.rgb(0, 0, 0, FOG_OPACITY));
         gc.fillRect(0, 0, viewportWidth, viewportHeight);
 
-        cone.setClip(getCone(viewportWidth / (2 * zoom), viewportHeight / (2 * zoom), angle, false));
+        Path cone = getCone(viewportWidth / (2 * zoom), viewportHeight / (2 * zoom), 100.0, angle, true, false);
+        coneCanvas.setClip(cone);
+
+        Rectangle rectangle = new Rectangle(0, 0, fogCanvas.getWidth(), fogCanvas.getHeight());
+        Shape spotlight = Shape.subtract(rectangle, cone);
+        fogCanvas.setClip(spotlight);
     }
 
     /**
      * Creates a cone / slice of a circle using JavaFX paths
      * @param x x position
      * @param y y position
+     * @param radius radius of the circle
      * @param angle angle where the cone points in radians
-     * @param inverse If this is true, the function returns a circle minus the cone.
+     * @param largeArc see largeArcFlag property of JavaFX ArcTo
+     * @param sweep  see sweepFlag property of JavaFX ArcTO
      */
-    public static Path getCone(double x, double y, double angle, boolean inverse) {
+    public static Path getCone(double x, double y, double radius, double angle, boolean largeArc, boolean sweep) {
         Path cone = new Path();
         cone.getElements().add(new MoveTo(x, y));
-        cone.getElements().add(new LineTo(x + 100.0 * Math.cos(angle - Math.PI / 4.0), y + 100.0 * Math.sin(angle - Math.PI / 4.0)));
-        cone.getElements().add(new ArcTo(100, 100, 0,
-            x + 100.0 * Math.cos(angle + Math.PI / 4.0), y + 100.0 * Math.sin(angle + Math.PI / 4.0), !inverse, false));
+        cone.getElements().add(new LineTo(x + radius * Math.cos(angle - Math.PI / 4.0), y + radius * Math.sin(angle - Math.PI / 4.0)));
+        cone.getElements().add(new ArcTo(radius, radius, 0,
+            x + radius * Math.cos(angle + Math.PI / 4.0), y + radius * Math.sin(angle + Math.PI / 4.0), largeArc, sweep));
         cone.getElements().add(new ClosePath());
         cone.setFill(Color.BLACK);
 

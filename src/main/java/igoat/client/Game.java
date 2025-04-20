@@ -14,11 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
 import javafx.scene.image.ImageView;
-import javafx.scene.shape.ArcTo;
-import javafx.scene.shape.ClosePath;
-import javafx.scene.shape.LineTo;
-import javafx.scene.shape.MoveTo;
-import javafx.scene.shape.Path;
+import javafx.scene.shape.Shape;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import igoat.Role;
@@ -896,18 +892,31 @@ public class Game extends Application {
         double centerY = player.getY() + (PLAYER_HEIGHT/2.0);
 
         for (Player otherPlayer : otherPlayers.values()) {
-            Circle visualClip = new Circle(centerX, centerY, 100);
-            Circle labelClip = new Circle(centerX, centerY, 100);
+            Shape visualClip;
+            Shape labelClip;
+
+            if (player.getRole() == Role.GUARD) {
+                visualClip = Camera.getCone(centerX, centerY, 100, getMouseAngle(), false, true);
+                labelClip = Camera.getCone(centerX, centerY, 100, getMouseAngle(), false, true);
+            }
+            else {
+                visualClip = new Circle(centerX, centerY, 100);
+                labelClip = new Circle(centerX, centerY, 100);
+            }
             
             otherPlayer.getVisualRepresentation().setClip(visualClip);
             otherPlayer.getUsernameLabel().setClip(labelClip);
         }
 
         for (Terminal terminal : gameMap.getTerminalList()) {
-            terminal.setClip(new Circle(centerX, centerY, 100));
+            Shape clip = player.getRole() == Role.GUARD ? Camera.getCone(centerX, centerY, 100, getMouseAngle(), false, true)
+                : new Circle(centerX, centerY, 100);
+            terminal.setClip(clip);
         }
 
-        activeCamera.updateCone(getMouseAngle());
+        if (player.getRole() == Role.GUARD) {
+            activeCamera.updateCone(getMouseAngle());
+        }
     }
 
     /**
