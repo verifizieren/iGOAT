@@ -550,7 +550,7 @@ public class ClientHandler implements Runnable {
             return;
         }
 
-        String requestedNickname = params[0];
+        String requestedNickname = params[0].replaceAll("\\s", "");
         this.nickname = generateUniqueNickname(requestedNickname);
 
         if (!requestedNickname.equals(this.nickname)) {
@@ -589,7 +589,7 @@ public class ClientHandler implements Runnable {
         }
 
         String oldNickname = this.nickname;
-        String requestedNickname = params[0];
+        String requestedNickname = params[0].replaceAll("\\s", "");
         String newNickname = generateUniqueNickname(requestedNickname);
 
         if (!requestedNickname.equals(newNickname)) {
