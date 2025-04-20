@@ -2,6 +2,8 @@ package igoat.client;
 
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
+
+import igoat.client.GUI.Banner;
 import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -264,18 +266,16 @@ public class Game extends Application {
         primaryStage.setHeight(windowHeight);
         primaryStage.setFullScreenExitHint("");
 
+        Pane container = new Pane();
+        container.getChildren().add(gamePane);
 
+        uiOverlay = new Pane();
+        uiOverlay.setMouseTransparent(true);
+        uiOverlay.prefWidthProperty().bind(stage.widthProperty());
+        uiOverlay.prefHeightProperty().bind(stage.heightProperty());
+        container.getChildren().add(uiOverlay);
 
-    Pane container = new Pane();
-    container.getChildren().add(gamePane);
-    
-    uiOverlay = new Pane();
-    uiOverlay.setMouseTransparent(true); 
-    uiOverlay.prefWidthProperty().bind(stage.widthProperty());
-    uiOverlay.prefHeightProperty().bind(stage.heightProperty());
-    container.getChildren().add(uiOverlay);
-    
-    Scene scene = new Scene(container);
+        Scene scene = new Scene(container);
         scene.setFill(Color.BLACK);
         
         String windowTitle = "iGoat Game - Lobby " + lobbyCode + " - Player: " + confirmedNickname;
@@ -285,25 +285,14 @@ public class Game extends Application {
 
         primaryStage.show();
 
-        terminalActivationBanner = new Label("Terminal Activated!");
-        terminalActivationBanner.setStyle("-fx-background-color: rgba(0, 200, 0, 0.7); -fx-text-fill: white; -fx-font-size: 24px; -fx-padding: 10px; -fx-background-radius: 5px;");
-        terminalActivationBanner.setVisible(false);
-        terminalActivationBanner.layoutXProperty().bind(uiOverlay.widthProperty().subtract(terminalActivationBanner.widthProperty()).divide(2));
-        terminalActivationBanner.setLayoutY(20);
+        // create banners
+        terminalActivationBanner = Banner.terminalActivation(uiOverlay);
         uiOverlay.getChildren().add(terminalActivationBanner);
     
-        allTerminalsBanner = new Label("All Terminals Activated! Exits Open!");
-        allTerminalsBanner.setStyle("-fx-background-color: rgba(0, 100, 255, 0.8); -fx-text-fill: white; -fx-font-size: 28px; -fx-padding: 15px; -fx-background-radius: 8px; -fx-border-color: white; -fx-border-width: 2; -fx-border-radius: 8;");
-        allTerminalsBanner.setVisible(false);
-        allTerminalsBanner.layoutXProperty().bind(uiOverlay.widthProperty().subtract(allTerminalsBanner.widthProperty()).divide(2));
-        allTerminalsBanner.setLayoutY(60); 
+        allTerminalsBanner = Banner.allTerminals(uiOverlay);
         uiOverlay.getChildren().add(allTerminalsBanner);
 
-        alreadyActiveBanner = new Label("Terminal X is already active!");
-        alreadyActiveBanner.setStyle("-fx-background-color: rgba(255, 100, 0, 0.8); -fx-text-fill: white; -fx-font-size: 18px; -fx-padding: 8px; -fx-background-radius: 5px;");
-        alreadyActiveBanner.setVisible(false);
-        alreadyActiveBanner.layoutXProperty().bind(uiOverlay.widthProperty().subtract(alreadyActiveBanner.widthProperty()).divide(2));
-        alreadyActiveBanner.setLayoutY(100);
+        alreadyActiveBanner = Banner.alreadyActive(uiOverlay);
         uiOverlay.getChildren().add(alreadyActiveBanner);
 
         for (Node wall : gameMap.getVisualWalls()) {
@@ -635,40 +624,26 @@ public class Game extends Application {
         String sender = parsed[0];
         String content = parsed[1];
 
-//        if ("System".equals(sender) && "All terminals have been activated!".equals(content)) {
-//            logger.info("Received notification: All terminals activated.");
-//            Platform.runLater(() -> {
-//                allTerminalsBanner.setVisible(true);
-//                allTerminalsBanner.setOpacity(1.0);
-//                new Tada(allTerminalsBanner).play();
-//
-//                PauseTransition delay = new PauseTransition(Duration.seconds(4));
-//                delay.setOnFinished(event -> {
-//                    new FadeOutDown(allTerminalsBanner).play();
-//                });
-//                delay.play();
-//            });
-//            return;
-//        }
-
         final String alreadyActiveSuffix = " was already activated.";
         if ("System".equals(sender) && content.endsWith(alreadyActiveSuffix) && content.startsWith("Terminal ")) {
             try {
                 String terminalIdStr = content.substring("Terminal ".length(), content.length() - alreadyActiveSuffix.length());
                 logger.info("Received notification: Terminal {} already activated.", terminalIdStr);
 
-                Platform.runLater(() -> {
-                    alreadyActiveBanner.setText("Terminal " + terminalIdStr + " is already active!");
-                    alreadyActiveBanner.setVisible(true);
-                    alreadyActiveBanner.setOpacity(1.0);
-                    new Shake(alreadyActiveBanner).play();
-
-                    PauseTransition delay = new PauseTransition(Duration.seconds(1.5));
-                    delay.setOnFinished(event -> {
-                        alreadyActiveBanner.setVisible(false); 
-                    });
-                    delay.play();
-                });
+                Banner.showAnimation(alreadyActiveBanner, "Terminal " + terminalIdStr + " is already active!", 1.5);
+                Banner.shake(alreadyActiveBanner);
+//                Platform.runLater(() -> {
+//                    alreadyActiveBanner.setText("Terminal " + terminalIdStr + " is already active!");
+//                    alreadyActiveBanner.setVisible(true);
+//                    alreadyActiveBanner.setOpacity(1.0);
+//                    new Shake(alreadyActiveBanner).play();
+//
+//                    PauseTransition delay = new PauseTransition(Duration.seconds(1.5));
+//                    delay.setOnFinished(event -> {
+//                        alreadyActiveBanner.setVisible(false);
+//                    });
+//                    delay.play();
+//                });
             } catch (Exception e) {
                 logger.error("Failed to parse already activated message: {}", message, e);
             }
@@ -744,17 +719,7 @@ public class Game extends Application {
              logger.info("Doors have been opened.");
         }
 
-        Platform.runLater(() -> {
-            allTerminalsBanner.setVisible(true);
-            allTerminalsBanner.setOpacity(1.0);
-            new Tada(allTerminalsBanner).play();
-
-            PauseTransition delay = new PauseTransition(Duration.seconds(4));
-            delay.setOnFinished(event -> {
-                new FadeOutDown(allTerminalsBanner).play();
-            });
-            delay.play();
-        });
+        Banner.showAnimation(allTerminalsBanner, "All Terminals Activated! Exits Open!", 4);
     }
 
     /**
@@ -1126,20 +1091,8 @@ public class Game extends Application {
      */
     private void activateTerminal(int id) {
         // display terminal activation banner
-        Platform.runLater(() -> {
-            terminalActivationBanner.setText("Terminal " + id + " Activated!");
+        Banner.showAnimation(terminalActivationBanner, "Terminal " + id + " Activated!", 2.5f);
 
-            terminalActivationBanner.setVisible(true);
-            terminalActivationBanner.setOpacity(1.0);
-            new FadeInDown(terminalActivationBanner).play();
-
-            PauseTransition delay = new PauseTransition(Duration.seconds(2.5));
-            delay.setOnFinished(event -> {
-                new FadeOutUp(terminalActivationBanner).play();
-                // terminalActivationBanner.setVisible(false);
-            });
-            delay.play();
-        });
         for (Terminal terminal : gameMap.getTerminalList()) {
             if (terminal.getTerminalID() == id) {
                 terminal.activate();
