@@ -704,74 +704,36 @@ public class Game extends Application {
         addChatMessage(sender, null, content, mode);
     }
 
+    /**
+     * shows the victory or loss screen to the player according to their role and the result from the server
+     * @param result true if the guard has won, false otherwise
+     */
     private void endGame(boolean result) {
-        if (player.getRole() == Role.GUARD) {
-            if (result) {
-                Platform.runLater(() -> {
-                    Text victoryText = new Text("🎉 You Win! 🎉");
-                    victoryText.setFont(Font.font("Verdana", 40));
-                    victoryText.setFill(Color.GREEN);
+        boolean isGuard = player.getRole() == Role.GUARD;
+        boolean win = (isGuard && result) || (!isGuard && !result);
 
-                    Button exitButton = new Button("Exit Game");
-                    exitButton.setOnAction(e -> exit());
-
-                    VBox layout = new VBox(20, victoryText, exitButton);
-                    layout.setStyle("-fx-alignment: center; -fx-background-color: #dff0d8; -fx-padding: 50;");
-                    Scene victoryScene = new Scene(layout, 400, 300);
-                    stage.setScene(victoryScene);
-                    stage.show();
-                });
-            } else {
-                Platform.runLater(() -> {
-                    Text loseText = new Text("💀 You Lost... 💀");
-                    loseText.setFont(Font.font("Verdana", 40));
-                    loseText.setFill(Color.RED);
-
-                    Button exitButton = new Button("Exit Game");
-                    exitButton.setOnAction(e -> exit());
-
-                    VBox layout = new VBox(20, loseText, exitButton);
-                    layout.setStyle("-fx-alignment: center; -fx-background-color: #dff0d8; -fx-padding: 50;");
-                    Scene loseScene = new Scene(layout, 400, 300);
-                    stage.setScene(loseScene);
-                    stage.show();
-                });
-            }
-        } else {
-            if (result) {
-                Platform.runLater(() -> {
-                    Text loseText = new Text("💀 You Lost... 💀");
-                    loseText.setFont(Font.font("Verdana", 40));
-                    loseText.setFill(Color.RED);
-
-                    Button exitButton = new Button("Exit Game");
-                    exitButton.setOnAction(e -> exit());
-
-                    VBox layout = new VBox(20, loseText, exitButton);
-                    layout.setStyle("-fx-alignment: center; -fx-background-color: #dff0d8; -fx-padding: 50;");
-                    Scene loseScene = new Scene(layout, 400, 300);
-                    stage.setScene(loseScene);
-                    stage.show();
-                });
-            } else {
-                Platform.runLater(() -> {
-                    Text victoryText = new Text("🎉 You Win! 🎉");
-                    victoryText.setFont(Font.font("Verdana", 40));
-                    victoryText.setFill(Color.GREEN);
-
-                    Button exitButton = new Button("Exit Game");
-                    exitButton.setOnAction(e -> exit());
-
-                    VBox layout = new VBox(20, victoryText, exitButton);
-                    layout.setStyle("-fx-alignment: center; -fx-background-color: #dff0d8; -fx-padding: 50;");
-                    Scene victoryScene = new Scene(layout, 400, 300);
-                    stage.setScene(victoryScene);
-                    stage.show();
-                });
-            }
-        }
+        showWinLossScreen(win);
     }
 
+    private void showWinLossScreen(boolean won) {
+        String message = won? "🎉 You Win! 🎉" : "💀 You Lost... 💀";
+        Color color = won ? Color.GREEN : Color.RED;
+
+        Platform.runLater(() -> {
+            Text victoryText = new Text(message);
+            victoryText.setFont(Font.font("Verdana", 40));
+            victoryText.setFill(color);
+
+            Button exitButton = new Button("Exit Game");
+            exitButton.setOnAction(e -> exit());
+
+            VBox layout = new VBox(20, victoryText, exitButton);
+            layout.setStyle("-fx-alignment: center; -fx-background-color: #dff0d8; -fx-padding: 50;");
+            Scene victoryScene = new Scene(layout, 400, 300);
+            stage.setScene(victoryScene);
+            stage.show();
+        });
+    }
     /**
      * Handles the opening of doors when all terminals are activated.
      */
