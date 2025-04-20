@@ -7,6 +7,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import javafx.scene.image.ImageView;
 
 /**
  * Represents a game map containing walls and their layout.
@@ -27,6 +28,7 @@ public class Map {
     private List<Terminal> terminalList;
     private List<Rectangle> doorVisuals;
     private List<Wall> doorCollisions;
+    private List<ImageView> decorItems;
     
     /**
      * Creates a new Map with the layout from the design.
@@ -37,9 +39,11 @@ public class Map {
         terminalList = new ArrayList<>();
         doorVisuals = new ArrayList<>();
         doorCollisions = new ArrayList<>();
+        decorItems = new ArrayList<>();
         createMapLayout();
         createTerminals();
         createDoor();
+        createDecor();
     }
     
     /**
@@ -152,9 +156,15 @@ public class Map {
         Rectangle visualWall = new Rectangle(x, y, width, height);
         visualWall.setFill(Color.GRAY);
         visualWalls.add(visualWall);
-        
+
         Wall collisionWall = new Wall(x, y, width, height);
         collisionWalls.add(collisionWall);
+    }
+
+    private void createDecor() {
+        for (Decoration decor : SceneDecoration.getDecorList()) {
+            addDecorItem(decor);
+        }
     }
     
     /**
@@ -256,8 +266,20 @@ public class Map {
         createWall(x, y, width, height);
     }
 
+    public void addDecorItem(Decoration decor) {
+        decorItems.add(decor.createImageView());
+        Wall wall = decor.createWallIfNeeded();
+        if (wall != null) {
+            collisionWalls.add(wall);
+        }
+    }
+
     public List<Terminal> getTerminalList(){
         return terminalList;
+    }
+
+    public List<ImageView> getDecorItems() {
+        return decorItems;
     }
 
 }
