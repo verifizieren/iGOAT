@@ -305,7 +305,7 @@ public class Game extends Application {
         }
         
         player = new Player(gamePane, primaryStage.getWidth(), primaryStage.getHeight(), CAMERA_ZOOM,
-                100, 100, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, Color.GRAY, confirmedNickname, true);
+                80, 80, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, Color.GRAY, confirmedNickname, true);
         
         player.setSpectated(false);
         activeCamera = player.getCamera();
@@ -760,7 +760,7 @@ public class Game extends Application {
                 return;
             }
 
-            String remotePlayerName = parts[1];
+            String playerName = parts[1];
             try {
                 int x = Integer.parseInt(parts[2]);
                 int y = Integer.parseInt(parts[3]);
@@ -770,13 +770,17 @@ public class Game extends Application {
                     logger.error("Cannot process update - confirmed nickname is null");
                     return;
                 }
-                if (remotePlayerName.equals(confirmedNickname)) {
+                if (playerName.equals(confirmedNickname)) {
+                    player.updatePosition(x, y);
                     return;
                 }
-                if (otherPlayers.containsKey(remotePlayerName)) {
-                    updateRemotePlayerPosition(remotePlayerName, x, y);
+                else {
+                    logger.info("not local player: \"{}\" , \"{}\"", playerName, confirmedNickname);
+                }
+                if (otherPlayers.containsKey(playerName)) {
+                    updateRemotePlayerPosition(playerName, x, y);
                 } else {
-                    createVisualForRemotePlayer(remotePlayerName, x, y);
+                    createVisualForRemotePlayer(playerName, x, y);
                 }
             } catch (NumberFormatException e) {
                 logger.error("Invalid coordinates in update: {}", update, e);

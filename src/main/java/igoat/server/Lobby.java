@@ -1,5 +1,6 @@
 package igoat.server;
 
+import igoat.client.Map;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,6 +21,7 @@ public class Lobby {
     private final List<ClientHandler> members;
     /** Maximum number of players allowed in a lobby */
     public static int MAX_PLAYERS = 4;
+    private Map map = new Map();
 
     /**
      * Represents the different states a lobby can be in:
@@ -64,6 +66,9 @@ public class Lobby {
         this.state = state;
     }
 
+    public Map getMap() {
+        return map;
+    }
     /**
      * Sets the total number of terminals required for the map being played in this lobby.
      * Should be called when the game starts.

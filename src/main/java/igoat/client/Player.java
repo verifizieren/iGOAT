@@ -189,14 +189,23 @@ public class Player {
      *
      * @param testX The X coordinate to test
      * @param testY The Y coordinate to test
+     * @param width player width
+     * @param height = player height
      * @param wall The wall to check collision with
      * @return true if the position would collide with the wall, false otherwise
      */
-    public boolean collidesWithWall(double testX, double testY, Wall wall) {
+    public static boolean collidesWithWall(double testX, double testY, double width, double height, Wall wall) {
         return testX < wall.x + wall.width &&
                testX + width > wall.x &&
                testY < wall.y + wall.height &&
                testY + height > wall.y;
+    }
+
+    public boolean collidesWithWall(double testX, double testY, Wall wall) {
+        return testX < wall.x + wall.width &&
+            testX + width > wall.x &&
+            testY < wall.y + wall.height &&
+            testY + height > wall.y;
     }
 
     /**

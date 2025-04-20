@@ -1,6 +1,8 @@
 package igoat.server;
 
 import igoat.Role;
+import igoat.client.Player;
+import igoat.client.Wall;
 import igoat.server.Lobby.LobbyState;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -56,6 +58,8 @@ public class ClientHandler implements Runnable {
     private boolean isReady = false;
     private boolean isDown = false;
     private boolean isCaught = false;
+    private double playerX = 80;
+    private double playerY = 80;
 
     private int reportedTerminalCount = -1;
 
@@ -245,35 +249,62 @@ public class ClientHandler implements Runnable {
                 return;
             }
             
-            if (sender.currentLobby != null) {
-                String currentLobbyCode = String.valueOf(sender.currentLobby.getCode());
-                if (!currentLobbyCode.equals(lobbyCode)) {
-                    logger.warn("Lobby code mismatch for {}", senderName);
-                    return;
-                }
-                
-                String broadcastMessage = "player_position:" + senderName + ":" + x + ":" + y;
-                if (sender.currentLobby.getGameState() != null) {
-                    sender.currentLobby.getGameState().setX(x);
-                    sender.currentLobby.getGameState().setY(y);
-                    if (sender.currentLobby.getGameState().getPlayerX() < 0 || sender.currentLobby.getGameState().getPlayerX() > 1500) {
-                        if (sender.role == Role.GOAT) {
-                            sender.endGame(false);
-                        }
-                    } else if (sender.currentLobby.getGameState().isGuardWin()) {
-                        sender.endGame(true);
-                    }
-                }
-
-                sender.currentLobby.broadcastUpdateToLobby(broadcastMessage, sender);
-            } else {
+            if (sender.currentLobby == null) {
                 logger.warn("Player {} not in a lobby", senderName);
+                return;
             }
+
+            String currentLobbyCode = String.valueOf(sender.currentLobby.getCode());
+            if (!currentLobbyCode.equals(lobbyCode)) {
+                logger.warn("Lobby code mismatch for {}", senderName);
+                return;
+            }
+
+            if (sender.currentLobby.getGameState() == null) {
+                logger.warn("game state is null for player {}", senderName);
+                return;
+            }
+
+            // if there is a collision, we return the current coordinates
+            if (sender.currentLobby.getMap() != null && checkCollision(x, y, 32, 32, sender.currentLobby.getMap())) {
+                x = (int)sender.getPlayerX();
+                y = (int)sender.getPlayerY();
+                logger.info("collision prevented");
+                sender.sendUpdate("player_position:"+senderName+":"+x+":"+y);
+            }
+            else {
+                sender.setPlayerX(x);
+                sender.setPlayerY(y);
+            }
+
+            if (sender.getPlayerX() < 0 || sender.getPlayerX() > 1500) {
+                if (sender.role == Role.GOAT) {
+                    sender.endGame(false);
+                }
+            } else if (sender.currentLobby.getGameState().isGuardWin()) {
+                sender.endGame(true);
+            }
+
+            String broadcastMessage = "player_position:" + senderName + ":" + x + ":" + y;
+            sender.currentLobby.broadcastUpdateToLobby(broadcastMessage, sender);
+
         } catch (NumberFormatException e) {
             logger.error("Invalid coordinates", e);
         } catch (Exception e) {
             logger.error("Error processing update: ", e);
         }
+    }
+
+    /**
+     * checks for a collision with a wall
+     */
+    private static boolean checkCollision(int x, int y, double playerWidth, double playerHeight, igoat.client.Map map) {
+        for (Wall wall : map.getCollisionWalls()) {
+            if (Player.collidesWithWall(x, y, playerWidth, playerHeight, wall)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -1333,5 +1364,21 @@ public class ClientHandler implements Runnable {
             broadcastGetLobbiesToAll();
             currentLobby.broadcastToLobby("gameover:" + result);
         }
+    }
+
+    public double getPlayerX() {
+        return playerX;
+    }
+
+    public double getPlayerY() {
+        return playerY;
+    }
+
+    public void setPlayerX(double x) {
+        playerX = x;
+    }
+
+    public void setPlayerY(double y) {
+        playerY = y;
     }
 }

@@ -19,9 +19,6 @@ public class GameState {
     public boolean gameOver = false;
     private boolean doorOpen = false;
 
-    private double playerX = 0;
-    private double playerY = 0;
-
     public GameState(int maxTerminals) {
         this.maxTerminals = maxTerminals;
     }
@@ -32,22 +29,6 @@ public class GameState {
 
     public boolean isDoorOpen() {
         return doorOpen;
-    }
-
-    public void setX(double playerX) {
-        this.playerX = playerX;
-    }
-
-    public void setY(double playerY) {
-        this.playerY = playerY;
-    }
-
-    public double getPlayerX() {
-        return playerX;
-    }
-
-    public double getPlayerY() {
-        return playerY;
     }
 
     /**
