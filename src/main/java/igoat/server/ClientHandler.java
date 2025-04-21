@@ -880,6 +880,11 @@ public class ClientHandler implements Runnable {
             return;
         }
 
+        if (isCaught) {
+            sendError("Can't revive while caught");
+            return;
+        }
+
         if (target.getRole() != Role.IGOAT || !target.isCaught()) {
             sendError("Can't reactivate target.");
             return;
