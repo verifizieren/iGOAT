@@ -71,6 +71,17 @@ public class Banner {
         return new Banner(banner);
     }
 
+    public static Banner caught(Pane pane) {
+        Label banner = new Label("Caught Player!");
+        banner.setStyle("-fx-background-color: rgba(255,0,0,0.7); -fx-text-fill: white; -fx-font-size: 24px; -fx-padding: 10px; -fx-background-radius: 5px;");
+        banner.setVisible(false);
+        banner.layoutXProperty().bind(pane.widthProperty().subtract(banner.widthProperty()).divide(2));
+        banner.setLayoutY(20);
+        pane.getChildren().add(banner);
+
+        return new Banner(banner);
+    }
+
     /**
      * Plays an animation showing the banner
      * @param message The text to be shown on the banner

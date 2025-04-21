@@ -144,6 +144,7 @@ public class Game extends Application {
     private Banner allTerminalsBanner;
     private Banner noActivationBanner;
     private Banner reviveBanner;
+    private Banner caughtBanner;
 
     /**
      * Constructor for Game
@@ -281,6 +282,7 @@ public class Game extends Application {
         allTerminalsBanner = Banner.allTerminals(uiOverlay);
         noActivationBanner = Banner.noActivation(uiOverlay);
         reviveBanner = Banner.revive(uiOverlay);
+        caughtBanner = Banner.caught(uiOverlay);
 
         for (Node wall : gameMap.getVisualWalls()) {
             gamePane.getChildren().add(wall);
@@ -481,6 +483,8 @@ public class Game extends Application {
             } else if (message.startsWith("catch:")) {
                 String caughtPlayerName = message.substring("catch:".length());
                 logger.info("{} was caught!", caughtPlayerName);
+                caughtBanner.showAnimation(caughtPlayerName + " was caught!", 2);
+
                 Platform.runLater(() -> {
                     if (player != null && caughtPlayerName.equals(player.getUsername())) {
                         player.setDown(true);
