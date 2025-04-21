@@ -34,7 +34,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextFormatter;
@@ -60,7 +59,6 @@ import javafx.util.Duration;
  * - Network communication (TCP for game state, UDP for position updates)
  * - Remote player synchronization
  * - Game state and visual updates
- *
  * The game uses a client-server architecture where each client sends position updates
  * via UDP and receives game state updates via TCP.
  */
@@ -75,7 +73,7 @@ public class Game extends Application {
     private Pane gamePane;
     private Pane uiOverlay;
     private Stage stage;
-    private LobbyGUI lobby;
+    private final LobbyGUI lobby;
     private double windowWidth;
     private double windowHeight;
     private Set<KeyCode> activeKeys;
@@ -93,8 +91,8 @@ public class Game extends Application {
     
     private boolean gameStarted = false;
     
-    private Map<String, Player> otherPlayers = new HashMap<>();
-    private Map<String, Role> pendingRoles = new ConcurrentHashMap<>();
+    private final Map<String, Player> otherPlayers = new HashMap<>();
+    private final Map<String, Role> pendingRoles = new ConcurrentHashMap<>();
     private boolean pressedE = false;
     private double mouseX;
     private double mouseY;
@@ -102,7 +100,6 @@ public class Game extends Application {
 
     /**
      * Enum for defining the chat modes available in the game.
-     * 
      * This enum provides a way to manage different chat modes within the game. It includes three modes:
      * GLOBAL, LOBBY, and TEAM. Each mode has a display name associated with it, which is used to identify
      * the mode in the game's user interface.
@@ -143,9 +140,10 @@ public class Game extends Application {
     private FadeTransition chatFadeOutTransition;
     private ChatMode currentChatMode = ChatMode.LOBBY;
 
-    private Label terminalActivationBanner;
-    private Label allTerminalsBanner;
-    private Label noActivationBanner;
+    private Banner terminalActivationBanner;
+    private Banner allTerminalsBanner;
+    private Banner noActivationBanner;
+    private Banner reviveBanner;
 
     /**
      * Constructor for Game
@@ -280,13 +278,9 @@ public class Game extends Application {
 
         // create banners
         terminalActivationBanner = Banner.terminalActivation(uiOverlay);
-        uiOverlay.getChildren().add(terminalActivationBanner);
-    
         allTerminalsBanner = Banner.allTerminals(uiOverlay);
-        uiOverlay.getChildren().add(allTerminalsBanner);
-
-        noActivationBanner = Banner.alreadyActive(uiOverlay);
-        uiOverlay.getChildren().add(noActivationBanner);
+        noActivationBanner = Banner.noActivation(uiOverlay);
+        reviveBanner = Banner.revive(uiOverlay);
 
         for (Node wall : gameMap.getVisualWalls()) {
             gamePane.getChildren().add(wall);
@@ -500,6 +494,8 @@ public class Game extends Application {
             } else if (message.startsWith("revive:")) {
                 String revivedPlayerName = message.substring("revive:".length());
                 logger.info("{} was revived!", revivedPlayerName);
+                reviveBanner.showAnimation(revivedPlayerName + " was freed!", 2);
+
                 Platform.runLater(() -> {
                     if (player != null && revivedPlayerName.equals(player.getUsername())) {
                         player.setDown(false);
@@ -668,17 +664,17 @@ public class Game extends Application {
         Color color = won ? Color.GREEN : Color.RED;
 
         Platform.runLater(() -> {
-            Text victoryText = new Text(message);
-            victoryText.setFont(Font.font("Verdana", 40));
-            victoryText.setFill(color);
+            Text text = new Text(message);
+            text.setFont(Font.font("Verdana", 40));
+            text.setFill(color);
 
             Button exitButton = new Button("Exit Game");
             exitButton.setOnAction(e -> exit());
 
-            VBox layout = new VBox(20, victoryText, exitButton);
+            VBox layout = new VBox(20, text, exitButton);
             layout.setStyle("-fx-alignment: center; -fx-background-color: #dff0d8; -fx-padding: 50;");
-            Scene victoryScene = new Scene(layout, 400, 300);
-            stage.setScene(victoryScene);
+            Scene scene = new Scene(layout, 400, 300);
+            stage.setScene(scene);
             stage.show();
         });
     }
@@ -692,7 +688,7 @@ public class Game extends Application {
              logger.info("Doors have been opened.");
         }
 
-        Banner.showAnimation(allTerminalsBanner, "All Terminals Activated! Exits Open!", 4);
+        allTerminalsBanner.showAnimation("All Terminals Activated! Exits Open!", 4);
     }
 
     /**
@@ -1092,13 +1088,13 @@ public class Game extends Application {
     private void activateTerminal(int id) {
         //
         if (id == -1) {
-            Banner.showAnimation(noActivationBanner, "Can't activate Terminal", 1.5);
-            Banner.shake(noActivationBanner);
+            noActivationBanner.showAnimation("Can't activate Terminal", 1.5);
+            noActivationBanner.shake();
             return;
         }
 
         // display terminal activation banner
-        Banner.showAnimation(terminalActivationBanner, "Terminal " + id + " Activated!", 2.5f);
+        terminalActivationBanner.showAnimation("Terminal " + id + " Activated!", 2.5f);
 
         for (Terminal terminal : gameMap.getTerminalList()) {
             if (terminal.getTerminalID() == id) {
@@ -1129,9 +1125,7 @@ public class Game extends Application {
                 return;
             }
             
-            String updateMessage = String.format("position:%s:%s:%d:%d",
-                                               confirmedNickname, lobbyCode, x, y);
-            //logger.info("Sending position update: {}", updateMessage);
+            String updateMessage = String.format("position:%s:%s:%d:%d", confirmedNickname, lobbyCode, x, y);
             serverHandler.sendUpdate(updateMessage);
         }
     }
@@ -1304,22 +1298,21 @@ public class Game extends Application {
         final String senderDisplay;
         final Color senderColor;
 
-        if (mode != null) { 
-             switch (mode) {
-                 case LOBBY:
-                     prefixDisplay = "[LOBBY] ";
-                     prefixColor = Color.GREEN; 
-                     break;
-                 case TEAM:
-                     prefixDisplay = "[TEAM] ";
-                     prefixColor = Color.BLUE; 
-                     break;
-                 case GLOBAL:
-                 default:
-                     prefixDisplay = "[GLOBAL] ";
-                     prefixColor = Color.ORANGE; 
-                     break;
-             }
+        if (mode != null) {
+            prefixColor = switch (mode) {
+                case LOBBY -> {
+                    prefixDisplay = "[LOBBY] ";
+                    yield Color.GREEN;
+                }
+                case TEAM -> {
+                    prefixDisplay = "[TEAM] ";
+                    yield Color.BLUE;
+                }
+                default -> {
+                    prefixDisplay = "[GLOBAL] ";
+                    yield Color.ORANGE;
+                }
+            };
              senderDisplay = sender + ":";
              senderColor = Color.LIGHTBLUE;
         } else if (recipient != null) { 
@@ -1401,19 +1394,11 @@ public class Game extends Application {
                     String whisperMarker = String.format("[WHISPER->%s] ", targetUsername);
                     String messageWithMarker = whisperMarker + whisperMessageContent;
 
-                    String prefix;
-                    switch (currentChatMode) {
-                        case LOBBY:
-                            prefix = "lobbychat:";
-                            break;
-                        case TEAM:
-                            prefix = "teamchat:";
-                            break;
-                        case GLOBAL:
-                        default:
-                            prefix = "chat:";
-                            break;
-                    }
+                    String prefix = switch (currentChatMode) {
+                        case LOBBY -> "lobbychat:";
+                        case TEAM -> "teamchat:";
+                        default -> "chat:";
+                    };
                     String messageToSend = prefix + messageWithMarker;
 
                     logger.info("Sending whisper via {}: {}", prefix, messageToSend);
@@ -1425,19 +1410,11 @@ public class Game extends Application {
                 addChatMessage("System", null, "Usage: /whisper <username> <message>", null);
             }
         } else {
-            String prefix;
-            switch (currentChatMode) {
-                case LOBBY:
-                    prefix = "lobbychat:";
-                    break;
-                case TEAM:
-                    prefix = "teamchat:";
-                    break;
-                case GLOBAL:
-                default:
-                    prefix = "chat:";
-                    break;
-            }
+            String prefix = switch (currentChatMode) {
+                case LOBBY -> "lobbychat:";
+                case TEAM -> "teamchat:";
+                default -> "chat:";
+            };
             String chatMessage = prefix + text;
             logger.info("Sending {} message: {}", currentChatMode, chatMessage);
             serverHandler.sendMessage(chatMessage);
