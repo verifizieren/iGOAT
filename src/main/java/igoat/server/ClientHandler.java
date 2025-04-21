@@ -280,6 +280,7 @@ public class ClientHandler implements Runnable {
             if (sender.getPlayerX() < 0 || sender.getPlayerX() > 1500) {
                 if (sender.role == Role.GOAT) {
                     sender.endGame(false);
+
                 }
             } else if (sender.currentLobby.getGameState().isGuardWin()) {
                 sender.endGame(true);
@@ -532,6 +533,7 @@ public class ClientHandler implements Runnable {
         if (currentLobby.getGameState().isDoorOpen()) {
             currentLobby.broadcastChatToLobby("Exits have been opened!");
             currentLobby.broadcastToLobby("door");
+            currentLobby.getMap().openDoors();
             logger.info("Exits have been opened!");
         }
     }

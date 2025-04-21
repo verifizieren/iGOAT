@@ -16,6 +16,8 @@ import javafx.scene.shape.Path;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.transform.Scale;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents a camera system for the game world with fog of war effect.
@@ -24,6 +26,7 @@ import javafx.scene.transform.Scale;
  * game world obscured by a semi-transparent overlay.
  */
 public class Camera {
+    private static final Logger logger = LoggerFactory.getLogger(Camera.class);
     private final Pane gamePane;
     private final Canvas fogCanvas;
     private final GraphicsContext fogGC;
@@ -163,6 +166,7 @@ public class Camera {
         if (coneCanvas == null) {
             coneCanvas = new Canvas(viewportWidth, viewportHeight);
             gamePane.getChildren().add(coneCanvas);
+            logger.info("created cone effect");
         }
         GraphicsContext gc = coneCanvas.getGraphicsContext2D();
 

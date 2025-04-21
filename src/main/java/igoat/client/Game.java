@@ -603,7 +603,7 @@ public class Game extends Application {
                         pendingRoles.putAll(rolesToPend);
                     });
                 }
-            } else if (message.equals("doors")) {
+            } else if (message.equals("door")) {
                 Platform.runLater(this::handleDoorsOpen);
                 return;
             } else if (message.startsWith("gameover:")) {
@@ -774,9 +774,6 @@ public class Game extends Application {
                     player.updatePosition(x, y);
                     return;
                 }
-                else {
-                    logger.info("not local player: \"{}\" , \"{}\"", playerName, confirmedNickname);
-                }
                 if (otherPlayers.containsKey(playerName)) {
                     updateRemotePlayerPosition(playerName, x, y);
                 } else {
@@ -787,7 +784,7 @@ public class Game extends Application {
             }
         } else if (update.startsWith("udp_ack:")) {
             logger.info("Received UDP acknowledgment from server");
-        } else if (update.equals("doors")) {
+        } else if (update.equals("door")) {
             Platform.runLater(this::handleDoorsOpen);
         } else {
             logger.info("Unrecognized UDP message format: {}", update);
