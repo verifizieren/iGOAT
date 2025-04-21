@@ -1,7 +1,11 @@
 package igoat.server;
 
+import static java.lang.Math.pow;
+import static java.lang.Math.sqrt;
+
 import igoat.Role;
 import igoat.client.Player;
+import igoat.client.Terminal;
 import igoat.client.Wall;
 import igoat.server.Lobby.LobbyState;
 import java.io.BufferedReader;
@@ -1265,6 +1269,24 @@ public class ClientHandler implements Runnable {
                 logger.warn("Wrong role for terminal activation.");
                 return;
             }
+
+            double x = playerX + 16;
+            double y = playerY + 16;
+
+            for (Terminal t : currentLobby.getMap().getTerminalList())
+            {
+                if (t.getTerminalID() == terminalId) {
+                    double tx = t.getX() + (t.getWidth() / 2.0);
+                    double ty = t.getY() + (t.getHeight() / 2.0);
+                    if (sqrt(pow(tx - x, 2) + pow(ty - y, 2)) > 50.0) {
+                        logger.warn("Out of range for terminal");
+                        return;
+                    }
+                    break;
+                }
+            }
+
+
 
             if (!currentLobby.getGameState().activateTerminal(terminalId)) {
                 sendMessage("terminal:-1");
