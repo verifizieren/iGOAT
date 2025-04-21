@@ -14,10 +14,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.slf4j.Logger;
@@ -64,14 +61,6 @@ public class ClientHandler implements Runnable {
     private int reportedTerminalCount = -1;
 
     private Role role;
-
-    // Add role mapping
-    private static final Map<String, Role> roleMap = new ConcurrentHashMap<>();
-    public HashMap<String, Role> roles = new HashMap<>();
-    
-    // Add list for available roles (0 = goat, 1 = robot, 2 = guard)
-    private static final List<Role> availableRoles = new CopyOnWriteArrayList<>();
-    private static final Role[] INITIAL_ROLES = {Role.GUARD, Role.IGOAT, Role.IGOAT, Role.GOAT}; // 1 goat, 2 igoat, 1 guard
 
     private static DatagramSocket serverUpdateSocket;
 
@@ -299,7 +288,7 @@ public class ClientHandler implements Runnable {
     /**
      * checks for a collision with a wall
      */
-    private static boolean checkCollision(int x, int y, double playerWidth, double playerHeight, igoat.client.Map map) {
+    private static boolean checkCollision(int x, int y, double playerWidth, double playerHeight, CollisionMap map) {
         for (Wall wall : map.getCollisionWalls()) {
             if (Player.collidesWithWall(x, y, playerWidth, playerHeight, wall)) {
                 return true;
@@ -525,6 +514,7 @@ public class ClientHandler implements Runnable {
             }
         } catch (Exception e) {
             sendError("Fehler beim Verarbeiten des Befehls: " + e.getMessage());
+            logger.error("Error when processing command {} : {}", message, e);
         }
         // check game state
         if (currentLobby == null || currentLobby.getGameState() == null) {
@@ -816,7 +806,7 @@ public class ClientHandler implements Runnable {
         logger.info("Broadcasting ready status to lobby {}: {}", currentLobby.getCode(), statusMessage);
 
         appendToLobbyChat("Player " + nickname + " ist bereit.", false);
-
+        /*
         // Assign role when ready
         Role assignedRole = assignRole();
         this.role = assignedRole;
@@ -825,31 +815,21 @@ public class ClientHandler implements Runnable {
         // Broadcast role assignment
         String roleMessage = "role:" + nickname + ":" + assignedRole;
         currentLobby.broadcastToLobby(roleMessage); //delete later
-        appendToLobbyChat("Player " + nickname + " wurde Rolle " + assignedRole + " zugewiesen", false);
+        appendToLobbyChat("Player " + nickname + " wurde Rolle " + assignedRole + " zugewiesen", false);*/
     }
 
-    private Role assignRole() {
-        synchronized (availableRoles) {
-            if (availableRoles.isEmpty()) {
-                // Reset the roles list if empty
-                availableRoles.addAll(Arrays.asList(INITIAL_ROLES[0], INITIAL_ROLES[1], INITIAL_ROLES[2], INITIAL_ROLES[3]));
-            }
-            
-            int randomIndex = (int)(Math.random() * availableRoles.size());
-            Role selectedRole = availableRoles.remove(randomIndex);
-            return selectedRole;
-        }
-    }
 
     private void handleRoleConfirmation(String roleString) {
         try {
             Role parsedRole = Role.valueOf(roleString);
             this.role = parsedRole;
-            roleMap.put(nickname, parsedRole);
+            Lobby.roleMap.put(nickname, parsedRole);
+            logger.info("role confirmed");
             appendToLobbyChat("Player " + nickname + " hat Rolle " + role + " erhalten", false);
         } catch (NumberFormatException e){
             logger.error("Invalid Role {}",roleString ,e);
             sendError("Ungültige Rolle");
+            handleGetRoles();
         }
     }
 
@@ -1252,12 +1232,8 @@ public class ClientHandler implements Runnable {
         logger.info("Broadcasted: {}", gameStartedMessage);
 
         sendMessage(gameStartedMessage);
-        
-        // Reset available roles when game starts
-        synchronized (availableRoles) {
-            availableRoles.clear();
-            availableRoles.addAll(Arrays.asList(INITIAL_ROLES[0], INITIAL_ROLES[1], INITIAL_ROLES[2], INITIAL_ROLES[3]));
-        }
+
+        currentLobby.setRoles();
     }
 
     /**
@@ -1292,7 +1268,7 @@ public class ClientHandler implements Runnable {
 
         StringBuilder sb = new StringBuilder();
         for (ClientHandler member : currentLobby.getMembers()) {
-            Role role = roleMap.get(member.getNickname());
+            Role role = Lobby.roleMap.get(member.getNickname());
             if (role != null) {
                 sb.append(member.getNickname()).append("=").append(role).append(",");
             }
@@ -1382,5 +1358,9 @@ public class ClientHandler implements Runnable {
 
     public void setPlayerY(double y) {
         playerY = y;
+    }
+
+    public void setRole(Role assignedRole) {
+        this.role = assignedRole;
     }
 }

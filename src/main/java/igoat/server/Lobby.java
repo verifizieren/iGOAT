@@ -1,6 +1,7 @@
 package igoat.server;
 
-import igoat.client.Map;
+import igoat.Role;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,11 +18,43 @@ import org.slf4j.LoggerFactory;
 public class Lobby {
     private static final Logger logger = LoggerFactory.getLogger(Lobby.class);
 
+    // roles
+    private static final List<Role> availableRoles = new CopyOnWriteArrayList<>();
+    private static final Role[] INITIAL_ROLES = {Role.GUARD, Role.IGOAT, Role.IGOAT, Role.GOAT}; // 1 goat, 2 igoat, 1 guard
+    public static final java.util.Map<String, Role> roleMap = new ConcurrentHashMap<>();
+
     private final int code;
     private final List<ClientHandler> members;
     /** Maximum number of players allowed in a lobby */
     public static int MAX_PLAYERS = 4;
-    private Map map = new Map();
+    private CollisionMap map = new CollisionMap();
+
+    public void setRoles() {
+        for (ClientHandler player : members) {
+            Role assignedRole = assignRole();
+            player.setRole(assignedRole);
+            roleMap.put(player.getNickname(), assignedRole);
+        }
+
+        synchronized (availableRoles) {
+            availableRoles.clear();
+            availableRoles.addAll(Arrays.asList(INITIAL_ROLES[0], INITIAL_ROLES[1], INITIAL_ROLES[2], INITIAL_ROLES[3]));
+        }
+    }
+
+    private Role assignRole() {
+        synchronized (availableRoles) {
+            if (availableRoles.isEmpty()) {
+                // Reset the roles list if empty
+                availableRoles.addAll(
+                    Arrays.asList(INITIAL_ROLES[0], INITIAL_ROLES[1], INITIAL_ROLES[2], INITIAL_ROLES[3]));
+            }
+
+            int randomIndex = (int)(Math.random() * availableRoles.size());
+            Role selectedRole = availableRoles.remove(randomIndex);
+            return selectedRole;
+        }
+    }
 
     /**
      * Represents the different states a lobby can be in:
@@ -66,7 +99,7 @@ public class Lobby {
         this.state = state;
     }
 
-    public Map getMap() {
+    public CollisionMap getMap() {
         return map;
     }
     /**
