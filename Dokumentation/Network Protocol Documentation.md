@@ -49,13 +49,12 @@ The following list contains the TCP commands used in the protocol.
 | Client | revive:[target]              | Goat requests to revive the target player (Robot).                                                                 | revive:bob                   | TCP      |
 | Server | revive:[target]              | Broadcasts that a player was revived.                                                                              | revive:bob                   | TCP      |
 | Client | terminal:[id]                | Player reports activating a terminal with the specified ID.                                                        | terminal:0                   | TCP      |
-| Server | terminal:[id]                | Broadcasts that a terminal was activated in the lobby.                                                             | terminal:0                   | TCP      |
+| Server | terminal:[id]                | Broadcasts that a terminal was activated in the lobby. If the id is -1, it means that activation failed.           | terminal:0                   | TCP      |
 | Client | startgame                    | Request by the lobby host to start the game.                                                                       | startgame                    | TCP      |
 | Server | game_started                 | Broadcasts that the game has started successfully.                                                                 | game_started                 | TCP      |
 | Server | door                         | Broadcasts that the door have been opened.                                                                         | door                         | TCP      |
 | Server | gameover:[result]            | Message that the game is over. Result is a boolean that is true if the guard wins and false if the goat wins.      | gameover:true                | TCP      |
 | Server | player_left:[player]         | Broadcasts that a player has left the lobby/game.                                                                  | player_left:alice            | TCP      |
-| Client | mapinfo:[terminals]          | Client reports the number of terminals found on the map it loaded. Sent before 'ready'.                            | mapinfo:8                    | TCP      |
 
 ### UDP Commands
 ---

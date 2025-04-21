@@ -1,5 +1,7 @@
 package igoat.server;
 
+import igoat.Role;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,57 +14,95 @@ public class GameState {
     private Lobby lobby;
     private int caughtPlayers = 0;
     private int activatedTerminals = 0;
-    private int maxTerminals;
+    private boolean[] terminals;
+    private int[] ids;
+    private final List<ClientHandler> players;
 
-    // if goats lose this is true
-    private boolean guardWin = false;
     public boolean gameOver = false;
-    private boolean doorOpen = false;
 
-    public GameState(int maxTerminals) {
-        this.maxTerminals = maxTerminals;
+    public GameState(int maxTerminals, int[] ids, List<ClientHandler> players) {
+        this.players = players;
+        terminals = new boolean[maxTerminals];
+        for (boolean terminal : terminals) {
+            terminal = false;
+        }
+
+        this.ids = ids;
+
+        if (ids.length > maxTerminals) {
+            logger.error("invalid id length");
+        }
     }
 
+    /**
+     * Checks if all (i)goats are caught
+     * @return True if all are caught, false otherwise
+     */
     public boolean isGuardWin() {
-        return guardWin;
+        // might remove later: solo guard != instawin
+        if (players.size() < 2) {
+            return false;
+        }
+
+        for (ClientHandler player : players) {
+            if (player.getRole() == Role.GUARD) {
+                continue;
+            }
+
+            if (!player.isCaught()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
+    /**
+     * Checks if the conditions are met for the doors to open
+     * @return True if the correct terminals are active, false otherwise
+     */
     public boolean isDoorOpen() {
-        return doorOpen;
+        for (int i : ids) {
+            if (!terminals[i]) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
-    /**
-     * should be called when a player is caught
-     */
-    public void caught() {
-        caughtPlayers++;
-        logger.info("caught player ({} caught)", caughtPlayers);
-        if (caughtPlayers == 3) {
-            logger.info("guard wins");
-            guardWin = true;
-        }
-    }
 
     /**
-     * should be called when a player is revived
+     * Should be called when a terminal is activated. Depending on the terminal and player state, it will return the resulting terminal state
+     * @return true if terminal was activated, false if not
      */
-    public void revive() {
-        if (caughtPlayers > 0) {
-            caughtPlayers--;
-            logger.info("revived player ({} caught)", caughtPlayers);
+    public boolean activateTerminal(int id) {
+        if (id >= terminals.length || id < 0) {
+            logger.error("Invalid id {}", id);
+            return false;
         }
-        else {
-            logger.warn("Revive was triggered but no caught players were found ({})", caughtPlayers);
-        }
-    }
 
-    /**
-     * should be called when a terminal is activated
-     */
-    public void activateTerminal() {
-        activatedTerminals++;
-        if (activatedTerminals == maxTerminals) {
-            doorOpen = true;
+        // check if terminal is active
+        if (terminals[id]) {
+            return false;
         }
+
+        // check if terminal opens doors
+        for (int val : ids) {
+            if (val == id) {
+                terminals[id] = true;
+                return true;
+            }
+        }
+
+        // check if GOAT is caught
+        for (ClientHandler player : players) {
+            if (player.getRole() == Role.GOAT && player.isCaught()) {
+                terminals[id] = true;
+                return true;
+            }
+        }
+
+        return false;
     }
 }

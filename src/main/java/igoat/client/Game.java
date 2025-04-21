@@ -145,7 +145,7 @@ public class Game extends Application {
 
     private Label terminalActivationBanner;
     private Label allTerminalsBanner;
-    private Label alreadyActiveBanner;
+    private Label noActivationBanner;
 
     /**
      * Constructor for Game
@@ -235,13 +235,6 @@ public class Game extends Application {
         Sprite floor = new Sprite("sprites/floor_tile01.png", 64, 64);
         gamePane.setBackground(floor.getBackground());
 
-        if (serverHandler != null && serverHandler.isConnected()) {
-            int terminalCount = gameMap.getTerminalList().size();
-            String mapInfoMessage = "mapinfo:" + terminalCount;
-            serverHandler.sendMessage(mapInfoMessage);
-            logger.info("Sent map info to server: {}", mapInfoMessage);
-        }
-
         Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
         double screenWidth = screenBounds.getWidth() * 0.8;
         double screenHeight = screenBounds.getHeight() * 0.8;
@@ -292,8 +285,8 @@ public class Game extends Application {
         allTerminalsBanner = Banner.allTerminals(uiOverlay);
         uiOverlay.getChildren().add(allTerminalsBanner);
 
-        alreadyActiveBanner = Banner.alreadyActive(uiOverlay);
-        uiOverlay.getChildren().add(alreadyActiveBanner);
+        noActivationBanner = Banner.alreadyActive(uiOverlay);
+        uiOverlay.getChildren().add(noActivationBanner);
 
         for (Node wall : gameMap.getVisualWalls()) {
             gamePane.getChildren().add(wall);
@@ -607,6 +600,7 @@ public class Game extends Application {
                 Platform.runLater(this::handleDoorsOpen);
                 return;
             } else if (message.startsWith("gameover:")) {
+                logger.info("received: {}", message);
                 String[] parts = message.split(":");
                 if (parts.length == 2) {
                     endGame(parts[1].equals("true"));
@@ -628,20 +622,6 @@ public class Game extends Application {
         String[] parsed = parseSenderAndContent.apply(prefixString, message);
         String sender = parsed[0];
         String content = parsed[1];
-
-        final String alreadyActiveSuffix = " was already activated.";
-        if ("System".equals(sender) && content.endsWith(alreadyActiveSuffix) && content.startsWith("Terminal ")) {
-            try {
-                String terminalIdStr = content.substring("Terminal ".length(), content.length() - alreadyActiveSuffix.length());
-                logger.info("Received notification: Terminal {} already activated.", terminalIdStr);
-
-                Banner.showAnimation(alreadyActiveBanner, "Terminal " + terminalIdStr + " is already active!", 1.5);
-                Banner.shake(alreadyActiveBanner);
-            } catch (Exception e) {
-                logger.error("Failed to parse already activated message: {}", message, e);
-            }
-            return;
-        }
 
         String localNickname = serverHandler.getConfirmedNickname();
 
@@ -1106,10 +1086,17 @@ public class Game extends Application {
     }
 
     /**
-     * Activates a terminal and displays a banner
+     * Activates a terminal and displays a banner or shows error banner otherwise
      * @param id The ID of the terminal
      */
     private void activateTerminal(int id) {
+        //
+        if (id == -1) {
+            Banner.showAnimation(noActivationBanner, "Can't activate Terminal", 1.5);
+            Banner.shake(noActivationBanner);
+            return;
+        }
+
         // display terminal activation banner
         Banner.showAnimation(terminalActivationBanner, "Terminal " + id + " Activated!", 2.5f);
 

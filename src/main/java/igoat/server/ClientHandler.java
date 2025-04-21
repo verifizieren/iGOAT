@@ -53,12 +53,9 @@ public class ClientHandler implements Runnable {
     private static int nextLobbyCode = 1000;
 
     private boolean isReady = false;
-    private boolean isDown = false;
     private boolean isCaught = false;
     private double playerX = 80;
     private double playerY = 80;
-
-    private int reportedTerminalCount = -1;
 
     private Role role;
 
@@ -266,12 +263,14 @@ public class ClientHandler implements Runnable {
                 sender.setPlayerY(y);
             }
 
-            if (sender.getPlayerX() < 0 || sender.getPlayerX() > 1500) {
+            if ((sender.getPlayerX() < 0 || sender.getPlayerX() > 1500) && !sender.currentLobby.getGameState().gameOver) {
                 if (sender.role == Role.GOAT) {
+                    logger.info("{} escaped, ending game", sender.getNickname());
                     sender.endGame(false);
 
                 }
-            } else if (sender.currentLobby.getGameState().isGuardWin()) {
+            } else if (sender.currentLobby.getGameState().isGuardWin() && !sender.currentLobby.getGameState().gameOver) {
+                logger.info("guard won, ending game");
                 sender.endGame(true);
             }
 
@@ -505,9 +504,6 @@ public class ClientHandler implements Runnable {
                     break;
                 case "getroles":
                     handleGetRoles();
-                    break;
-                case "mapinfo":
-                    handleMapInfo(params.trim());
                     break;
                 default:
                     sendError("Unbekannter Befehl: " + command);
@@ -869,37 +865,33 @@ public class ClientHandler implements Runnable {
         }
 
         target.setCaught(true);
-        target.setDown(true);
         broadcast("catch:" + targetName);
-        currentLobby.getGameState().caught();
     }
 
     private void handleRevive(String targetName) {
         ClientHandler target = findPlayer(targetName);
         if (target == null) {
-            sendError("Spieler " + targetName + " nicht gefunden.");
+            sendError("Player " + targetName + " not found.");
             return;
         }
 
         if (this.role != Role.GOAT) {
-            sendError("Nur Ziegen dürfen Roboter neu starten.");
+            sendError("Only goats can reactivate.");
             return;
         }
 
-        if (target.getRole() != Role.IGOAT || !target.isDown()) {
-            sendError("Ziel ist kein ausgeschaltener ");
+        if (target.getRole() != Role.IGOAT || !target.isCaught()) {
+            sendError("Can't reactivate target.");
             return;
         }
 
         if (!isInRange(this, target)) {
-            sendError("Spieler " + targetName + " nicht in reichweite.");
+            sendError("Player " + targetName + " not in range");
             return;
         }
 
-        target.setDown(false);
         target.setCaught(false);
         broadcast("revive:" + targetName);
-        currentLobby.getGameState().revive();
     }
 
     /**
@@ -918,24 +910,6 @@ public class ClientHandler implements Runnable {
      */
     public void setCaught(boolean caught) {
         this.isCaught = caught;
-    }
-
-    /**
-     * Checks if the player is currently down (unable to move).
-     * 
-     * @return true if the player is down, false otherwise
-     */
-    public boolean isDown() {
-        return isDown;
-    }
-
-    /**
-     * Sets whether the player is down (unable to move).
-     * 
-     * @param down true to mark the player as down, false otherwise
-     */
-    public void setDown(boolean down) {
-        this.isDown = down;
     }
 
     /**
@@ -1214,18 +1188,6 @@ public class ClientHandler implements Runnable {
 
         currentLobby.setState(LobbyState.IN_GAME);
         broadcastGetLobbiesToAll();
-        
-        if (this.reportedTerminalCount >= 0) {
-            currentLobby.setTotalTerminalsInMap(this.reportedTerminalCount);
-            logger.info("Lobby {}: Set required terminals to {} (reported by client {})", 
-                        currentLobby.getCode(), this.reportedTerminalCount, this.nickname);
-        } else {
-            logger.error("Lobby {}: Client {} did not report map info before game start. Using default terminal count 8.",
-                         currentLobby.getCode(), this.nickname);
-            currentLobby.setTotalTerminalsInMap(8);
-        }
-
-        //gameState = new GameState(reportedTerminalCount);
 
         String gameStartedMessage = "game_started:";
         currentLobby.broadcastToLobby(gameStartedMessage);
@@ -1293,17 +1255,27 @@ public class ClientHandler implements Runnable {
 
         try {
             int terminalId = Integer.parseInt(params);
-            logger.info("Player {} attempting to activate terminal {} in lobby {}", nickname, terminalId, currentLobby.getCode());
 
-            boolean newlyActivated = currentLobby.activateTerminal(terminalId);
+            if (role != Role.IGOAT) {
+                logger.warn("Wrong role for terminal activation.");
+                return;
+            }
 
-            if (newlyActivated) {
-                String activationMessage = "terminal:" + terminalId;
-                currentLobby.broadcastToLobby(activationMessage);
-                currentLobby.getGameState().activateTerminal();
-                logger.info("Broadcasted terminal activation: {} to lobby {}", activationMessage, currentLobby.getCode());
-            } else {
-                sendMessage("chat:System:Terminal " + terminalId + " was already activated.");
+            if (!currentLobby.getGameState().activateTerminal(terminalId)) {
+                sendMessage("terminal:-1");
+                return;
+            }
+
+            currentLobby.broadcastToLobby("terminal:" + terminalId);
+
+            for (ClientHandler member : currentLobby.getMembers()) {
+                if (member.getRole() == Role.GOAT && member.isCaught()) {
+                    // TODO: custom revive logic for goat
+                    logger.info("Freeing Goat");
+                    currentLobby.broadcastToLobby("revive:" + member.getNickname());
+                    member.isCaught = false;
+                    break;
+                }
             }
 
         } catch (NumberFormatException e) {
@@ -1316,25 +1288,9 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     * Handles the map information (e.g., terminal count) sent by the client.
-     * 
-     * @param params The parameters containing map info (currently just terminal count).
+     * ends the game and broadcasts the result
+     * @param result true if the guard won, false otherwise
      */
-    private void handleMapInfo(String params) {
-        try {
-            int count = Integer.parseInt(params);
-            if (count >= 0) {
-                this.reportedTerminalCount = count;
-                logger.info("Received map info from {}: Terminal count = {}", nickname, count);
-            } else {
-                logger.warn("Received invalid terminal count from {}: {}", nickname, params);
-            }
-        } catch (NumberFormatException e) {
-            logger.error("Invalid map info format received from {}: {}", nickname, params);
-            sendError("Invalid map info format: " + params);
-        }
-    }
-
     private void endGame(boolean result) {
         if (!currentLobby.getGameState().gameOver) {
             currentLobby.getGameState().gameOver = true;
