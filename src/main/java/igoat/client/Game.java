@@ -5,6 +5,14 @@ import static java.lang.Math.sqrt;
 
 import igoat.client.GUI.Banner;
 import java.time.LocalTime;
+import javafx.geometry.Pos;
+import javafx.scene.control.Label;
+import javafx.scene.layout.GridPane;
+import javafx.scene.text.FontWeight;
+import java.util.Comparator;
+import java.util.ArrayList;
+import igoat.Role;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -17,7 +25,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.shape.Shape;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import igoat.Role;
 import igoat.client.GUI.LobbyGUI;
 import javafx.animation.AnimationTimer;
 import javafx.animation.FadeTransition;
@@ -27,7 +34,6 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
-import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -330,12 +336,15 @@ public class Game extends Application {
         scene.setOnKeyPressed(event -> {
             activeKeys.add(event.getCode());
             if (event.getCode() == KeyCode.ESCAPE) {
-                primaryStage.setFullScreen(false);
+                stage.setFullScreen(false);
             }
         });
         
         scene.setOnKeyReleased(event -> {
             activeKeys.remove(event.getCode());
+            if (event.getCode() == KeyCode.ESCAPE) {
+                stage.setFullScreen(false);
+            }
         });
         
         gamePane.setFocusTraversable(true);
@@ -664,24 +673,67 @@ public class Game extends Application {
     }
 
     private void showWinLossScreen(boolean won) {
-        String message = won? "🎉 You Win! 🎉" : "💀 You Lost... 💀";
+        String message = won ? "🎉 You Win! 🎉" : "💀 You Lost... 💀";
         Color color = won ? Color.GREEN : Color.RED;
 
         Platform.runLater(() -> {
-            Text text = new Text(message);
-            text.setFont(Font.font("Verdana", 40));
-            text.setFill(color);
+            Text title = new Text(message);
+            title.setFont(Font.font("Verdana", 40));
+            title.setFill(color);
+
+            // Scoreboard table
+            GridPane grid = new GridPane();
+            grid.setAlignment(Pos.CENTER);
+            grid.setHgap(20);
+            grid.setVgap(10);
+
+            Label headerName = new Label("Name");
+            headerName.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+            headerName.setStyle("-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
+            Label headerRole = new Label("Role");
+            headerRole.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+            headerRole.setStyle("-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
+            Label headerResult = new Label("Result");
+            headerResult.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+            headerResult.setStyle("-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
+            grid.add(headerName, 0, 0);
+            grid.add(headerRole, 1, 0);
+            grid.add(headerResult, 2, 0);
+
+            List<Player> allPlayers = new ArrayList<>(otherPlayers.values());
+            allPlayers.add(player);
+            allPlayers.sort(Comparator.comparingInt(p -> ((won && p.getRole()==Role.GUARD) || (!won && p.getRole()!=Role.GUARD)) ? 0 : 1));
+
+            for (int i = 0; i < allPlayers.size(); i++) {
+                Player p = allPlayers.get(i);
+                boolean isWinner = (won && p.getRole()==Role.GUARD) || (!won && p.getRole()!=Role.GUARD);
+                Label nameLabel = new Label(p.getUsername());
+                Label roleLabel = new Label(p.getRole().name());
+                Label resultLabel = new Label(isWinner ? "Won" : "Lost");
+                String rowStyle = isWinner
+                    ? "-fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-padding: 5;"
+                    : "-fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-padding: 5;";
+                nameLabel.setStyle(rowStyle);
+                roleLabel.setStyle(rowStyle);
+                resultLabel.setStyle(rowStyle);
+                grid.add(nameLabel, 0, i + 1);
+                grid.add(roleLabel, 1, i + 1);
+                grid.add(resultLabel, 2, i + 1);
+            }
 
             Button exitButton = new Button("Exit Game");
             exitButton.setOnAction(e -> exit());
 
-            VBox layout = new VBox(20, text, exitButton);
-            layout.setStyle("-fx-alignment: center; -fx-background-color: #dff0d8; -fx-padding: 50;");
-            Scene scene = new Scene(layout, 400, 300);
+            VBox layout = new VBox(20, title, grid, exitButton);
+            layout.setAlignment(Pos.CENTER);
+            layout.setStyle("-fx-background-color: #dff0d8; -fx-padding: 20;");
+            Scene scene = new Scene(layout);
             stage.setScene(scene);
+            stage.sizeToScene();
             stage.show();
         });
     }
+
     /**
      * Handles the opening of doors when all terminals are activated.
      */
@@ -1259,6 +1311,9 @@ public class Game extends Application {
         gameScene.setOnKeyReleased(event -> {
             if (!chatInput.isFocused()) {
                 activeKeys.remove(event.getCode());
+                if (event.getCode() == KeyCode.ESCAPE) {
+                    stage.setFullScreen(false);
+                }
             }
         });
         

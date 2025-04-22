@@ -47,6 +47,8 @@ The following list contains the TCP commands used in the protocol.
 | Client | catch:[target]               | Guard requests to catch the target player.                                                                         | catch:bob                    | TCP      |
 | Server | catch:[target]               | Broadcasts that a player was caught.                                                                               | catch:bob                    | TCP      |
 | Client | revive:[target]              | Goat requests to revive the target player (Robot).                                                                 | revive:bob                   | TCP      |
+| Client | getresults                    | Request list of past finished game results.                                                                     | getresults:                 | TCP      |
+| Server | results:[data]                | Response with past game results log. Data is newline-separated JSON objects.                                     | results:{"timestamp":"2025-04-22T..."} | TCP      |
 | Server | revive:[target]              | Broadcasts that a player was revived.                                                                              | revive:bob                   | TCP      |
 | Client | terminal:[id]                | Player reports activating a terminal with the specified ID.                                                        | terminal:0                   | TCP      |
 | Server | terminal:[id]                | Broadcasts that a terminal was activated in the lobby. If the id is -1, it means that activation failed.           | terminal:0                   | TCP      |

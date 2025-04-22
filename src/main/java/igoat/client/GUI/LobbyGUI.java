@@ -272,6 +272,14 @@ public class LobbyGUI {
         Button leaveLobbyButton = new Button("Exit Lobby");
         Button nameButton = new Button("Change Name");
         Button exitButton = new Button("Exit");
+        Button viewResultsButton = new Button("View Past Results");
+        viewResultsButton.setOnAction(event -> {
+            if (serverHandler != null && serverHandler.isConnected()) {
+                serverHandler.sendMessage("getresults:");
+            } else {
+                appendToMessageArea("Error: Cannot fetch past results. Not connected.");
+            }
+        });
 
         startButton.setOnAction(event -> {
             if (serverHandler != null && serverHandler.isConnected() && currentLobbyCode != null) {
@@ -315,7 +323,7 @@ public class LobbyGUI {
 
         exitButton.setOnAction(event -> exit());
 
-        VBox buttons = new VBox(10, startButton, createButton, leaveLobbyButton, nameButton, exitButton);
+        VBox buttons = new VBox(10, startButton, createButton, leaveLobbyButton, nameButton, exitButton, viewResultsButton);
         buttons.setAlignment(Pos.CENTER);
         return buttons;
     }
@@ -651,6 +659,19 @@ public class LobbyGUI {
                             appendToMessageArea("Error starting game: " + ex.getMessage());
                             stage.show();
                         }
+                    });
+                    break;
+                case "results":
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Past Game Results");
+                        alert.setHeaderText("Finished Game Results");
+                        TextArea area = new TextArea(content);
+                        area.setEditable(false);
+                        area.setWrapText(true);
+                        area.setPrefSize(600, 400);
+                        alert.getDialogPane().setContent(area);
+                        alert.showAndWait();
                     });
                     break;
                 default:

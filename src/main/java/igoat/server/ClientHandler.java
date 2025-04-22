@@ -1,11 +1,7 @@
 package igoat.server;
 
-import static java.lang.Math.pow;
-import static java.lang.Math.sqrt;
-
 import igoat.Role;
 import igoat.client.Player;
-import igoat.client.Terminal;
 import igoat.client.Wall;
 import igoat.server.Lobby.LobbyState;
 import java.io.BufferedReader;
@@ -17,9 +13,17 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -178,7 +182,7 @@ public class ClientHandler implements Runnable {
                 int sourcePort = packet.getPort();
                 String message = new String(packet.getData(), 0, packet.getLength());
 
-                //logger.info("Received: {} from {}:{}", message, clientIp, sourcePort);
+                logger.debug("Received: {} from {}:{}", message, clientIp, sourcePort);
                 
                 if (message.startsWith(UDP_REGISTRATION_PREFIX)) {
                     String[] parts = message.split(":");
@@ -509,6 +513,9 @@ public class ClientHandler implements Runnable {
                 case "getroles":
                     handleGetRoles();
                     break;
+                case "getresults":
+                    handleGetResults();
+                    break;
                 default:
                     sendError("Unbekannter Befehl: " + command);
             }
@@ -786,9 +793,8 @@ public class ClientHandler implements Runnable {
         for (ClientHandler member : currentLobby.getMembers()) {
             sb.append(member.nickname).append(",");
         }
-        if (sb.length() > 0) {
-            sb.setLength(sb.length() - 1);
-        }
+        if (sb.length() > 0) sb.setLength(sb.length() - 1);
+
         sendMessage("getlobbyplayers:" + sb);
     }
 
@@ -1048,89 +1054,6 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     * Processes a whisper message to a specific client. Format: whisper:recipient,message
-     *
-     * @param params Array of parameters, where params[0] is the recipient and params[1] is the
-     *               message
-     */
-    private void handleWhisper(String[] params) {
-        if (params.length < 2) {
-            sendError("Keine Whisper Nachricht angegeben");
-            return;
-        }
-        String recipient = params[0];
-        String message = params[1];
-        for (ClientHandler client : clientList) {
-            if (client.nickname.equals(recipient)) {
-                client.sendMessage("chat:[" + this.nickname + "  whispered] " + message);
-                return;
-            }
-        }
-        sendError("User " + recipient + " nicht gefunden");
-    }
-
-    /**
-     * Sends a message to all connected clients.
-     *
-     * @param message The message to broadcast
-     */
-    private void broadcast(String message) {
-        for (ClientHandler client : clientList) {
-            client.sendMessage(message);
-        }
-    }
-
-    private static void broadcastGetLobbiesToAll() {
-        StringBuilder sb = new StringBuilder();
-        for (Lobby lobby : lobbyList) {
-            sb.append(lobby.getCode())
-                .append("=")
-                .append(lobby.getMembers().size())
-                .append("/")
-                .append(Lobby.MAX_PLAYERS)
-                .append(" [")
-                .append(lobby.getState().toString().toLowerCase())
-                .append("],");
-        }
-        if (sb.length() > 0) {
-            sb.setLength(sb.length() - 1);
-        }
-        String message = "getlobbies:" + sb.toString();
-        for (ClientHandler client : clientList) {
-            client.sendMessage(message);
-        }
-    }
-
-    private static void broadcastGlobalPlayerList() {
-        StringBuilder sb = new StringBuilder();
-        for (ClientHandler client : clientList) {
-            sb.append(client.getNickname()).append(",");
-        }
-        if (sb.length() > 0) sb.setLength(sb.length() - 1);
-
-        String update = "getplayers:" + sb.toString();
-        for (ClientHandler client : clientList) {
-            client.sendMessage(update);
-        }
-    }
-
-    private void broadcastLobbyPlayerList() {
-        if (currentLobby == null)
-            return;
-
-        StringBuilder sb = new StringBuilder();
-        for (ClientHandler member : currentLobby.getMembers()) {
-            sb.append(member.getNickname()).append(",");
-        }
-        if (sb.length() > 0) sb.setLength(sb.length() - 1);
-
-        String update = "getlobbyplayers:" + sb.toString();
-        for (ClientHandler member : currentLobby.getMembers()) {
-            member.sendMessage(update);
-        }
-    }
-
-    /**
      * Sends a UDP update message to this specific client.
      *
      * @param message The message string to send.
@@ -1251,66 +1174,21 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     * Handles the activation of a terminal by a player.
-     * Parses the terminal ID, activates it in the lobby, and broadcasts the event.
-     * 
-     * @param params The terminal ID sent by the client.
+     * Reads the finished games log and sends it to the client
      */
-    private void handleTerminalActivation(String params) {
-        if (currentLobby == null) {
-            sendError("You must be in a lobby to activate a terminal.");
+    private void handleGetResults() {
+        Path logPath = Paths.get("finished_games.log");
+        if (Files.notExists(logPath)) {
+            sendMessage("results:");
             return;
         }
-
         try {
-            int terminalId = Integer.parseInt(params);
-
-            if (role != Role.IGOAT) {
-                logger.warn("Wrong role for terminal activation.");
-                return;
-            }
-
-            double x = playerX + 16;
-            double y = playerY + 16;
-
-            for (Terminal t : currentLobby.getMap().getTerminalList())
-            {
-                if (t.getTerminalID() == terminalId) {
-                    double tx = t.getX() + (t.getWidth() / 2.0);
-                    double ty = t.getY() + (t.getHeight() / 2.0);
-                    if (sqrt(pow(tx - x, 2) + pow(ty - y, 2)) > 50.0) {
-                        logger.warn("Out of range for terminal");
-                        return;
-                    }
-                    break;
-                }
-            }
-
-
-
-            if (!currentLobby.getGameState().activateTerminal(terminalId)) {
-                sendMessage("terminal:-1");
-                return;
-            }
-
-            currentLobby.broadcastToLobby("terminal:" + terminalId);
-
-            for (ClientHandler member : currentLobby.getMembers()) {
-                if (member.getRole() == Role.GOAT && member.isCaught()) {
-                    // TODO: custom revive logic for goat
-                    logger.info("Freeing Goat");
-                    currentLobby.broadcastToLobby("revive:" + member.getNickname());
-                    member.isCaught = false;
-                    break;
-                }
-            }
-
-        } catch (NumberFormatException e) {
-            sendError("Invalid terminal ID format: " + params);
-            logger.warn("Invalid terminal ID received from {}: {}", nickname, params);
-        } catch (Exception e) {
-            sendError("Error processing terminal activation.");
-            logger.error("Error during terminal activation for player {} in lobby {}", nickname, currentLobby.getCode(), e);
+            String content = Files.lines(logPath, StandardCharsets.UTF_8)
+                                  .collect(Collectors.joining("\n"));
+            sendMessage("results:" + content);
+        } catch (IOException e) {
+            sendError("Failed to read results");
+            logger.error("Error reading finished games", e);
         }
     }
 
@@ -1324,6 +1202,28 @@ public class ClientHandler implements Runnable {
             currentLobby.setState(LobbyState.FINISHED);
             broadcastGetLobbiesToAll();
             currentLobby.broadcastToLobby("gameover:" + result);
+
+            try {
+                Path logPath = Paths.get("finished_games.log");
+                DateTimeFormatter fmt = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+                String timestamp = LocalDateTime.now().format(fmt);
+                StringBuilder sb = new StringBuilder();
+                sb.append("{\"timestamp\":\"").append(timestamp).append("\",");
+                sb.append("\"lobby\":").append(currentLobby.getCode()).append(',');
+                sb.append("\"result\":").append(result).append(',');
+                sb.append("\"players\":[");
+                for (ClientHandler m : currentLobby.getMembers()) {
+                    boolean win = (result && m.role == Role.GUARD) || (!result && m.role != Role.GUARD);
+                    sb.append("{\"name\":\"").append(m.nickname).append("\",")
+                      .append("\"role\":\"").append(m.role).append("\",")
+                      .append("\"outcome\":\"").append(win?"Won":"Lost").append("\"},");
+                }
+                if (sb.charAt(sb.length()-1) == ',') sb.setLength(sb.length()-1);
+                sb.append("]}\n");
+                Files.write(logPath, sb.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            } catch (IOException e) {
+                logger.error("Failed to write finished game", e);
+            }
         }
     }
 
@@ -1345,5 +1245,108 @@ public class ClientHandler implements Runnable {
 
     public void setRole(Role assignedRole) {
         this.role = assignedRole;
+    }
+
+    /**
+     * Handles terminal activation request from client.
+     * @param params terminal id as string
+     */
+    private void handleTerminalActivation(String params) {
+        if (currentLobby == null) {
+            sendError("You must be in a lobby to activate a terminal.");
+            return;
+        }
+        try {
+            int terminalId = Integer.parseInt(params);
+            boolean activated = currentLobby.getGameState().activateTerminal(terminalId);
+            if (activated) {
+                currentLobby.broadcastToLobby("terminal:" + terminalId);
+            } else {
+                sendMessage("terminal:-1");
+            }
+        } catch (NumberFormatException e) {
+            sendError("Invalid terminal ID format: " + params);
+        }
+    }
+
+    /**
+     * Processes a whisper message to a specific client. Format: whisper:recipient,message
+     */
+    private void handleWhisper(String[] params) {
+        if (params.length < 2) {
+            sendError("Keine Whisper Nachricht angegeben");
+            return;
+        }
+        String recipient = params[0];
+        String msg = params[1];
+        for (ClientHandler client : clientList) {
+            if (client.nickname.equals(recipient)) {
+                client.sendMessage("chat:[" + nickname + " whispered] " + msg);
+                return;
+            }
+        }
+        sendError("User " + recipient + " nicht gefunden");
+    }
+
+    /**
+     * Sends a message to all connected clients.
+     */
+    private void broadcast(String message) {
+        for (ClientHandler client : clientList) {
+            client.sendMessage(message);
+        }
+    }
+
+    /**
+     * Broadcasts the list of lobbies to all clients.
+     */
+    private static void broadcastGetLobbiesToAll() {
+        StringBuilder sb = new StringBuilder();
+        for (Lobby lobby : lobbyList) {
+            sb.append(lobby.getCode())
+              .append("=")
+              .append(lobby.getMembers().size())
+              .append("/")
+              .append(Lobby.MAX_PLAYERS)
+              .append(" [")
+              .append(lobby.getState().toString().toLowerCase())
+              .append("],");
+        }
+        if (sb.length() > 0) sb.setLength(sb.length() - 1);
+        String msg = "getlobbies:" + sb.toString();
+        for (ClientHandler client : clientList) {
+            client.sendMessage(msg);
+        }
+    }
+
+    /**
+     * Broadcasts the global player list to all clients.
+     */
+    private static void broadcastGlobalPlayerList() {
+        StringBuilder sb = new StringBuilder();
+        for (ClientHandler client : clientList) {
+            sb.append(client.getNickname()).append(",");
+        }
+        if (sb.length() > 0) sb.setLength(sb.length() - 1);
+        String update = "getplayers:" + sb.toString();
+        for (ClientHandler client : clientList) {
+            client.sendMessage(update);
+        }
+    }
+
+    /**
+     * Broadcasts the list of players in the current lobby to its members.
+     */
+    private void broadcastLobbyPlayerList() {
+        if (currentLobby == null) return;
+        StringBuilder sb = new StringBuilder();
+        for (ClientHandler member : currentLobby.getMembers()) {
+            sb.append(member.getNickname()).append(",");
+        }
+        if (sb.length() > 0) sb.setLength(sb.length() - 1);
+        String update = "getlobbyplayers:" + sb.toString();
+        for (ClientHandler member : currentLobby.getMembers()) {
+            member.sendMessage(update);
+        }
     }
 }
