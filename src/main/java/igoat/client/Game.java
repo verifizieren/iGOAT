@@ -666,15 +666,15 @@ public class Game extends Application {
      * @param result true if the guard has won, false otherwise
      */
     private void endGame(boolean result) {
-        boolean isGuard = player.getRole() == Role.GUARD;
-        boolean win = (isGuard && result) || (!isGuard && !result);
-
-        showWinLossScreen(win);
+        showWinLossScreen(result);
     }
 
-    private void showWinLossScreen(boolean won) {
-        String message = won ? "🎉 You Win! 🎉" : "💀 You Lost... 💀";
-        Color color = won ? Color.GREEN : Color.RED;
+    private void showWinLossScreen(boolean guardWon) {
+        boolean isGuard = player.getRole() == Role.GUARD;
+        boolean localWon = (isGuard && guardWon) || (!isGuard && !guardWon);
+
+        String message = localWon ? "🎉 You Win! 🎉" : "💀 You Lost... 💀";
+        Color color = localWon ? Color.GREEN : Color.RED;
 
         Platform.runLater(() -> {
             Text title = new Text(message);
@@ -702,11 +702,11 @@ public class Game extends Application {
 
             List<Player> allPlayers = new ArrayList<>(otherPlayers.values());
             allPlayers.add(player);
-            allPlayers.sort(Comparator.comparingInt(p -> ((won && p.getRole()==Role.GUARD) || (!won && p.getRole()!=Role.GUARD)) ? 0 : 1));
+            allPlayers.sort(Comparator.comparingInt(p -> ((guardWon && p.getRole()==Role.GUARD) || (!guardWon && p.getRole()!=Role.GUARD)) ? 0 : 1));
 
             for (int i = 0; i < allPlayers.size(); i++) {
                 Player p = allPlayers.get(i);
-                boolean isWinner = (won && p.getRole()==Role.GUARD) || (!won && p.getRole()!=Role.GUARD);
+                boolean isWinner = (guardWon && p.getRole()==Role.GUARD) || (!guardWon && p.getRole()!=Role.GUARD);
                 Label nameLabel = new Label(p.getUsername());
                 Label roleLabel = new Label(p.getRole().name());
                 Label resultLabel = new Label(isWinner ? "Won" : "Lost");

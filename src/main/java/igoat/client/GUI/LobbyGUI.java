@@ -674,7 +674,7 @@ public class LobbyGUI {
                         stage2.setTitle("Past Game Results");
                         VBox root = new VBox(10);
                         root.setPadding(new Insets(10));
-                        for (String line : content.split("\n")) {
+                        for (String line : content.split(Pattern.quote("\\n"))) {
                             if (line.isBlank()) continue;
                             String ts = extract(line, "timestamp");
                             String lb = extract(line, "lobby");
@@ -683,11 +683,17 @@ public class LobbyGUI {
                             String playersJson = line.substring(start + 11, line.lastIndexOf("]"));
                             List<PlayerRow> playerRows = new ArrayList<>();
                             for (String p : playersJson.split(Pattern.quote("},{"))) {
-                                String pj = p.replaceAll("[\\[\\]{}]", "");
-                                String name = extract(pj, "name").replaceAll("\"", "");
-                                String role = extract(pj, "role").replaceAll("\"", "");
-                                String outcome = extract(pj, "outcome").replaceAll("\"", "");
-                                playerRows.add(new PlayerRow(name, role, outcome));
+                                String name = extract(p, "name");
+                                String role = extract(p, "role");
+                                
+                                String actualOutcome;
+                                if (res) { 
+                                    actualOutcome = role.equals("GUARD") ? "Won" : "Lost";
+                                } else {
+                                    actualOutcome = role.equals("GUARD") ? "Lost" : "Won";
+                                }
+                                
+                                playerRows.add(new PlayerRow(name, role, actualOutcome));
                             }
                             Label header = new Label(ts + " | Lobby " + lb + " | " + (res ? "Guard Won" : "Goat Won"));
                             TableView<PlayerRow> table = new TableView<>();

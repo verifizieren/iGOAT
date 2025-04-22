@@ -816,19 +816,6 @@ public class ClientHandler implements Runnable {
         appendToLobbyChat("Player " + nickname + " ist bereit.", false);
     }
 
-    private void handleRoleConfirmation(String roleString) {
-        try {
-            Role parsedRole = Role.valueOf(roleString);
-            this.role = parsedRole;
-            Lobby.roleMap.put(nickname, parsedRole);
-            logger.info("role confirmed");
-            appendToLobbyChat("Player " + nickname + " hat Rolle " + role + " erhalten", false);
-        } catch (NumberFormatException e){
-            logger.error("Invalid Role {}",roleString ,e);
-            sendError("Ungültige Rolle");
-            handleGetRoles();
-        }
-    }
 
     private void appendToLobbyChat(String message, boolean chatMSG) {
         if (currentLobby == null) {
@@ -843,115 +830,18 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private void handleCatch(String targetName) {
-        ClientHandler target = findPlayer(targetName);
-        if (target == null) {
-            sendError("Spieler " + targetName + " nicht gefunden.");
-            return;
+    private void handleRoleConfirmation(String roleString) {
+        try {
+            Role parsedRole = Role.valueOf(roleString);
+            this.role = parsedRole;
+            Lobby.roleMap.put(nickname, parsedRole);
+            logger.info("role confirmed");
+            appendToLobbyChat("Player " + nickname + " hat Rolle " + role + " erhalten", false);
+        } catch (NumberFormatException e){
+            logger.error("Invalid Role {}",roleString ,e);
+            sendError("Ungültige Rolle");
+            handleGetRoles();
         }
-
-        if (this.role != Role.GUARD) {
-            sendError("Nur Wächter dürfen fangen.");
-            return;
-        }
-
-        if (!isInRange(this, target)) {
-            sendError("Spieler " + targetName + " nicht in reichweite.");
-            return;
-        }
-
-        if (target.isCaught()) {
-            sendError("Spieler " + targetName + " ist bereits gefangen");
-            return;
-        }
-
-        target.setCaught(true);
-        broadcast("catch:" + targetName);
-    }
-
-    private void handleRevive(String targetName) {
-        ClientHandler target = findPlayer(targetName);
-        if (target == null) {
-            sendError("Player " + targetName + " not found.");
-            return;
-        }
-
-        if (this.role != Role.GOAT) {
-            sendError("Only goats can reactivate.");
-            return;
-        }
-
-        if (isCaught) {
-            sendError("Can't revive while caught");
-            return;
-        }
-
-        if (target.getRole() != Role.IGOAT || !target.isCaught()) {
-            sendError("Can't reactivate target.");
-            return;
-        }
-
-        if (!isInRange(this, target)) {
-            sendError("Player " + targetName + " not in range");
-            return;
-        }
-
-        target.setCaught(false);
-        broadcast("revive:" + targetName);
-    }
-
-    /**
-     * Checks if the player has been caught.
-     * 
-     * @return true if the player has been caught, false otherwise
-     */
-    public boolean isCaught() {
-        return isCaught;
-    }
-
-    /**
-     * Sets the caught status of the player.
-     * 
-     * @param caught true to mark the player as caught, false otherwise
-     */
-    public void setCaught(boolean caught) {
-        this.isCaught = caught;
-    }
-
-    /**
-     * Gets the client's role in the game.
-     * 
-     * @return The current role of the client (e.g., hunter or runner)
-     */
-    public Role getRole() {
-        return role;
-    }
-
-    /**
-     * Checks if the player is ready to start the game.
-     * 
-     * @return true if the player is ready, false otherwise
-     */
-    public boolean isReady() {
-        return isReady;
-    }
-
-    /**
-     * Sets whether the player is ready to start the game.
-     * 
-     * @param ready true to mark the player as ready, false otherwise
-     */
-    public void setReady(boolean ready) {
-        this.isReady = ready;
-    }
-
-    /**
-     * Gets the client's nickname.
-     * 
-     * @return The current nickname of the client
-     */
-    public String getNickname() {
-        return nickname;
     }
 
     private ClientHandler findPlayer(String name) {
@@ -1145,28 +1035,6 @@ public class ClientHandler implements Runnable {
         return udpPort;
     }
 
-    private void handleGetRoles() {
-        if (currentLobby == null) {
-            sendError("Du bist in keiner Lobby");
-            return;
-        }
-
-        StringBuilder sb = new StringBuilder();
-        for (ClientHandler member : currentLobby.getMembers()) {
-            Role role = Lobby.roleMap.get(member.getNickname());
-            if (role != null) {
-                sb.append(member.getNickname()).append("=").append(role).append(",");
-            }
-        }
-        if (!sb.isEmpty()) {
-            sb.setLength(sb.length() - 1);
-        }
-        sendMessage("roles:" + sb.toString());
-    }
-
-    /**
-     * Reads the finished games log and sends it to the client
-     */
     private void handleGetResults() {
         Path logPath = Paths.get("finished_games.log");
         if (Files.notExists(logPath)) {
@@ -1174,8 +1042,8 @@ public class ClientHandler implements Runnable {
             return;
         }
         try {
-            String content = Files.lines(logPath, StandardCharsets.UTF_8)
-                                  .collect(Collectors.joining("\n"));
+            List<String> lines = Files.readAllLines(logPath, StandardCharsets.UTF_8);
+            String content = String.join("\\n", lines);
             sendMessage("results:" + content);
         } catch (IOException e) {
             sendError("Failed to read results");
@@ -1321,7 +1189,9 @@ public class ClientHandler implements Runnable {
         for (ClientHandler client : clientList) {
             sb.append(client.getNickname()).append(",");
         }
-        if (sb.length() > 0) sb.setLength(sb.length() - 1);
+        if (sb.length() > 0) {
+            sb.setLength(sb.length() - 1);
+        }
         String update = "getplayers:" + sb.toString();
         for (ClientHandler client : clientList) {
             client.sendMessage(update);
@@ -1342,5 +1212,95 @@ public class ClientHandler implements Runnable {
         for (ClientHandler member : currentLobby.getMembers()) {
             member.sendMessage(update);
         }
+    }
+
+    private void handleCatch(String targetName) {
+        ClientHandler target = findPlayer(targetName);
+        if (target == null) {
+            sendError("Spieler " + targetName + " nicht gefunden.");
+            return;
+        }
+        if (this.role != Role.GUARD) {
+            sendError("Nur Wächter dürfen fangen.");
+            return;
+        }
+        if (!isInRange(this, target)) {
+            sendError("Spieler " + targetName + " nicht in reichweite.");
+            return;
+        }
+        if (target.isCaught()) {
+            sendError("Spieler " + targetName + " ist bereits gefangen");
+            return;
+        }
+        target.setCaught(true);
+        broadcast("catch:" + targetName);
+    }
+
+    private void handleRevive(String targetName) {
+        ClientHandler target = findPlayer(targetName);
+        if (target == null) {
+            sendError("Player " + targetName + " not found.");
+            return;
+        }
+        if (this.role != Role.GOAT) {
+            sendError("Only goats can reactivate.");
+            return;
+        }
+        if (isCaught) {
+            sendError("Can't revive while caught");
+            return;
+        }
+        if (target.getRole() != Role.IGOAT || !target.isCaught()) {
+            sendError("Can't reactivate target.");
+            return;
+        }
+        if (!isInRange(this, target)) {
+            sendError("Player " + targetName + " not in range");
+            return;
+        }
+        target.setCaught(false);
+        broadcast("revive:" + targetName);
+    }
+
+    public boolean isCaught() {
+        return isCaught;
+    }
+
+    public void setCaught(boolean caught) {
+        this.isCaught = caught;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public boolean isReady() {
+        return isReady;
+    }
+
+    public void setReady(boolean ready) {
+        this.isReady = ready;
+    }
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    private void handleGetRoles() {
+        if (currentLobby == null) {
+            sendError("Du bist in keiner Lobby");
+            return;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (ClientHandler member : currentLobby.getMembers()) {
+            Role r = Lobby.roleMap.get(member.getNickname());
+            if (r != null) {
+                sb.append(member.getNickname()).append("=").append(r).append(",");
+            }
+        }
+        if (sb.length() > 0) {
+            sb.setLength(sb.length() - 1);
+        }
+        sendMessage("roles:" + sb.toString());
     }
 }
