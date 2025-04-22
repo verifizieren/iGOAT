@@ -28,6 +28,8 @@ public class Map {
     private List<Terminal> terminalList;
     private List<Rectangle> doorVisuals;
     private List<Wall> doorCollisions;
+    private List<Rectangle> windowVisuals;
+    private List<Wall> windowCollisions;
     private List<ImageView> decorItems;
     
     /**
@@ -39,11 +41,15 @@ public class Map {
         terminalList = new ArrayList<>();
         doorVisuals = new ArrayList<>();
         doorCollisions = new ArrayList<>();
+        windowCollisions = new ArrayList<>();
         decorItems = new ArrayList<>();
         createMapLayout();
         createTerminals();
         createDoor();
+        createWindow();
         createDecor();
+
+
     }
     
     /**
@@ -59,7 +65,8 @@ public class Map {
         createWall(MAP_WIDTH - WALL_THICKNESS, 560, WALL_THICKNESS, MAP_HEIGHT - 560);
 
         // Room Top right
-        createWall(1170, 300, 330, WALL_THICKNESS);
+        createWall(1170, 300, 165, WALL_THICKNESS);
+        createWall(1375, 300, 125, WALL_THICKNESS);
         createWall(1168, 200, WALL_THICKNESS, 200);
         createWall(1168, 0, WALL_THICKNESS, 100);
 
@@ -78,7 +85,8 @@ public class Map {
         createWall(1168, 1000, WALL_THICKNESS, 52);
 
         //4
-        createWall(1000, 1300, 500, WALL_THICKNESS);
+        createWall(1000, 1300, 400, WALL_THICKNESS);
+        createWall(1440, 1300, 60, WALL_THICKNESS);
         createWall(1100, 1300, WALL_THICKNESS, 100);
         createWall(1100, 1450, WALL_THICKNESS, 150);
         createWall(700,1300, 250, WALL_THICKNESS);
@@ -90,7 +98,8 @@ public class Map {
         createWall(500, 1300, WALL_THICKNESS, 300);
         createWall(200, 1300, 50, WALL_THICKNESS);
         createWall(200, 1000, WALL_THICKNESS, 300);
-        createWall(0, 1000, 200, WALL_THICKNESS);
+        createWall(0, 1000, 100, WALL_THICKNESS);
+        createWall(140, 1000, 160, WALL_THICKNESS);
 
 
         //6
@@ -100,7 +109,8 @@ public class Map {
         createWall(300, 150, WALL_THICKNESS, 150);
         createWall(300, 150, 200, WALL_THICKNESS);
         createWall(0, 200, 150, WALL_THICKNESS);
-        createWall(130, 130,WALL_THICKNESS, 70);
+        createWall(130, 130,WALL_THICKNESS, 20);
+        createWall(130, 190, WALL_THICKNESS, 10);
         createWall(130, 0, WALL_THICKNESS, 70);
 
         //7
@@ -116,9 +126,11 @@ public class Map {
         createWall(600, 550, 100, WALL_THICKNESS);
         createWall(600, 550, WALL_THICKNESS, 150);
         createWall(600, 700, 200, WALL_THICKNESS);
-        createWall(600, 700, WALL_THICKNESS, 350);
+        createWall(600, 700, WALL_THICKNESS, 50);
+        createWall(600, 790, WALL_THICKNESS, 260);
         createWall(600, 1050, 100, WALL_THICKNESS);
-        createWall(400, 550, 300, WALL_THICKNESS);
+        createWall(400, 550, 100, WALL_THICKNESS);
+        createWall(540, 550, 160, WALL_THICKNESS);
         createWall(400, 550, WALL_THICKNESS, 350);
         createWall(400,950, WALL_THICKNESS, 150);
         createWall(400, 1050, 200, WALL_THICKNESS);
@@ -148,6 +160,20 @@ public class Map {
        addDoor(1480, 500, 20, DOOR_WIDTH);
 
     }
+
+    /**
+     * add the windows to the map
+     */
+    private void createWindow() {
+        addWindow(130, 150, 20, 40);
+        addWindow(100, 1000, 40, 20);
+        addWindow(1400, 1300, 40, 20);
+        addWindow(1335, 300, 40, 20);
+        addWindow(500,550, 40, 20);
+        addWindow(600, 750,20, 40);
+    }
+
+
 
     /**
      * Creates a wall with both visual and collision components.
@@ -194,6 +220,22 @@ public class Map {
     }
 
     /**
+     * Add windows to the map
+     */
+
+    private void addWindow(int x, int y, int width, int height) {
+        Rectangle windowVisual = new Rectangle(x, y, width, height);
+        windowVisual.setFill(Color.SKYBLUE);
+        visualWalls.add(windowVisual);
+        windowVisuals.add(windowVisual);
+
+        Wall collisionWall = new Wall(x, y, width, height);
+        collisionWalls.add(collisionWall);
+        windowCollisions.add(collisionWall);
+
+    }
+
+    /**
      * Opens the doors by making them visually slightly transparent and removing their collision.
      */
     public void openDoors() {
@@ -210,6 +252,13 @@ public class Map {
             logger.info("Doors opened and collision removed.");
         }
     }
+
+   /* private void windowSetting(Player player) {
+        if (player.getRole() == Role.GOAT) {
+            collisionWalls.removeAll(windowCollisions);
+        }
+    }*/
+
 
     /**
      * Gets all visual elements including walls and special elements.
