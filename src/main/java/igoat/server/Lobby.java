@@ -16,9 +16,7 @@ import org.slf4j.LoggerFactory;
  * (OPEN, FULL, READY, IN_GAME) based on player count and game progression.
  */
 public class Lobby {
-
     private static final Logger logger = LoggerFactory.getLogger(Lobby.class);
-
     // roles
     private static final List<Role> availableRoles = new CopyOnWriteArrayList<>();
     private static final Role[] INITIAL_ROLES = {Role.GUARD, Role.IGOAT, Role.IGOAT,
@@ -32,6 +30,8 @@ public class Lobby {
      */
     public static int MAX_PLAYERS = 4;
     private final CollisionMap map = new CollisionMap();
+    private long gameTime = 0;
+    private Timer timer;
 
     /**
      * Represents the different states a lobby can be in: - OPEN: Lobby is accepting new players -
@@ -174,6 +174,25 @@ public class Lobby {
 
     public void startGame() {
         state = LobbyState.IN_GAME;
+        timer = new Timer();
+    }
+
+    /**
+     * updates the game timer
+     */
+    public void updateTimer() {
+        if (state == LobbyState.IN_GAME && timer != null) {
+            gameTime += timer.getTimeElapsed();
+        }
+    }
+
+    /**
+     * updates the game time and returns it
+     * @return game time
+     */
+    public long getGameTime() {
+        updateTimer();
+        return gameTime;
     }
 
     public void endGame() {

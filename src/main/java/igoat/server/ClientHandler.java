@@ -181,8 +181,6 @@ public class ClientHandler implements Runnable {
                 InetAddress clientIp = packet.getAddress();
                 int sourcePort = packet.getPort();
                 String message = new String(packet.getData(), 0, packet.getLength());
-
-                logger.debug("Received: {} from {}:{}", message, clientIp, sourcePort);
                 
                 if (message.startsWith(UDP_REGISTRATION_PREFIX)) {
                     String[] parts = message.split(":");
@@ -371,6 +369,9 @@ public class ClientHandler implements Runnable {
             String message;
             while (running && (message = in.readLine()) != null) {
                 //logger.info("Received from {}: {}", nickname, message);
+                if (currentLobby != null) {
+                    currentLobby.updateTimer();
+                }
 
                 if (message.equals("pong")) {
                     handlePong();
@@ -812,18 +813,7 @@ public class ClientHandler implements Runnable {
         logger.info("Broadcasting ready status to lobby {}: {}", currentLobby.getCode(), statusMessage);
 
         appendToLobbyChat("Player " + nickname + " ist bereit.", false);
-        /*
-        // Assign role when ready
-        Role assignedRole = assignRole();
-        this.role = assignedRole;
-        roleMap.put(nickname, assignedRole);
-
-        // Broadcast role assignment
-        String roleMessage = "role:" + nickname + ":" + assignedRole;
-        currentLobby.broadcastToLobby(roleMessage); //delete later
-        appendToLobbyChat("Player " + nickname + " wurde Rolle " + assignedRole + " zugewiesen", false);*/
     }
-
 
     private void handleRoleConfirmation(String roleString) {
         try {
@@ -1202,6 +1192,8 @@ public class ClientHandler implements Runnable {
             currentLobby.setState(LobbyState.FINISHED);
             broadcastGetLobbiesToAll();
             currentLobby.broadcastToLobby("gameover:" + result);
+            long[] endTime = Timer.convertToMinSec(currentLobby.getGameTime());
+            logger.info("game finished in {}:{}", endTime[0], endTime[1]);
 
             try {
                 Path logPath = Paths.get("finished_games.log");
