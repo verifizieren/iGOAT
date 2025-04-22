@@ -7,6 +7,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
+
+import javafx.scene.control.TextInputDialog;
+import javafx.collections.FXCollections;
+import javafx.scene.Scene;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TableColumn;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +24,6 @@ import igoat.client.ServerHandler;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -24,11 +31,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.beans.property.SimpleStringProperty;
 
 /**
  * Represents the GUI for the game lobby where players can chat and join games.
@@ -663,15 +670,41 @@ public class LobbyGUI {
                     break;
                 case "results":
                     Platform.runLater(() -> {
-                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                        alert.setTitle("Past Game Results");
-                        alert.setHeaderText("Finished Game Results");
-                        TextArea area = new TextArea(content);
-                        area.setEditable(false);
-                        area.setWrapText(true);
-                        area.setPrefSize(600, 400);
-                        alert.getDialogPane().setContent(area);
-                        alert.showAndWait();
+                        Stage stage2 = new Stage();
+                        stage2.setTitle("Past Game Results");
+                        VBox root = new VBox(10);
+                        root.setPadding(new Insets(10));
+                        for (String line : content.split("\n")) {
+                            if (line.isBlank()) continue;
+                            String ts = extract(line, "timestamp");
+                            String lb = extract(line, "lobby");
+                            boolean res = Boolean.parseBoolean(extract(line, "result"));
+                            int start = line.indexOf("\"players\":");
+                            String playersJson = line.substring(start + 11, line.lastIndexOf("]"));
+                            List<PlayerRow> playerRows = new ArrayList<>();
+                            for (String p : playersJson.split(Pattern.quote("},{"))) {
+                                String pj = p.replaceAll("[\\[\\]{}]", "");
+                                String name = extract(pj, "name").replaceAll("\"", "");
+                                String role = extract(pj, "role").replaceAll("\"", "");
+                                String outcome = extract(pj, "outcome").replaceAll("\"", "");
+                                playerRows.add(new PlayerRow(name, role, outcome));
+                            }
+                            Label header = new Label(ts + " | Lobby " + lb + " | " + (res ? "Guard Won" : "Goat Won"));
+                            TableView<PlayerRow> table = new TableView<>();
+                            TableColumn<PlayerRow, String> nameCol = new TableColumn<>("Player");
+                            nameCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
+                            TableColumn<PlayerRow, String> roleCol = new TableColumn<>("Role");
+                            roleCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getRole()));
+                            TableColumn<PlayerRow, String> outCol = new TableColumn<>("Outcome");
+                            outCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getOutcome()));
+                            table.getColumns().addAll(nameCol, roleCol, outCol);
+                            table.setItems(FXCollections.observableArrayList(playerRows));
+                            root.getChildren().addAll(header, table);
+                        }
+                        ScrollPane sp = new ScrollPane(root);
+                        Scene sc = new Scene(sp, 600, 400);
+                        stage2.setScene(sc);
+                        stage2.show();
                     });
                     break;
                 default:
@@ -782,5 +815,47 @@ public class LobbyGUI {
             boolean inLobby = currentLobbyCode != null;
             readyButton.setDisable(!inLobby);
         });
+    }
+
+    private String extract(String line, String key) {
+        int startIndex = line.indexOf("\"" + key + "\":");
+        if (startIndex == -1) return "";
+        startIndex += key.length() + 3;
+        int endIndex = line.indexOf(",", startIndex);
+        int braceEnd = line.indexOf("}", startIndex);
+        if (endIndex == -1 || (braceEnd != -1 && braceEnd < endIndex)) {
+            endIndex = braceEnd;
+        }
+        if (endIndex == -1) {
+            endIndex = line.length();
+        }
+        if (startIndex >= endIndex) return "";
+        String value = line.substring(startIndex, endIndex).trim();
+        value = value.replaceAll("^[\\\\\"\\{\\[]+|[\\\\\"\\}\\]]+$", "");
+        return value;
+    }
+
+    public static class PlayerRow {
+        private String name;
+        private String role;
+        private String outcome;
+
+        public PlayerRow(String name, String role, String outcome) {
+            this.name = name;
+            this.role = role;
+            this.outcome = outcome;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getRole() {
+            return role;
+        }
+
+        public String getOutcome() {
+            return outcome;
+        }
     }
 }
