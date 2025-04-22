@@ -41,6 +41,7 @@ public class Map {
         terminalList = new ArrayList<>();
         doorVisuals = new ArrayList<>();
         doorCollisions = new ArrayList<>();
+        windowVisuals = new ArrayList<>();
         windowCollisions = new ArrayList<>();
         decorItems = new ArrayList<>();
         createMapLayout();
