@@ -696,6 +696,7 @@ public class ClientHandler implements Runnable {
 
         if (lobbyToJoin.getState() == LobbyState.IN_GAME || lobbyToJoin.getState() == LobbyState.FINISHED) {
             sendError("Game is already in progress");
+            return;
         }
 
         leaveCurrentLobby();
@@ -1108,7 +1109,7 @@ public class ClientHandler implements Runnable {
 
         logger.info("Starting game in lobby {} (Initiated by creator: {})", currentLobby.getCode(), nickname);
 
-        currentLobby.setState(LobbyState.IN_GAME);
+        currentLobby.startGame();
         broadcastGetLobbiesToAll();
 
         String gameStartedMessage = "game_started:";
@@ -1189,11 +1190,12 @@ public class ClientHandler implements Runnable {
     private void endGame(boolean result) {
         if (!currentLobby.getGameState().gameOver) {
             currentLobby.getGameState().gameOver = true;
-            currentLobby.setState(LobbyState.FINISHED);
+            currentLobby.setGameFinished();
             broadcastGetLobbiesToAll();
             currentLobby.broadcastToLobby("gameover:" + result);
-            long[] endTime = Timer.convertToMinSec(currentLobby.getGameTime());
-            logger.info("game finished in {}:{}", endTime[0], endTime[1]);
+            double[] endTime = Timer.convertToMinSec(currentLobby.getGameTime());
+            logger.info("{}", currentLobby.getGameTime());
+            logger.info("game finished in {}:{}", Math.round(endTime[0]), (int)endTime[1]);
 
             try {
                 Path logPath = Paths.get("finished_games.log");

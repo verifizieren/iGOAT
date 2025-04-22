@@ -104,14 +104,10 @@ public class Lobby {
     }
 
     /**
-     * Sets the state of the lobby.
-     *
-     * @param state The new GameState to set
+     * Sets the lobby status to finished
      */
-    public void setState(LobbyState state) {
-        if (state != LobbyState.IN_GAME) {
-            this.state = state;
-        }
+    public void setGameFinished() {
+        state = LobbyState.FINISHED;
     }
 
     public CollisionMap getMap() {
@@ -157,7 +153,7 @@ public class Lobby {
      * @return true if the number of players equals or exceeds MAX_PLAYERS
      */
     public boolean isFull() {
-        return members.size() >= MAX_PLAYERS || state == LobbyState.IN_GAME;
+        return members.size() >= MAX_PLAYERS;
     }
 
     /**
@@ -165,6 +161,10 @@ public class Lobby {
      * maximum capacity is reached, otherwise OPEN.
      */
     private void updateState() {
+        if (state == LobbyState.IN_GAME || state == LobbyState.FINISHED) {
+            return;
+        }
+
         if (members.size() >= MAX_PLAYERS && state != LobbyState.IN_GAME) {
             state = LobbyState.FULL;
         } else {

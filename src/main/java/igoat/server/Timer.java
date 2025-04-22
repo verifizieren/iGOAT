@@ -10,7 +10,7 @@ public class Timer {
      * Creates a new timer intialized with the current time
      */
     public Timer() {
-        lastTime = System.nanoTime();
+        lastTime = getCurrentTime();
     }
 
     /**
@@ -18,8 +18,8 @@ public class Timer {
      * @return The elapsed time in ms
      */
     public long getTimeElapsed() {
-        long elapsed = System.nanoTime() - lastTime;
-        lastTime = System.nanoTime();
+        long elapsed = getCurrentTime() - lastTime;
+        lastTime = getCurrentTime();
         return elapsed;
     }
 
@@ -28,13 +28,14 @@ public class Timer {
      * @return Current time in ms
      */
     public static long getCurrentTime() {
-        return System.nanoTime();
+        return System.currentTimeMillis();
     }
 
-    public static long[] convertToMinSec(long time) {
-        long[] minSec = new long[2];
-        long totalSeconds = time / 1000;
-        minSec[0] = totalSeconds / 60;
+    public static double[] convertToMinSec(long time) {
+        double[] minSec = new double[2];
+        // round
+        double totalSeconds = time / 1000.0;
+        minSec[0] = Math.floor(totalSeconds / 60.0);
         minSec[1] = totalSeconds % 60;
 
         return minSec;
