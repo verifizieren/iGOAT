@@ -5,25 +5,6 @@ import java.util.List;
 import java.util.Objects;
 
 public class SceneDecoration {
-
-    // iGOAT_side
-    private int iGOAT_WIDTH;
-    private int iGOAT_HEIGHT;
-
-    // bench
-
-    // circle_chair
-
-    // bureau_chair
-
-    // plant
-
-    // trashcan
-    private int trashcan_X = 20;
-    private int trashcan_Y = 28;
-    private int trashcan_WIDTH = 37;
-    private int trashcan_HEIGHT = 24;
-
     public static List<Decoration> getDecorList() {
         List<Decoration> decorList = new ArrayList<>();
 
@@ -44,7 +25,50 @@ public class SceneDecoration {
             0, 0, 292, 64
         ));
 
-        // Decoration 1
+        // left Room Decoration 1
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/wall_cable.png")).toExternalForm(),
+            1080, -30, 64, 64,
+            false,
+            0, 0, 64, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/glass_cylinder.png")).toExternalForm(),
+            930, 0, 64, 64,
+            true,
+            0, 0, 29, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/glass_cylinder_red.png")).toExternalForm(),
+            930, 40, 64, 64,
+            true,
+            0, 0, 29, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/glass_cylinder_green.png")).toExternalForm(),
+            930, 80, 64, 64,
+            true,
+            0, 0, 29, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/glass_cylinder.png")).toExternalForm(),
+            930, 120, 64, 64,
+            true,
+            0, 0, 29, 64
+        ));
+
+        // right Room Decoration 1
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/wall_cable.png")).toExternalForm(),
+            1210, 310, 64, 64,
+            false,
+            0, 0, 64, 64
+        ));
+
         decorList.add(new Decoration(
             Objects.requireNonNull(Sprite.class.getResource("/sprites/paper.png")).toExternalForm(),
             1400, 200, 64, 64,
@@ -174,12 +198,48 @@ public class SceneDecoration {
             0, 0, 138, 64
         ));
 
-        // Decoration 2
+        // left Room Decoration 2
         decorList.add(new Decoration(
             Objects.requireNonNull(Sprite.class.getResource("/sprites/plant.png")).toExternalForm(),
             1020, 580, 64, 64,
             true,
-            0, 0, 44, 64
+            0, 0, 24, 64
+        ));
+
+        // right Room Decoration 2
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/bench.png")).toExternalForm(),
+            1350, 700, 64, 64,
+            true,
+            0, 0, 32, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/plant.png")).toExternalForm(),
+            1335, 735, 64, 64,
+            true,
+            20, 0, 22, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/bench.png")).toExternalForm(),
+            1350, 800, 64, 64,
+            true,
+            0, 0, 32, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/plant.png")).toExternalForm(),
+            1335, 835, 64, 64,
+            true,
+            20, 0, 22, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/bench.png")).toExternalForm(),
+            1350, 900, 64, 64,
+            true,
+            0, 0, 32, 60
         ));
 
         decorList.add(new Decoration(
@@ -223,6 +283,27 @@ public class SceneDecoration {
         ));
 
         // Decoration 3
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/paper.png")).toExternalForm(),
+            1060, 920, 64, 64,
+            false,
+            0, 0, 64, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/wall_cable.png")).toExternalForm(),
+            850, 1060, 64, 64,
+            false,
+            0, 0, 64, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/whiteboard.png")).toExternalForm(),
+            1000, 1060, 64, 64,
+            false,
+            0, 0, 64, 64
+        ));
+
         decorList.add(new Decoration(
             Objects.requireNonNull(Sprite.class.getResource("/sprites/paper.png")).toExternalForm(),
             850, 600, 64, 64,
@@ -608,12 +689,20 @@ public class SceneDecoration {
         ));
 
         // Room 5
-        // top Wall
+        // top left Wall
         decorList.add(new Decoration(
             Objects.requireNonNull(Sprite.class.getResource("/sprites/wall.png")).toExternalForm(),
             20, 1000, 180, 64,
             true,
             0, 0, 180, 64
+        ));
+
+        // top right Wall
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/wall.png")).toExternalForm(),
+            220, 1000, 80, 64,
+            true,
+            0, 0, 80, 64
         ));
 
         // bottom Wall 1
@@ -644,6 +733,14 @@ public class SceneDecoration {
             700, 1300, 100, 64,
             true,
             0, 0, 130, 64
+        ));
+
+        // top Room Decoration 5
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/table_circle.png")).toExternalForm(),
+            200, 800, 64, 64,
+            true,
+            10, 10, 45, 45
         ));
 
         // Right Room Decoration 5
@@ -724,6 +821,224 @@ public class SceneDecoration {
             10, 10, 47, 44
         ));
 
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/iGOAT_station.png")).toExternalForm(),
+            600, 1418, 64, 64,
+            true,
+            0, 0, 42, 64
+        ));
+
+        // Left Room Decoration 5
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/whiteboard_with_stuff.png")).toExternalForm(),
+            80, 1010, 64, 64,
+            false,
+            0, 0, 64, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/paper.png")).toExternalForm(),
+            90, 1330, 64, 64,
+            false,
+            0, 0, 64, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/paper.png")).toExternalForm(),
+            200, 1410, 64, 64,
+            false,
+            0, 0, 64, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/display_with_activity.png")).toExternalForm(),
+            200, 1285, 50, 64,
+            false,
+            0, 0, 50, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/glass_cylinder.png")).toExternalForm(),
+            30, 1040, 64, 64,
+            true,
+            0, 0, 29, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/glass_cylinder_red.png")).toExternalForm(),
+            30, 1090, 64, 64,
+            true,
+            0, 0, 29, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/glass_cylinder_green.png")).toExternalForm(),
+            30, 1130, 64, 64,
+            true,
+            0, 0, 29, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/glass_cylinder.png")).toExternalForm(),
+            30, 1170, 64, 64,
+            true,
+            0, 0, 29, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/glass_cylinder_red.png")).toExternalForm(),
+            30, 1210, 64, 64,
+            true,
+            0, 0, 29, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/glass_cylinder_green.png")).toExternalForm(),
+            160, 1040, 64, 64,
+            true,
+            0, 0, 29, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/glass_cylinder.png")).toExternalForm(),
+            160, 1090, 64, 64,
+            true,
+            0, 0, 29, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/circle_chair.png")).toExternalForm(),
+            20, 1390, 64, 64,
+            true,
+            0, 20, 44, 62
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/circle_chair.png")).toExternalForm(),
+            80, 1390, 64, 64,
+            true,
+            0, 20, 44, 62
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/table.png")).toExternalForm(),
+            20, 1420, 64, 64,
+            true,
+            0, 0, 64, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/table.png")).toExternalForm(),
+            83, 1420, 64, 64,
+            true,
+            0, 0, 64, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/table.png")).toExternalForm(),
+            20, 1456, 64, 64,
+            true,
+            0, 0, 64, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/table.png")).toExternalForm(),
+            83, 1456, 64, 64,
+            true,
+            0, 0, 64, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/circle_chair.png")).toExternalForm(),
+            20, 1480, 64, 64,
+            true,
+            0, 0, 44, 60
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/circle_chair.png")).toExternalForm(),
+            80, 1480, 64, 64,
+            true,
+            0, 0, 44, 60
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/laptop.png")).toExternalForm(),
+            20, 1400, 64, 64,
+            false,
+            0, 0, 44, 60
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/laptop.png")).toExternalForm(),
+            20, 1430, 64, 64,
+            false,
+            0, 0, 44, 60
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/laptop.png")).toExternalForm(),
+            80, 1400, 64, 64,
+            false,
+            0, 0, 44, 60
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/laptop.png")).toExternalForm(),
+            80, 1430, 64, 64,
+            false,
+            0, 0, 44, 60
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/trashcan.png")).toExternalForm(),
+            130, 1430, 64, 64,
+            true,
+            20, 26, 17, 26
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/shelf_with_objects.png")).toExternalForm(),
+            330, 1330, 64, 64,
+            true,
+            0, 0, 64, 62
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/shelf.png")).toExternalForm(),
+            393, 1330, 64, 64,
+            true,
+            0, 0, 64, 62
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/plant.png")).toExternalForm(),
+            445, 1330, 64, 64,
+            true,
+            0, 0, 32, 62
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/table_circle.png")).toExternalForm(),
+            300, 1456, 64, 64,
+            true,
+            10, 10, 45, 45
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/laptop.png")).toExternalForm(),
+            300, 1430, 64, 64,
+            false,
+            10, 20, 54, 44
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/jar.png")).toExternalForm(),
+            330, 1460, 32, 32,
+            false,
+            10, 20, 54, 44
+        ));
+
         // Room 6
         // Wall
         decorList.add(new Decoration(
@@ -738,21 +1053,14 @@ public class SceneDecoration {
             Objects.requireNonNull(Sprite.class.getResource("/sprites/table_dirty_updown.png")).toExternalForm(),
             20, 10, 64, 64,
             true,
-            10, 10, 47, 44
+            0, 0, 32, 44
         ));
 
         decorList.add(new Decoration(
             Objects.requireNonNull(Sprite.class.getResource("/sprites/table_dirty_updown.png")).toExternalForm(),
             20, 58, 64, 64,
             true,
-            10, 10, 47, 44
-        ));
-
-        decorList.add(new Decoration(
-            Objects.requireNonNull(Sprite.class.getResource("/sprites/table_dirty_updown.png")).toExternalForm(),
-            20, 106, 64, 64,
-            true,
-            10, 10, 47, 44
+            0, 0, 32, 44
         ));
 
         decorList.add(new Decoration(
@@ -764,7 +1072,14 @@ public class SceneDecoration {
 
         decorList.add(new Decoration(
             Objects.requireNonNull(Sprite.class.getResource("/sprites/iGOAT_side.png")).toExternalForm(),
-            10, 0, 64, 64,
+            10, -10, 64, 64,
+            true,
+            10, 10, 47, 44
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/iGOAT_side.png")).toExternalForm(),
+            10, 10, 64, 64,
             true,
             10, 10, 47, 44
         ));
@@ -777,17 +1092,10 @@ public class SceneDecoration {
         ));
 
         decorList.add(new Decoration(
-            Objects.requireNonNull(Sprite.class.getResource("/sprites/iGOAT_side.png")).toExternalForm(),
-            10, 60, 64, 64,
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/iGOAT_station.png")).toExternalForm(),
+            20, 90, 64, 64,
             true,
-            10, 10, 47, 44
-        ));
-
-        decorList.add(new Decoration(
-            Objects.requireNonNull(Sprite.class.getResource("/sprites/iGOAT_side.png")).toExternalForm(),
-            10, 90, 64, 64,
-            true,
-            10, 10, 47, 44
+            0, 0, 42, 64
         ));
 
         // Decoration 6
@@ -795,6 +1103,20 @@ public class SceneDecoration {
             Objects.requireNonNull(Sprite.class.getResource("/sprites/plant.png")).toExternalForm(),
             20, 230, 64, 64,
             true,
+            20, 0, 20, 62
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/wall_cable.png")).toExternalForm(),
+            250, -32, 64, 64,
+            false,
+            20, 0, 20, 62
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/wall_cable.png")).toExternalForm(),
+            450, -32, 64, 64,
+            false,
             20, 0, 20, 62
         ));
 
@@ -841,9 +1163,9 @@ public class SceneDecoration {
         // left from door bottom Wall 1
         decorList.add(new Decoration(
             Objects.requireNonNull(Sprite.class.getResource("/sprites/wall.png")).toExternalForm(),
-            20, 600, 380, 64,
+            20, 600, 200, 64,
             true,
-            0, 0, 380, 64
+            0, 0, 200, 64
         ));
 
         // bottom Wall 2
@@ -870,12 +1192,99 @@ public class SceneDecoration {
             0, 0, 30, 64
         ));
 
+        // Guard Room Decoration 7
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/plant.png")).toExternalForm(),
+            845, -20, 64, 64,
+            true,
+            20, 0, 44, 63
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/table.png")).toExternalForm(),
+            700, 0, 64, 64,
+            true,
+            0, 0, 64, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/screen.png")).toExternalForm(),
+            700, -25, 64, 64,
+            false,
+            0, 0, 32, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/bureau_chair.png")).toExternalForm(),
+            700, 20, 64, 64,
+            true,
+            32, 0, 32, 44
+        ));
+
         // top Decoration 7
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/wall_cable.png")).toExternalForm(),
+            620, 160, 64, 64,
+            false,
+            0, 0, 64, 64
+        ));
+
         decorList.add(new Decoration(
             Objects.requireNonNull(Sprite.class.getResource("/sprites/bench.png")).toExternalForm(),
             320, 220, 64, 64,
             true,
             0, 0, 32, 64
+        ));
+
+        // middle Room Decoration 7
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/whiteboard.png")).toExternalForm(),
+            340, 310, 64, 64,
+            false,
+            0, 0, 64, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/display_with_activity.png")).toExternalForm(),
+            550, 290, 64, 64,
+            false,
+            0, 0, 64, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/redlight.png")).toExternalForm(),
+            850, 290, 64, 64,
+            false,
+            0, 0, 64, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/plant.png")).toExternalForm(),
+            210, 330, 64, 64,
+            true,
+            0, 0, 44, 63
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/closet_updown.png")).toExternalForm(),
+            220, 400, 64, 64,
+            true,
+            0, 0, 32, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/closet_updown.png")).toExternalForm(),
+            220, 437, 64, 64,
+            true,
+            0, 0, 32, 63
+        ));
+
+        // bottom Room Decoration 7
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/shelf_with_objects.png")).toExternalForm(),
+            620, 580, 64, 64,
+            true,
+            0, 0, 64, 64
         ));
 
         // Room 8
@@ -893,6 +1302,134 @@ public class SceneDecoration {
             620, 700, 160, 64,
             true,
             0, 0, 160, 64
+        ));
+
+        // left Room Decoration 8
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/paper.png")).toExternalForm(),
+            480, 620, 64, 64,
+            false,
+            0, 0, 160, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/paper.png")).toExternalForm(),
+            520, 720, 64, 64,
+            false,
+            0, 0, 160, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/paper.png")).toExternalForm(),
+            470, 820, 64, 64,
+            false,
+            0, 0, 160, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/whiteboard_with_stuff.png")).toExternalForm(),
+            480, 560, 64, 64,
+            false,
+            0, 0, 160, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/bench.png")).toExternalForm(),
+            420, 600, 64, 64,
+            true,
+            0, 0, 32, 60
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/bench.png")).toExternalForm(),
+            420, 647, 64, 64,
+            true,
+            0, 0, 32, 60
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/bench.png")).toExternalForm(),
+            420, 694, 64, 64,
+            true,
+            0, 0, 32, 60
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/plant.png")).toExternalForm(),
+            550, 580, 64, 64,
+            true,
+            20, 0, 32, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/closet_updown.png")).toExternalForm(),
+            567, 650, 64, 64,
+            true,
+            0, 0, 32, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/closet_updown.png")).toExternalForm(),
+            567, 687, 64, 64,
+            true,
+            0, 0, 32, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/closet_updown.png")).toExternalForm(),
+            567, 870, 64, 64,
+            true,
+            0, 0, 32, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/closet_updown.png")).toExternalForm(),
+            567, 907, 64, 64,
+            true,
+            0, 0, 32, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/closet_updown.png")).toExternalForm(),
+            567, 944, 64, 64,
+            true,
+            0, 0, 32, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/plant.png")).toExternalForm(),
+            550, 980, 64, 64,
+            true,
+            20, 0, 32, 64
+        ));
+
+        // right Room Decoration 8
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/wall_cable.png")).toExternalForm(),
+            440, 1060, 64, 64,
+            false,
+            0, 0, 64, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/closet.png")).toExternalForm(),
+            627, 720, 64, 64,
+            true,
+            0, 0, 64, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/drawer.png")).toExternalForm(),
+            690, 720, 64, 64,
+            true,
+            0, 0, 64, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/redlight.png")).toExternalForm(),
+            750, 690, 64, 64,
+            false,
+            0, 0, 64, 64
         ));
 
         return decorList;
