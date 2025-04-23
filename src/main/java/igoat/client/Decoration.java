@@ -24,7 +24,7 @@ public class Decoration {
     }
 
     public ImageView createImageView() {
-        Sprite sprite = new Sprite(imagePath, width, height);
+        Sprite sprite = new Sprite(imagePath);
         ImageView view = new ImageView(sprite);
         view.setX(x);
         view.setY(y);

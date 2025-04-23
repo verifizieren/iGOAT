@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 public class Sprite extends Image {
     private static final Logger logger = LoggerFactory.getLogger(Sprite.class);
 
-    public Sprite(String url, double width, double height) {
+    public Sprite(String url) {
         super(url);
     }
 

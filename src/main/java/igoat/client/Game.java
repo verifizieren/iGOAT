@@ -239,7 +239,7 @@ public class Game extends Application {
         gamePane.setClip(new Rectangle(0, 0, gameMap.getWidth(), gameMap.getHeight()));
 
         // background image
-        Sprite floor = new Sprite("sprites/floor_tile01_32.png", 32, 32);
+        Sprite floor = new Sprite("sprites/floor_tile01.png");
         gamePane.setBackground(floor.getBackground());
 
         Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
