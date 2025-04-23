@@ -75,6 +75,10 @@ jar {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
+// optional
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-Xlint:unchecked"
+}
 
 // Create a task to build a fat/uber jar with all dependencies
 task fatJar(type: Jar) {

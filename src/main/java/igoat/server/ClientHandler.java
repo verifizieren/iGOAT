@@ -23,7 +23,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,8 +61,8 @@ public class ClientHandler implements Runnable {
 
     private boolean isReady = false;
     private boolean isCaught = false;
-    private static double playerX = 80;
-    private static double playerY = 80;
+    private double playerX = 80;
+    private double playerY = 80;
 
     private Role role;
 
@@ -1099,11 +1098,11 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public static double getPlayerX() {
+    public double getPlayerX() {
         return playerX;
     }
 
-    public static double getPlayerY() {
+    public double getPlayerY() {
         return playerY;
     }
 

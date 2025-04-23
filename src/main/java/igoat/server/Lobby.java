@@ -65,13 +65,15 @@ public class Lobby {
     private GameState gameState = new GameState(map.getTerminalList().size(), new int[]{1, 2, 3},
         members);
 
+    /**
+     * Assigns roles to all players in the lobby
+     */
     public void setRoles() {
         for (ClientHandler player : members) {
             Role assignedRole = assignRole();
             player.setRole(assignedRole);
             roleMap.put(player.getNickname(), assignedRole);
-            setSpawnPoints(player);
-
+            //setSpawnPoints(player);
         }
 
         synchronized (availableRoles) {
@@ -82,6 +84,10 @@ public class Lobby {
         }
     }
 
+    /**
+     * This method ensures that roles are correctly distributed
+     * @return Role for a player
+     */
     private Role assignRole() {
         synchronized (availableRoles) {
             if (availableRoles.isEmpty()) {

@@ -300,11 +300,9 @@ public class Game extends Application {
         for (ImageView decor : gameMap.getDecorItems()) {
             gamePane.getChildren().add(decor);
         }
-        double spawnX = ClientHandler.getPlayerX();
-        double spawnY = ClientHandler.getPlayerY();
 
         player = new Player(gamePane, primaryStage.getWidth(), primaryStage.getHeight(), CAMERA_ZOOM,
-                spawnX, spawnY, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, Color.GRAY, confirmedNickname, true);
+                80, 80, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, Color.GRAY, confirmedNickname, true);
 
         player.setSpectated(false);
         activeCamera = player.getCamera();
