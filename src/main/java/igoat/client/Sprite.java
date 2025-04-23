@@ -6,13 +6,17 @@ import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundPosition;
 import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BackgroundSize;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A wrapper class for javafx Image with some additional functionality for easier use
  */
 public class Sprite extends Image {
+    private static final Logger logger = LoggerFactory.getLogger(Sprite.class);
+
     public Sprite(String url, double width, double height) {
-        super(url, width, height, true, false);
+        super(url);
     }
 
     /**
@@ -24,11 +28,11 @@ public class Sprite extends Image {
             false, false, false, false);
 
         BackgroundImage backgroundImage = new BackgroundImage(
-            this,
-            BackgroundRepeat.REPEAT, // repeat horizontally
-            BackgroundRepeat.REPEAT, // repeat vertically
-            BackgroundPosition.CENTER,
-            size
+        this,
+        BackgroundRepeat.REPEAT, // repeat horizontally
+        BackgroundRepeat.REPEAT, // repeat vertically
+        BackgroundPosition.CENTER,
+        size
         );
 
         return new Background(backgroundImage);
