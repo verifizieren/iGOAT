@@ -85,10 +85,6 @@ public class ClientHandler implements Runnable {
     static {
         try {
             serverUpdateSocket = new DatagramSocket();
-            logger.info("======= SERVER UDP SETUP =======");
-            logger.info("Server UDP sending socket created on port {}", serverUpdateSocket.getLocalPort());
-            logger.info("UDP listening port configuration {}", SERVER_UDP_LISTENING_PORT);
-            logger.info("===============================");
         } catch (SocketException e) {
             logger.error("Could not create server UDP sending socket", e);
             serverUpdateSocket = null;
@@ -100,26 +96,19 @@ public class ClientHandler implements Runnable {
      * Should be called once during server initialization.
      */
     public static synchronized void startUdpListener() {
-        logger.info("======= STARTING UDP LISTENER =======");
-        
         if (udpListenerRunning || udpListenerThread != null) {
             logger.warn("UDP Listener is already running or was not properly stopped.");
             return;
         }
         
         try {
-            logger.info("Creating UDP listening socket on port " + SERVER_UDP_LISTENING_PORT);
             udpListeningSocket = new DatagramSocket(SERVER_UDP_LISTENING_PORT);
-            logger.info("UDP listening socket created successfully");
-            
             udpListenerRunning = true;
             udpListenerThread = new Thread(ClientHandler::runUdpListenerLoop);
             udpListenerThread.setName("Server-UDP-Listener");
             udpListenerThread.setDaemon(true);
             udpListenerThread.start();
-            
-            logger.info("Server UDP Listener thread started");
-            logger.info("================================");
+
         } catch (SocketException e) {
             logger.error("Could not start UDP Listener on port {}", SERVER_UDP_LISTENING_PORT, e);
             udpListenerRunning = false;
@@ -162,17 +151,12 @@ public class ClientHandler implements Runnable {
             logger.error("Cannot run UDP listener - socket is null");
             return;
         }
-
-        logger.info("UDP Listener starting on port {}", SERVER_UDP_LISTENING_PORT);
         
         if (udpListeningSocket == null) {
             logger.error("udpListeningSocket is null!");
             return;
         }
-        
-        logger.info("UDP Listener ready on local port {}", udpListeningSocket.getLocalPort());
-        logger.info("Waiting for incoming UDP packets...");
-        
+
         byte[] buffer = new byte[UDP_BUFFER_SIZE];
         
         try {
@@ -319,21 +303,18 @@ public class ClientHandler implements Runnable {
      * @param clientListeningPort The actual UDP port the client is listening on (from the message).
      */
     private static void registerClientUdpPort(InetAddress clientIp, String nickname, int clientListeningPort) {
-        logger.info("Attempting to register UDP for {} from IP {} using reported listening port {}", nickname, clientIp, clientListeningPort);
         boolean found = false;
         for (ClientHandler handler : clientList) {
             if (handler.nickname.equals(nickname)) {
 
                 handler.udpPort = clientListeningPort;
                 found = true;
-                logger.info("Successfully registered UDP listening port {} for {}",clientListeningPort, nickname);
 
                 if (serverUpdateSocket != null) {
                     try {
                         String ackMsg = "udp_ack:";
                         byte[] ackBuf = ackMsg.getBytes();
                         DatagramPacket ackPacket = new DatagramPacket(ackBuf, ackBuf.length, clientIp, clientListeningPort);
-                        logger.info("Sending UDP ACK to {} at {}:{}", nickname, clientIp, clientListeningPort);
                         serverUpdateSocket.send(ackPacket);
                     } catch (IOException e) {
                         logger.error("Failed to send UDP ACK to {}", nickname, e);
@@ -357,7 +338,6 @@ public class ClientHandler implements Runnable {
         this.clientSocket = clientSocket;
         this.lastPongTime = System.currentTimeMillis();
         this.nickname = generateUniqueNickname("player");
-        logger.info("New client connected as {}", this.nickname);
     }
 
     /**
@@ -646,7 +626,7 @@ public class ClientHandler implements Runnable {
                 + " hat seinen/ihren Username zu "
                 + this.nickname
                 + " geändert");
-
+        logger.info("User nickname changed");
         broadcastGlobalPlayerList();
         if (currentLobby != null) broadcastLobbyPlayerList();
     }
@@ -737,6 +717,7 @@ public class ClientHandler implements Runnable {
         currentLobby.addMember(this);
 
         sendMessage("lobby:" + code);
+        logger.info("Created lobby {}", code);
         currentLobby.broadcastChatToLobby(nickname + " hat eine neue Lobby erstellt (" + code + ")");
 
         broadcastGetLobbiesToAll();
@@ -815,12 +796,10 @@ public class ClientHandler implements Runnable {
             return;
         }
 
-        this.setReady(true); 
-        logger.info("Player {} set status to ready.", nickname);
+        this.setReady(true);
 
         String statusMessage = "ready_status:" + this.nickname + "," + this.isReady;
         currentLobby.broadcastToLobby(statusMessage);
-        logger.info("Broadcasting ready status to lobby {}: {}", currentLobby.getCode(), statusMessage);
 
         appendToLobbyChat("Player " + nickname + " ist bereit.", false);
     }
@@ -1013,9 +992,8 @@ public class ClientHandler implements Runnable {
 
         String gameStartedMessage = "game_started:";
         currentLobby.broadcastToLobby(gameStartedMessage);
-        logger.info("Broadcasted: {}", gameStartedMessage);
 
-        sendMessage(gameStartedMessage);
+        //sendMessage(gameStartedMessage);
 
         currentLobby.setRoles();
     }

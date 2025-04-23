@@ -141,15 +141,12 @@ public class ServerHandler {
 
             try {
                 updateSocket = new DatagramSocket();
-                logger.info("Created UDP socket on local port {}", updateSocket.getLocalPort());
-                logger.info("Will send to server UDP port {} ", SERVER_UDP_LISTENING_PORT);
                 connected = true;
 
                 messageReceiver = new Thread(this::receiveMSG);
                 updateReceiver = new Thread(this::receiveUpdate);
                 messageReceiver.start();
                 updateReceiver.start();
-                logger.info("Connected to server at {}:{}", host, port);
                 return;
             } catch (Exception e) {
                 logger.error("Failed to create UDP socket: ", e);
@@ -235,7 +232,6 @@ public class ServerHandler {
                     newNickname = confirmMessage;
                 }
                 this.confirmedNickname = newNickname;
-                logger.info("Nickname confirmed by server: {}", this.confirmedNickname);
                 sendUdpRegistrationPacket();
                 messageBuffer.add(msg);
             } else if (!msg.isEmpty()) {
@@ -256,9 +252,6 @@ public class ServerHandler {
      * lastUpdate.
      */
     private void receiveUpdate() {
-        logger.info("Starting UDP receiver on port {}",
-                         (updateSocket != null ? updateSocket.getLocalPort() : "unknown"));
-        
         byte[] receiveBuffer = new byte[512];
 
         try {
@@ -290,8 +283,6 @@ public class ServerHandler {
                 logger.error("Receive error", e);
             }
         }
-        
-        logger.info("UDP receiver stopped");
     }
 
     /**
@@ -310,20 +301,13 @@ public class ServerHandler {
                                                UDP_REGISTRATION_PREFIX, 
                                                this.confirmedNickname, 
                                                localUdpPort);
-            
-            logger.info("\n======= UDP REGISTRATION =======");
-            logger.info("Preparing registration: {}", registrationMsg);
-            logger.info("From local port: {}", localUdpPort);
-            logger.info("To server listening port: {}", SERVER_UDP_LISTENING_PORT);
-            
+
             byte[] buffer = registrationMsg.getBytes();
             InetAddress serverAddress = InetAddress.getByName(host);
             DatagramPacket registrationPacket = new DatagramPacket(buffer, buffer.length, 
                                                                   serverAddress, SERVER_UDP_LISTENING_PORT);
             
             updateSocket.send(registrationPacket);
-            logger.info("Registration packet sent successfully");
-            logger.info("===============================\n");
         } catch (IOException e) {
             logger.error("Registration error: " + e.getMessage());
         }

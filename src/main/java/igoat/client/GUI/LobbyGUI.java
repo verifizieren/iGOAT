@@ -110,7 +110,6 @@ public class LobbyGUI {
         stage = primaryStage;
         stage.setOnCloseRequest(event -> exit());
 
-        logger.info("show() called. Setting up UI...");
         VBox leftPanel = setupLeftPanel();
         VBox rightPanel = setupRightPanel();
 
@@ -122,7 +121,6 @@ public class LobbyGUI {
         stage.setScene(scene);
         stage.show();
 
-        logger.info("LobbyGUI displayed. Initializing server communication...");
         initializeServerCommunication();
     }
 
@@ -357,7 +355,6 @@ public class LobbyGUI {
      */
     private void initializeServerCommunication() {
         if (serverHandler != null && serverHandler.isConnected()) {
-            logger.info("Initializing Server Communication. Sending getlobbies, getplayers.");
             serverHandler.sendMessage("getlobbies:");
             serverHandler.sendMessage("getplayers:");
 
@@ -367,7 +364,6 @@ public class LobbyGUI {
             chatInput.setDisable(false);
             sendButton.setDisable(false);
 
-            logger.info("Starting message receiver thread...");
             Thread messageThread = new Thread(this::startMessageReceiver);
             messageThread.setDaemon(true);
             messageThread.start();
@@ -444,7 +440,6 @@ public class LobbyGUI {
      * Starts a background thread to receive and display messages from the server.
      */
     private void startMessageReceiver() {
-        logger.info("MessageReceiver thread started.");
         while (running) {
             if (serverHandler == null || !serverHandler.isConnected()) {
                 appendToMessageArea("Connection lost. Please reconnect.");
@@ -456,8 +451,6 @@ public class LobbyGUI {
                  try { Thread.sleep(50); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; } // Avoid busy-waiting on null
                  continue;
             }
-
-            logger.info("Raw message received: {}", message);
 
             String chatPrefix = null;
             if (message.startsWith("chat:")) {
@@ -500,8 +493,8 @@ public class LobbyGUI {
                      String displayPrefix = chatPrefix.equals("chat:") ? "[GLOBAL] " : "[LOBBY] ";
                      appendToMessageArea(displayPrefix + sender + ": " + chatMessage);
                  } else {
-                      logger.warn("Could not parse sender/message from {} data: {}", chatPrefix, chatData);
-                      //appendToMessageArea("[System] " + chatData);
+                     //no sender, probably server message
+                     appendToMessageArea("[System] " + chatData);
                  }
                  continue;
             }
@@ -516,7 +509,7 @@ public class LobbyGUI {
 
             String type = message.substring(0, colonIndex).toLowerCase();
             String content = message.substring(colonIndex + 1);
-            logger.info("Parsed type: {}, content: {}", type, content);
+            //logger.info("Parsed type: {}, content: {}", type, content);
 
             switch (type) {
                 case "error":
@@ -545,6 +538,7 @@ public class LobbyGUI {
                         }
                     } else {
                         appendToMessageArea("Info: Du bist Lobby " + content + " beigetreten.");
+                        logger.info("Joined lobby {}", content);
                         currentLobbyCode = content;
                         readyButton.setDisable(false);
                         if (isGlobalChat) {
@@ -583,7 +577,6 @@ public class LobbyGUI {
                 case "getlobbyplayers":
                     if (!isGlobalChat) {
                         Platform.runLater(() -> {
-                            logger.info("Received getlobbyplayers: {}", content);
                             String[] players = content.isEmpty() ? new String[0] : content.split(",");
                             playerListView.getItems().clear();
                             
@@ -598,35 +591,26 @@ public class LobbyGUI {
                             Set<String> playersToRemoveFromStatus = new HashSet<>(playerReadyStatus.keySet());
                             playersToRemoveFromStatus.removeAll(namesInUpdate);
                             if (!playersToRemoveFromStatus.isEmpty()) {
-                                logger.info("Removing players from ready status map who left lobby: {}", playersToRemoveFromStatus);
                                 for (String nameToRemove : playersToRemoveFromStatus) {
                                     playerReadyStatus.remove(nameToRemove);
                                 }
-                                logger.info("playerReadyStatus map after removal: {}", playerReadyStatus);
                             }
-
-                            logger.info("Checking if all players are ready after getlobbyplayers update...");
                             checkAllPlayersReady(players);
                         });
                     }
                     break;
                 case "ready_status":
-                    logger.info("Entering 'ready_status' case.");
                     String[] readyInfo = content.split(",");
                     if (readyInfo.length == 2) {
                         String playerName = readyInfo[0].trim();
                         boolean ready = Boolean.parseBoolean(readyInfo[1].trim());
-                        logger.info("Parsed ready_status for {}: {}", playerName, ready);
                         playerReadyStatus.put(playerName, ready);
-                        logger.info("playerReadyStatus map updated: {}", playerReadyStatus);
 
                         Platform.runLater(() -> {
-                            logger.info("Calling updatePlayerListWithReadyStatus for {}", playerName);
                             updatePlayerListWithReadyStatus();
                             String[] currentPlayersArray = playerListView.getItems().stream()
                                    .map(item -> item.replace(" ✓", ""))
                                    .toArray(String[]::new);
-                             logger.info("Checking all players ready immediately after ready_status update for {} ...", playerName);
                              checkAllPlayersReady(currentPlayersArray);
                         });
                     } else {
@@ -634,7 +618,6 @@ public class LobbyGUI {
                     }
                     break;
                 case "game_started":
-                    logger.info("Received game_started message!");
                     appendToMessageArea("Game started!");
                     Platform.runLater(() -> {
                         if (currentLobbyCode == null) {
@@ -643,29 +626,22 @@ public class LobbyGUI {
                         }
                         readyButton.setDisable(true);
 
-                        logger.info("Gathering player list for game initialization...");
                         List<String> playerNames = new ArrayList<>();
                         for (String item : playerListView.getItems()) {
                             playerNames.add(item.replace(" ✓", ""));
                         }
-                        logger.info("Players in lobby: {}", playerNames);
 
                         try {
-                            logger.info("Creating and initializing Game instance...");
                             Game game = new Game(this);
                             game.initialize(serverHandler, username, currentLobbyCode, playerNames);
-                            logger.info("Game instance initialized.");
 
-                            logger.info("Creating new stage for game...");
                             Stage gameStage = new Stage();
-                            logger.info("Calling game.start()...");
+                            logger.info("New game started!");
 
                             game.start(gameStage);
-                            logger.info("game.start() returned. Closing lobby window...");
 
                             stage.hide();
                             running = false; // Stop the message receiver thread
-                            logger.info("Lobby window closed and message receiver stopped.");
                         } catch (Exception ex) {
                             logger.error("Error starting game", ex);
                             appendToMessageArea("Error starting game: " + ex.getMessage());
@@ -731,7 +707,6 @@ public class LobbyGUI {
                 break;
             }
         }
-        logger.info("MessageReceiver thread stopped.");
     }
     
     /**
@@ -741,7 +716,6 @@ public class LobbyGUI {
      */
     private void updatePlayerListWithReadyStatus() {
         if (isGlobalChat) return;
-        logger.info("Updating player list view based on ready statuses map: {}", playerReadyStatus);
 
         List<String> currentItems = new ArrayList<>(playerListView.getItems());
         playerListView.getItems().clear();
@@ -752,7 +726,6 @@ public class LobbyGUI {
             String playerDisplay = playerName + (isPlayerReady ? " ✓" : "");
             playerListView.getItems().add(playerDisplay);
         }
-         logger.info("Player list view updated: {}", playerListView.getItems());
     }
     
     /**
@@ -767,11 +740,8 @@ public class LobbyGUI {
      */
     private void checkAllPlayersReady(String[] players) {
          if (currentLobbyCode == null) {
-              logger.info("Not in a lobby, skipping check.");
               return;
          }
-         logger.info("Checking readiness for players: {}", Arrays.toString(players));
-         logger.info("Current ready status map: {}", playerReadyStatus);
 
          if (players.length < 1) { 
               logger.info("Not enough players to start (<1).");
@@ -783,18 +753,12 @@ public class LobbyGUI {
              String trimmedPlayerName = player.trim();
              if (!playerReadyStatus.getOrDefault(trimmedPlayerName, false)) {
                  allReady = false;
-                 logger.info("Player {} not ready (map status: {})", trimmedPlayerName, playerReadyStatus.getOrDefault(trimmedPlayerName, false));
                  break;
-             } else {
-                 logger.info("Player {} is ready.", trimmedPlayerName);
              }
          }
 
          if (allReady && players.length == 4) {
-             logger.info("All players are ready! Waiting for game start command...");
              appendToMessageArea("All players are ready! The lobby creator can now start the game.");
-         } else {
-             logger.info("Not all players are ready yet.");
          }
      }
     

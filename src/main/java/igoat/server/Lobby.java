@@ -73,7 +73,7 @@ public class Lobby {
             Role assignedRole = assignRole();
             player.setRole(assignedRole);
             roleMap.put(player.getNickname(), assignedRole);
-            //setSpawnPoints(player);
+            setSpawnPoints(player);
         }
 
         synchronized (availableRoles) {
@@ -128,7 +128,7 @@ public class Lobby {
         player.setPlayerX(x);
         player.setPlayerY(y);
 
-        player.sendUpdate("player_position:" + player.getNickname() + ":" + x + ":" + y);
+        //player.sendUpdate("player_position:" + player.getNickname() + ":" + x + ":" + y);
         player.setInitialPositionSet(true);
     }
 

@@ -166,7 +166,6 @@ public class Camera {
         if (coneCanvas == null) {
             coneCanvas = new Canvas(viewportWidth, viewportHeight);
             gamePane.getChildren().add(coneCanvas);
-            logger.info("created cone effect");
         }
         GraphicsContext gc = coneCanvas.getGraphicsContext2D();
 

@@ -181,7 +181,6 @@ public class Game extends Application {
         startUdpUpdateProcessor();
 
         if (this.serverHandler != null && this.serverHandler.isConnected()) {
-            logger.info("Game initialized, requesting initial roles...");
             this.serverHandler.sendMessage("getroles:");
         }
 
@@ -191,8 +190,7 @@ public class Game extends Application {
                 logger.error("Cannot initialize - confirmed nickname is null");
                 return;
             }
-            
-            logger.info("Initializing visuals for players present at start: {}", initialPlayerNames);
+
             for (String pName : initialPlayerNames) {
                 if (!pName.equals(confirmedNickname)) {
                     createVisualForRemotePlayer(pName, 100, 100);
@@ -415,7 +413,6 @@ public class Game extends Application {
                      break;
                  }
             }
-             logger.info("Message processor stopped.");
         });
         messageProcessor.setDaemon(true);
         messageProcessor.start();
@@ -570,7 +567,7 @@ public class Game extends Application {
                             String playerName = parts[0];
                             try {
                                 Role role = Role.valueOf(parts[1]);
-                                logger.info("[roles] Processing role {} for player {}", role, playerName);
+                                //logger.info("[roles] Processing role {} for player {}", role, playerName);
                                 Platform.runLater(() -> {
                                     if (player != null && playerName.equals(player.getUsername())) {
                                         player.setRole(role);
@@ -620,9 +617,6 @@ public class Game extends Application {
                  String[] parsed = parseSenderAndContent.apply(prefixString, message);
                  String sender = parsed[0];
                  String content = parsed[1];
-
-                 logger.debug("Processing incoming {} chat message. Sender: '{}', Message: '{}'", 
-                              mode, sender, content);
                  addChatMessage(sender, null, content, mode);
             } else {
                  logger.warn("Received message with unknown prefix or format: {}", message);
@@ -657,9 +651,6 @@ public class Game extends Application {
                 return;
             }
         }
-
-        logger.debug("Processing incoming {} chat message. Sender: '{}', Message: '{}'", 
-                     mode, sender, content);
         addChatMessage(sender, null, content, mode);
     }
 
@@ -1132,7 +1123,6 @@ public class Game extends Application {
             double tx = terminal.getX() + (terminal.getWidth() / 2.0);
             double ty = terminal.getY() + (terminal.getHeight() / 2.0);
             if (sqrt(pow(tx - x, 2) + pow(ty - y, 2)) < 35.0) {
-                logger.info("Activating terminal");
                 serverHandler.sendMessage("terminal:" + terminal.getTerminalID());
                 return;
             }

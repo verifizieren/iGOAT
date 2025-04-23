@@ -58,7 +58,6 @@ public class MainMenuGUI extends Application {
             portDialog.setContentText("Enter server port:");
 
             portDialog.showAndWait().ifPresent(serverPort -> {
-                logger.info("Create Server button clicked. Starting server on port {}...", serverPort);
                 serverThread = new Thread(() -> Server.startServer(Integer.parseInt(serverPort)));
                 serverThread.setDaemon(true);
                 serverThread.start();
@@ -67,7 +66,6 @@ public class MainMenuGUI extends Application {
 
         Button joinServerButton = new Button("Join Server");
         joinServerButton.setOnAction(e -> {
-            logger.info("Join Server button clicked.");
             TextInputDialog ipDialog = new TextInputDialog("localhost");
             ipDialog.setTitle("Join Server");
             ipDialog.setHeaderText(null);
@@ -109,7 +107,6 @@ public class MainMenuGUI extends Application {
         Scene scene = new Scene(root, 400, 300);
         primaryStage.setScene(scene);
         primaryStage.show();
-        logger.info("Main menu displayed.");
     }
 
     /**
@@ -127,7 +124,6 @@ public class MainMenuGUI extends Application {
             return;
         }
 
-        logger.info("Attempting to connect to server: {}:{}", serverIP.trim(), port);
         handler = new ServerHandler(serverIP.trim(), port, username);
 
         if (!handler.isConnected()) {
@@ -138,15 +134,13 @@ public class MainMenuGUI extends Application {
             return;
         }
 
-        logger.info("Successfully connected to server.");
+        logger.info("Connected successfully to {}:{}", serverIP, port);
         Platform.runLater(() -> {
             try {
-                logger.info("Setting ServerHandler and launching LobbyGUI...");
                 LobbyGUI.setServerHandler(handler);
                 LobbyGUI lobby = new LobbyGUI(stage);
                 lobby.setUsername(username);
                 lobby.show(new Stage());
-                logger.info("LobbyGUI shown. Closing MainMenuGUI.");
                 stage.hide();
             } catch (Exception ex) {
                 logger.error("Couldn't launch LobbyGUI", ex);
@@ -161,7 +155,7 @@ public class MainMenuGUI extends Application {
      * Closes the server connection if it exists and terminates the JavaFX application.
      */
     private void exit() {
-        logger.info("Exit button clicked.");
+        logger.info("Exited application");
         if (handler != null) {
             handler.close();
         }
