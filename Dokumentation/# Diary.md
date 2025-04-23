@@ -56,13 +56,24 @@
 * Die Gruppe testete die Ergebnisse ihrer Arbeit. Leider wurde klar, dass es nicht möglich war, wie geplant OpenGL für das Spiel zu verwenden, da keine funktionierenden Möglichkeiten für die Implementation des GUIs gefunden wurden. Da OpenGL nicht einfach mit JavaFX kompatibel ist, wurde entschieden, die bisherige Implementation komplett auf JavaFX zu porten. Auch wenn dies viel Zeit kosten würde, war es die einzige Option.
 * ToDo: Jonas - Gameimplementation JavaFX, Marvin & Nicolas: Lobby und Chat GUI, Max: UDP
 * Das nächste Treffen wurde für den Montag, den 31.03.2025 festgelegt.
-## <p align ="center"> 31.03.2025
+## <p align ="center"> 31. März
 * Die Gruppe sammelten die bisherigen Ergebnisse zusammen und testeten diese auch.
 * Die Ergebnisse waren zufriedenstellend.
 * ToDo: Meilenstein drei fertigstellen.
 * Das nächste Treffen wurde für den Sonntag, den 06.04.2025 festgelegt.
-## <p align ="center"> 06.04.2025
+## <p align ="center"> 06. April
 * Die Gruppe überprüfte, ob alle Punkte des dritten Meilensteins abgeschlossen waren, und passte den Zeitplan gezielt für die letzten Meilensteine an. Später testete die Gruppe das Spiel, um mögliche Bugs zu identifizieren.
 * Es wurden Bugs gefunden, von denen die meisten behoben werden konnten, sodass das Spiel als Prototyp funktionsfähig ist.
 * ToDo: Präsentation fertigstellen und üben.
 * Das nächste Treffen wurde für den Dienstag, den 08.04.2025 festgelegt.
+## <p align = "center"> 08. April
+* Die Gruppe gestaltete die Präsentation und teilte auf, wer was bei der Präsentation sagen wird.
+* Es wurden auch Überlegungen angestellt, was die nächsten Schritte nach Meilenstein drei sind und was man während der freien Zeit noch am Projekt machen kann.
+* ToDo: Jonas: Server-side-Checks, Timer, Terminal-Logik und Guard-Taschenlampe, Marvin: Fenster-Implementation und Spawnpoints, Max: Highscore-Liste und Unit-Tests, Nicolas: iGoat-Stationen, Ziegenfang-Mechanik und Pixelart
+* Das nächste Treffen wurde für den Dienstag, den 22.04.2025 festgelegt.
+## <p align = "center"> 22. April
+* Die bisherigen Ergebnisse wurden angeschaut und getestet.
+* Die Gruppe stellte fest, dass die Map gut aussieht, jedoch war die Pixelart nicht korrekt skaliert und musste überarbeitet werden. Es fehlten außerdem noch weitere Punkte für den vierten Meilenstein, die noch bearbeitet werden müssen.
+* ToDo: Meilenstein vier fertigstellen.
+* Das nächste Treffen wurde für den Freitag, den 25.04.2025 festgelegt.
+
