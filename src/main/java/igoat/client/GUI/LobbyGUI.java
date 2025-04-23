@@ -445,7 +445,12 @@ public class LobbyGUI {
      */
     private void startMessageReceiver() {
         logger.info("MessageReceiver thread started.");
-        while (running && serverHandler != null && serverHandler.isConnected()) {
+        while (running) {
+            if (serverHandler == null || !serverHandler.isConnected()) {
+                appendToMessageArea("Connection lost. Please reconnect.");
+                break;
+            }
+
             String message = serverHandler.getMessage();
             if (message == null || message.isEmpty()) {
                  try { Thread.sleep(50); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; } // Avoid busy-waiting on null
@@ -726,7 +731,7 @@ public class LobbyGUI {
                 break;
             }
         }
-         logger.info("MessageReceiver thread stopped.");
+        logger.info("MessageReceiver thread stopped.");
     }
     
     /**
