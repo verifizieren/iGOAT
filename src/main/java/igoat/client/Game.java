@@ -5,6 +5,8 @@ import static java.lang.Math.sqrt;
 
 import igoat.client.GUI.Banner;
 import java.time.LocalTime;
+
+import igoat.server.ClientHandler;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
@@ -298,10 +300,12 @@ public class Game extends Application {
         for (ImageView decor : gameMap.getDecorItems()) {
             gamePane.getChildren().add(decor);
         }
-        
+        double spawnX = ClientHandler.getPlayerX();
+        double spawnY = ClientHandler.getPlayerY();
+
         player = new Player(gamePane, primaryStage.getWidth(), primaryStage.getHeight(), CAMERA_ZOOM,
-                80, 80, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, Color.GRAY, confirmedNickname, true);
-        
+                spawnX, spawnY, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, Color.GRAY, confirmedNickname, true);
+
         player.setSpectated(false);
         activeCamera = player.getCamera();
         

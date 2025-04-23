@@ -70,6 +70,8 @@ public class Lobby {
             Role assignedRole = assignRole();
             player.setRole(assignedRole);
             roleMap.put(player.getNickname(), assignedRole);
+            setSpawnPoints(player);
+
         }
 
         synchronized (availableRoles) {
@@ -92,6 +94,36 @@ public class Lobby {
             int randomIndex = (int) (Math.random() * availableRoles.size());
             return availableRoles.remove(randomIndex);
         }
+    }
+
+    private void setSpawnPoints(ClientHandler player) {
+        if (player.isInitialPositionSet()) {
+            logger.info("Spawnpoint für {} wurde bereits gesetzt, wird nicht erneut überschrieben.", player.getNickname());
+            return;
+        }
+
+        int x;
+        int y;
+
+        switch (player.getRole()) {
+            case GOAT, IGOAT:
+                x = 700;
+                y = 1450;
+                break;
+            case GUARD:
+                x = 800;
+                y = 50;
+                break;
+            default:
+                logger.warn("Unknown role for player: {}", player.getNickname());
+                return;
+        }
+
+        player.setPlayerX(x);
+        player.setPlayerY(y);
+
+        player.sendUpdate("player_position:" + player.getNickname() + ":" + x + ":" + y);
+        player.setInitialPositionSet(true);
     }
 
     /**

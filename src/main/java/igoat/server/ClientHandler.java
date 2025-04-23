@@ -62,10 +62,20 @@ public class ClientHandler implements Runnable {
 
     private boolean isReady = false;
     private boolean isCaught = false;
-    private double playerX = 80;
-    private double playerY = 80;
+    private static double playerX = 80;
+    private static double playerY = 80;
 
     private Role role;
+
+    private boolean initialPositionSet = false;
+
+    public boolean isInitialPositionSet() {
+        return initialPositionSet;
+    }
+
+    public void setInitialPositionSet(boolean initialPositionSet) {
+        this.initialPositionSet = initialPositionSet;
+    }
 
     private static DatagramSocket serverUpdateSocket;
 
@@ -1089,11 +1099,11 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public double getPlayerX() {
+    public static double getPlayerX() {
         return playerX;
     }
 
-    public double getPlayerY() {
+    public static double getPlayerY() {
         return playerY;
     }
 
