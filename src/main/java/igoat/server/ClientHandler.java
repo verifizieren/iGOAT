@@ -250,12 +250,20 @@ public class ClientHandler implements Runnable {
                 return;
             }
 
+            // check correct spawn location
+            if (!sender.initialPositionSet) {
+                x = (int)sender.getPlayerX();
+                y = (int)sender.getPlayerY();
+                sender.currentLobby.broadcastUpdateToLobby("player_position:"+senderName+":"+x+":"+y, null);
+                sender.initialPositionSet = true;
+            }
+
             // if there is a collision, we return the current coordinates
             if (sender.currentLobby.getMap() != null && checkCollision(x, y, 32, 32, sender.currentLobby.getMap())) {
                 x = (int)sender.getPlayerX();
                 y = (int)sender.getPlayerY();
                 logger.info("collision prevented");
-                sender.sendUpdate("player_position:"+senderName+":"+x+":"+y);
+                sender.currentLobby.broadcastUpdateToLobby("player_position:"+senderName+":"+x+":"+y, null);
             }
             else {
                 sender.setPlayerX(x);
@@ -992,9 +1000,6 @@ public class ClientHandler implements Runnable {
 
         String gameStartedMessage = "game_started:";
         currentLobby.broadcastToLobby(gameStartedMessage);
-
-        //sendMessage(gameStartedMessage);
-
         currentLobby.setRoles();
     }
 

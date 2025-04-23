@@ -6,7 +6,6 @@ import static java.lang.Math.sqrt;
 import igoat.client.GUI.Banner;
 import java.time.LocalTime;
 
-import igoat.server.ClientHandler;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
@@ -87,7 +86,7 @@ public class Game extends Application {
     private Set<KeyCode> activeKeys;
     private long lastUpdate;
     private long lastPositionUpdate = 0;
-    private static final long POSITION_UPDATE_INTERVAL = 16;
+    private static final long POSITION_UPDATE_INTERVAL = 1000;
     
     private Player player;
     private igoat.client.Map gameMap;
@@ -104,6 +103,8 @@ public class Game extends Application {
     private boolean pressedE = false;
     private double mouseX;
     private double mouseY;
+    private double initialX = 80;
+    private double initialY = 80;
 
 
     /**
@@ -300,7 +301,7 @@ public class Game extends Application {
         }
 
         player = new Player(gamePane, primaryStage.getWidth(), primaryStage.getHeight(), CAMERA_ZOOM,
-                80, 80, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, Color.GRAY, confirmedNickname, true);
+                initialX, initialY, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, Color.GRAY, confirmedNickname, true);
 
         player.setSpectated(false);
         activeCamera = player.getCamera();
@@ -764,7 +765,6 @@ public class Game extends Application {
                     break;
                 } catch (Exception e) {
                     logger.error("Processor error", e);
-                    break;
                 }
             }
         });
@@ -796,7 +796,13 @@ public class Game extends Application {
                     return;
                 }
                 if (playerName.equals(confirmedNickname)) {
-                    player.updatePosition(x, y);
+                    logger.info("Received position correction from server: {}, {}", x, y);
+                    if (player == null) {
+                        initialX = x;
+                        initialY = y;
+                    } else {
+                        player.updatePosition(x, y);
+                    }
                     return;
                 }
                 if (otherPlayers.containsKey(playerName)) {

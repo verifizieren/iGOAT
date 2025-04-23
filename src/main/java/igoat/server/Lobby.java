@@ -102,6 +102,9 @@ public class Lobby {
         }
     }
 
+    /**
+     * Sets the serverside positions of the players to the correct spawn locations
+     */
     private void setSpawnPoints(ClientHandler player) {
         if (player.isInitialPositionSet()) {
             logger.info("Spawnpoint für {} wurde bereits gesetzt, wird nicht erneut überschrieben.", player.getNickname());
@@ -127,9 +130,6 @@ public class Lobby {
 
         player.setPlayerX(x);
         player.setPlayerY(y);
-
-        //player.sendUpdate("player_position:" + player.getNickname() + ":" + x + ":" + y);
-        player.setInitialPositionSet(true);
     }
 
     /**
@@ -283,7 +283,7 @@ public class Lobby {
      *                      null.
      */
     public void broadcastUpdateToLobby(String message, ClientHandler excludeMember) {
-        //logger.info("Broadcasting to lobby {}: {}", code, message);
+        logger.info("Broadcasting to lobby {}: {}", code, message);
 
         for (ClientHandler member : members) {
             if (excludeMember != null && member == excludeMember) {
