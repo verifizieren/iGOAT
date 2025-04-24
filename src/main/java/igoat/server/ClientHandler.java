@@ -66,14 +66,14 @@ public class ClientHandler implements Runnable {
 
     private Role role;
 
-    private boolean initialPositionSet = false;
+    private boolean positionWasSet = false;
 
-    public boolean isInitialPositionSet() {
-        return initialPositionSet;
+    public boolean isPositionWasSet() {
+        return positionWasSet;
     }
 
-    public void setInitialPositionSet(boolean initialPositionSet) {
-        this.initialPositionSet = initialPositionSet;
+    public void setPositionWasSet(boolean positionWasSet) {
+        this.positionWasSet = positionWasSet;
     }
 
     private static DatagramSocket serverUpdateSocket;
@@ -251,11 +251,11 @@ public class ClientHandler implements Runnable {
             }
 
             // check correct spawn location
-            if (!sender.initialPositionSet) {
+            if (!sender.positionWasSet) {
                 x = (int)sender.getPlayerX();
                 y = (int)sender.getPlayerY();
                 sender.currentLobby.broadcastUpdateToLobby("player_position:"+senderName+":"+x+":"+y, null);
-                sender.initialPositionSet = true;
+                sender.positionWasSet = true;
             }
 
             // if there is a collision, we return the current coordinates
@@ -1115,6 +1115,11 @@ public class ClientHandler implements Runnable {
             boolean activated = currentLobby.getGameState().activateTerminal(terminalId);
             if (activated) {
                 currentLobby.broadcastToLobby("terminal:" + terminalId);
+                for (ClientHandler player : currentLobby.getMembers()) {
+                    if (player.getRole() == Role.GOAT && player.isCaught) {
+                        currentLobby.broadcastToLobby("revive:" + player.getNickname());
+                    }
+                }
             } else {
                 sendMessage("terminal:-1");
             }
@@ -1224,6 +1229,14 @@ public class ClientHandler implements Runnable {
             sendError("Spieler " + targetName + " ist bereits gefangen");
             return;
         }
+
+        if (target.getRole() == Role.GOAT) {
+            target.playerX = 1080;
+            target.playerY = 800;
+            target.positionWasSet = false;
+            currentLobby.broadcastUpdateToLobby("player_position:" + target.getNickname() + ":" + 1080 + ":" + 800, null);
+        }
+
         target.setCaught(true);
         broadcast("catch:" + targetName);
     }

@@ -106,7 +106,7 @@ public class Lobby {
      * Sets the serverside positions of the players to the correct spawn locations
      */
     private void setSpawnPoints(ClientHandler player) {
-        if (player.isInitialPositionSet()) {
+        if (player.isPositionWasSet()) {
             logger.info("Spawnpoint für {} wurde bereits gesetzt, wird nicht erneut überschrieben.", player.getNickname());
             return;
         }
