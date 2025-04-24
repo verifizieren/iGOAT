@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.TextInputDialog;
 import javafx.collections.FXCollections;
 import javafx.scene.Scene;
@@ -15,7 +16,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
 
-import javafx.scene.text.Font;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +59,7 @@ public class LobbyGUI {
     private Button sendButton;
     private Button toggleChatButton;
     private Label chatModeLabel;
+    private final String style = getClass().getResource("/CSS/UI.css").toExternalForm();
 
     // Lobby and player list components
     private ListView<String> lobbyListView;
@@ -116,13 +117,8 @@ public class LobbyGUI {
         mainLayout.setPadding(new Insets(20));
 
         Scene scene = new Scene(mainLayout, 750, 500);
-        try {
-            Font.loadFont(getClass().getResource("/Jersey10-Regular.ttf").toExternalForm(), 12);
-            scene.getStylesheets().add(getClass().getResource("/CSS/UI.css").toExternalForm());
-            scene.getStylesheets().add(getClass().getResource("/CSS/LobbyBackground.css").toExternalForm());
-        } catch (NullPointerException e) {
-            logger.error("Failed to load CSS resources", e);
-        }
+        scene.getStylesheets().add(style);
+        scene.getStylesheets().add(getClass().getResource("/CSS/LobbyBackground.css").toExternalForm());
 
         stage.setTitle("Lobby Menu");
         stage.setScene(scene);
@@ -148,7 +144,7 @@ public class LobbyGUI {
         playerListLabel.setStyle("-fx-font-weight: bold;");
 
         playerListView = new ListView<>();
-        playerListView.setPrefHeight(150);
+        playerListView.setPrefHeight(300);
         
         readyButton = new Button("Ready");
         readyButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
@@ -325,6 +321,9 @@ public class LobbyGUI {
             dialog.setTitle("Change Username");
             dialog.setHeaderText("Enter a new username:");
             dialog.setContentText("Username:");
+
+            DialogPane nameDialogPane = dialog.getDialogPane();
+            nameDialogPane.getStylesheets().add(style);
 
             dialog.showAndWait().ifPresent(name -> {
                 if (!name.isBlank()) {

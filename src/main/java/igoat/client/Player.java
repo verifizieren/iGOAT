@@ -61,7 +61,7 @@ public class Player {
         this.visualRepresentation.setY(y);
         
         this.usernameLabel = new Text(username);
-        this.usernameLabel.setFont(Font.font("Arial", 12));
+        this.usernameLabel.setFont(Font.font("Jersey 10", 12));
         this.usernameLabel.setFill(Color.BLACK);
         updateUsernamePosition();
         

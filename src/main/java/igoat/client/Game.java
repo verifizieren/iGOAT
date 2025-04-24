@@ -211,7 +211,6 @@ public class Game extends Application {
     @Override
     public void start(Stage primaryStage) {
         stage = primaryStage;
-
         stage.setOnCloseRequest(event -> exit());
 
         if (serverHandler == null || playerName == null || lobbyCode == null) {
@@ -263,7 +262,10 @@ public class Game extends Application {
         container.setStyle("-fx-background-color: black;");
         container.getChildren().add(gamePane);
 
+        String style = getClass().getResource("/CSS/UI.css").toExternalForm();
+
         uiOverlay = new Pane();
+        uiOverlay.getStylesheets().add(style);
         uiOverlay.setMouseTransparent(true);
         uiOverlay.prefWidthProperty().bind(stage.widthProperty());
         uiOverlay.prefHeightProperty().bind(stage.heightProperty());
@@ -672,7 +674,7 @@ public class Game extends Application {
 
         Platform.runLater(() -> {
             Text title = new Text(message);
-            title.setFont(Font.font("Verdana", 40));
+            title.setFont(Font.font("Jersey 10", 40));
             title.setFill(color);
 
             // Scoreboard table
@@ -682,13 +684,13 @@ public class Game extends Application {
             grid.setVgap(10);
 
             Label headerName = new Label("Name");
-            headerName.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+            headerName.setFont(Font.font("Jersey 10", FontWeight.BOLD, 14));
             headerName.setStyle("-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
             Label headerRole = new Label("Role");
-            headerRole.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+            headerRole.setFont(Font.font("Jersey 10", FontWeight.BOLD, 14));
             headerRole.setStyle("-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
             Label headerResult = new Label("Result");
-            headerResult.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+            headerResult.setFont(Font.font("Jersey 10", FontWeight.BOLD, 14));
             headerResult.setStyle("-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
             grid.add(headerName, 0, 0);
             grid.add(headerRole, 1, 0);
@@ -1207,8 +1209,11 @@ public class Game extends Application {
             logger.error("Cannot initialize chat UI: Scene is null.");
             return;
         }
+
+        String style = getClass().getResource("/CSS/UI.css").toExternalForm();
         
         chatBox = new VBox(5);
+        chatBox.getStylesheets().add(style);
         chatBox.setPadding(new Insets(5));
         chatBox.setStyle("-fx-background-color: rgba(0, 0, 0, 0); -fx-text-fill: white;");
         chatBox.setPrefWidth(400);
@@ -1243,9 +1248,11 @@ public class Game extends Application {
         
         chatFlow = new TextFlow();
         chatFlow.setStyle("-fx-background-color: rgba(0, 0, 0, 0);");
+        chatFlow.getStylesheets().add(style);
         
         chatScrollPane = new ScrollPane(chatFlow);
         chatScrollPane.setStyle("-fx-background: rgba(0, 0, 0, 0); -fx-background-color: rgba(0, 0, 0, 0.3); -fx-padding: 0;");
+        chatScrollPane.getStylesheets().add(style);
         chatScrollPane.setFitToWidth(true);
         chatScrollPane.setPrefViewportHeight(250);
         chatScrollPane.setMaxHeight(250);
@@ -1259,6 +1266,8 @@ public class Game extends Application {
         chatInput.setPrefRowCount(1);
         chatInput.setWrapText(true);
         chatInput.setStyle("-fx-control-inner-background: rgba(0, 0, 0, 0.3); -fx-text-fill: white;");
+        chatInput.getStylesheets().add(style);
+        chatInput.setFont(new Font("Jersey 10", 16));
         chatInput.setMaxHeight(30);
         chatInput.setVisible(false);
 
@@ -1274,7 +1283,8 @@ public class Game extends Application {
         chatInput.setTextFormatter(textFormatter);
         
         chatModeIndicator = new Text("Lobby");
-        chatModeIndicator.setStyle("-fx-fill: white; -fx-font-size: 12px;");
+        chatModeIndicator.setStyle("-fx-fill: white; -fx-font-size: 16px;");
+        chatModeIndicator.setFont(new Font("Jersey 10", 16));
         
         HBox modeBox = new HBox(5);
         modeBox.setAlignment(Pos.CENTER_RIGHT);
@@ -1354,6 +1364,7 @@ public class Game extends Application {
         final Color prefixColor;
         final String senderDisplay;
         final Color senderColor;
+        final Font font = new Font("Jersey 10", 15);
 
         if (mode != null) {
             prefixColor = switch (mode) {
@@ -1389,15 +1400,19 @@ public class Game extends Application {
         Platform.runLater(() -> {
             Text timeText = new Text(timeString);
             timeText.setFill(Color.GRAY);
+            timeText.setFont(font);
 
             Text prefixText = new Text(prefixDisplay);
             prefixText.setFill(prefixColor);
+            prefixText.setFont(font);
 
             Text senderText = new Text(senderDisplay);
             senderText.setFill(senderColor);
+            senderText.setFont(font);
             
             Text messageText = new Text(messageContent);
-            messageText.setFill(Color.WHITE); 
+            messageText.setFill(Color.WHITE);
+            messageText.setFont(font);
             
             chatFlow.getChildren().add(timeText);
             chatFlow.getChildren().add(prefixText);

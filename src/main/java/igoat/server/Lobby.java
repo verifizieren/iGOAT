@@ -283,8 +283,6 @@ public class Lobby {
      *                      null.
      */
     public void broadcastUpdateToLobby(String message, ClientHandler excludeMember) {
-        logger.info("Broadcasting to lobby {}: {}", code, message);
-
         for (ClientHandler member : members) {
             if (excludeMember != null && member == excludeMember) {
                 continue;
