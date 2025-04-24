@@ -1,0 +1,6 @@
+.root {
+  -fx-background-image: url("/sprites/lobby_background.png");
+  -fx-background-repeat: repeat;
+  -fx-background-position: top left;
+  -fx-background-size: 128px 128px;
+}

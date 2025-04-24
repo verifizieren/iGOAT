@@ -1,7 +1,6 @@
 package igoat.client.GUI;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,6 +15,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
 
+import javafx.scene.text.Font;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +49,6 @@ public class LobbyGUI {
     private static ServerHandler serverHandler;
     private String username;
     private volatile boolean running = true;
-
 
     // Chat UI components
     private Stage stage;
@@ -117,6 +116,14 @@ public class LobbyGUI {
         mainLayout.setPadding(new Insets(20));
 
         Scene scene = new Scene(mainLayout, 750, 500);
+        try {
+            Font.loadFont(getClass().getResource("/Jersey10-Regular.ttf").toExternalForm(), 12);
+            scene.getStylesheets().add(getClass().getResource("/CSS/UI.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("/CSS/LobbyBackground.css").toExternalForm());
+        } catch (NullPointerException e) {
+            logger.error("Failed to load CSS resources", e);
+        }
+
         stage.setTitle("Lobby Menu");
         stage.setScene(scene);
         stage.show();
@@ -131,13 +138,14 @@ public class LobbyGUI {
      */
     private VBox setupLeftPanel() {
         Label lobbyListLabel = new Label("Available Lobbies");
-        lobbyListLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
+        lobbyListLabel.setStyle("-fx-font-weight: bold;");
 
         lobbyListView = new ListView<>();
+        lobbyListView.setStyle("-fx-font-fill: #000000");
         setupLobbyListViewEvents();
 
         playerListLabel = new Label("Players in Lobby");
-        playerListLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+        playerListLabel.setStyle("-fx-font-weight: bold;");
 
         playerListView = new ListView<>();
         playerListView.setPrefHeight(150);
@@ -161,12 +169,12 @@ public class LobbyGUI {
      */
     private VBox setupRightPanel() {
         chatModeLabel = new Label("Global Chat");
-        chatModeLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+        chatModeLabel.setStyle("-fx-font-weight: bold;");
 
         messageArea = new TextArea();
         messageArea.setEditable(false);
         messageArea.setWrapText(true);
-        messageArea.setPrefHeight(200);
+        messageArea.setPrefHeight(1000);
 
         chatInput = new TextField();
         chatInput.setPromptText("Type a message...");

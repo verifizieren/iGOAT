@@ -1,0 +1,80 @@
+.root {
+  -fx-background-color: #ffffff;
+  -fx-text-fill: #000000;
+  -fx-border-color: #000000;
+  -fx-text-fill: #000000;
+  -fx-font-family: "Jersey 10", "Courier New", monospace;
+  -fx-font-size: 18px;
+}
+
+.label {
+  -fx-text-fill: #000000;
+  -fx-padding: 4px;
+}
+
+.button {
+  -fx-background-color: #b8b6b6;
+  -fx-border-color: #000000;
+  -fx-border-width: 2px;
+  -fx-border-style: solid;
+  -fx-text-fill: #000000;
+  -fx-background-insets: 0;
+  -fx-padding: 1px 3px;
+  -fx-effect: null; /* No blur effects */
+  -fx-background-radius: 0;
+  -fx-border-radius: 0;
+}
+
+.button:hover {
+  -fx-background-color: #736d6d;
+  -fx-text-fill: #000000;
+  -fx-cursor: hand;
+}
+
+.text-field {
+  -fx-background-color: #ffffff;
+  -fx-text-fill: #000000;
+  -fx-border-color: #000000;
+  -fx-border-width: 2px;
+  -fx-padding: 4px;
+  -fx-background-radius: 0;
+  -fx-border-radius: 0;
+}
+
+.text-field:focused {
+  -fx-border-color: #000000;
+}
+
+.list-view {
+  -fx-background-color: #ffffff;
+  -fx-border-color: #000000;
+  -fx-text-fill: #000000;
+  -fx-border-width: 2px;
+}
+
+.list-cell {
+  -fx-text-fill: #000000;
+  -fx-padding: 4px;
+  -fx-border-color: transparent;
+}
+
+.list-cell:selected {
+  -fx-background-color: #ffffff;
+  -fx-text-fill: #000000;
+}
+
+.tooltip {
+  -fx-background-color: #ffffff;
+  -fx-text-fill: #000000;
+  -fx-border-color: #000000;
+  -fx-border-width: 1px;
+}
+
+.scroll-bar {
+  -fx-background-color: #222222;
+}
+
+.scroll-bar .thumb {
+  -fx-background-color: #ffffff;
+  -fx-background-radius: 0;
+}
