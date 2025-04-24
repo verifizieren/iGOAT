@@ -1163,12 +1163,20 @@ public class SceneDecoration {
         // left from door bottom Wall 1
         decorList.add(new Decoration(
             Objects.requireNonNull(Sprite.class.getResource("/sprites/wall.png")).toExternalForm(),
-            20, 600, 200, 64,
+            20, 600, 260, 64,
             true,
-            0, 0, 200, 64
+            0, 0, 260, 64
         ));
 
         // bottom Wall 2
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/wall.png")).toExternalForm(),
+            330, 600, 70, 64,
+            true,
+            0, 0, 70, 64
+        ));
+
+        // bottom Wall 3
         decorList.add(new Decoration(
             Objects.requireNonNull(Sprite.class.getResource("/sprites/wall.png")).toExternalForm(),
             420, 550, 180, 64,
@@ -1176,7 +1184,7 @@ public class SceneDecoration {
             0, 0, 180, 64
         ));
 
-        // bottom Wall 3
+        // bottom Wall 4
         decorList.add(new Decoration(
             Objects.requireNonNull(Sprite.class.getResource("/sprites/wall.png")).toExternalForm(),
             620, 550, 80, 64,
@@ -1184,7 +1192,7 @@ public class SceneDecoration {
             0, 0, 80, 64
         ));
 
-        // bottom Wall 4
+        // bottom Wall 5
         decorList.add(new Decoration(
             Objects.requireNonNull(Sprite.class.getResource("/sprites/wall.png")).toExternalForm(),
             750, 550, 30, 64,
