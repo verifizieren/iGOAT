@@ -18,6 +18,8 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 /**
  * The main entry point for the iGoat client application. Displays the main menu that allows users to
@@ -48,15 +50,30 @@ public class MainMenuGUI extends Application {
         root.setAlignment(Pos.CENTER);
         root.setPadding(new Insets(20));
         String style = "";
+        Scene scene = new Scene(root, 400, 300);
 
         try {
             Font.loadFont(getClass().getResource("/fonts/Jersey10-Regular.ttf").toExternalForm(), 12);
-            style = getClass().getResource("/CSS/UI.css").toExternalForm();
-            root.getStylesheets().add(style);
+            scene.getStylesheets().add(getClass().getResource("/CSS/UI.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("/CSS/MainMenuBackground.css").toExternalForm());
         } catch (NullPointerException e) {
             logger.error("Failed to load CSS resources", e);
         }
         String finalStyle = style;
+
+        Image logo = new Image(getClass().getResource("/Logo/logo.png").toExternalForm());
+        ImageView imageView = new ImageView(logo);
+        double maxWidth = 200;
+        imageView.setFitWidth(maxWidth);
+        imageView.setPreserveRatio(true);
+        imageView.setSmooth(true);
+        imageView.setCache(true);
+        VBox.setMargin(imageView, new Insets(0, 0, -20, 0));
+
+        Label presentLabel = new Label("presents:");
+        presentLabel.setFont(new Font("Jersey 10", 24));
+        presentLabel.setStyle("-fx-font-size: 30px;");
+        VBox.setMargin(presentLabel, new Insets(0, 0, -20, 0));
 
         Label titleLabel = new Label("iGOAT");
         titleLabel.setFont(new Font("Jersey 10", 24));
@@ -121,13 +138,14 @@ public class MainMenuGUI extends Application {
         exitButton.setOnAction(e -> exit());
 
         root.getChildren().addAll(
+                imageView,
+                presentLabel,
             titleLabel,
             createServerButton,
             joinServerButton,
             exitButton
         );
 
-        Scene scene = new Scene(root, 400, 300);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
