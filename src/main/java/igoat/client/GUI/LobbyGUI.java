@@ -115,6 +115,7 @@ public class LobbyGUI {
 
         HBox mainLayout = new HBox(20, leftPanel, rightPanel);
         mainLayout.setPadding(new Insets(20));
+        mainLayout.setAlignment(Pos.CENTER);
 
         Scene scene = new Scene(mainLayout, 750, 500);
         scene.getStylesheets().add(style);
