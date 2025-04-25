@@ -173,7 +173,6 @@ public class ClientHandler implements Runnable {
                 udpListeningSocket.receive(packet);
                 
                 InetAddress clientIp = packet.getAddress();
-                int sourcePort = packet.getPort();
                 String message = new String(packet.getData(), 0, packet.getLength());
                 
                 if (message.startsWith(UDP_REGISTRATION_PREFIX)) {
@@ -525,6 +524,9 @@ public class ClientHandler implements Runnable {
                     break;
                 case "getresults":
                     handleGetResults();
+                    break;
+                case "gethighscores":
+                    handleGetHighscores();
                     break;
                 default:
                     sendError("Unbekannter Befehl: " + command);
@@ -1040,18 +1042,41 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleGetResults() {
-        Path logPath = Paths.get("finished_games.log");
-        if (Files.notExists(logPath)) {
-            sendMessage("results:");
-            return;
-        }
         try {
-            List<String> lines = Files.readAllLines(logPath, StandardCharsets.UTF_8);
-            String content = String.join("\\n", lines);
-            sendMessage("results:" + content);
+            Path logPath = Paths.get("finished_games.log");
+            if (!Files.exists(logPath)) {
+                sendMessage("results:No past results available.");
+                return;
+            }
+
+            List<String> lines = Files.readAllLines(logPath);
+            StringBuilder sb = new StringBuilder();
+            for (String line : lines) {
+                sb.append(line).append("\n");
+            }
+            sendMessage("results:" + sb.toString());
         } catch (IOException e) {
-            sendError("Failed to read results");
-            logger.error("Error reading finished games", e);
+            logger.error("Failed to read finished games", e);
+            sendMessage("results:Error reading past results.");
+        }
+    }
+
+    /**
+     * Handles the gethighscores command. Retrieves and sends the highscores to the client.
+     */
+    private void handleGetHighscores() {
+        try {
+            HighscoreManager.initialize();
+            
+            String highscores = HighscoreManager.getHighscores();
+            
+            String formattedHighscores = highscores.replace("\n", "<br>");
+            
+            sendMessage("highscores:" + formattedHighscores);
+            logger.info("Sent highscores to client");
+        } catch (Exception e) {
+            logger.error("Failed to retrieve highscores", e);
+            sendMessage("highscores:Error retrieving highscores.");
         }
     }
 
@@ -1065,9 +1090,40 @@ public class ClientHandler implements Runnable {
             currentLobby.setGameFinished();
             broadcastGetLobbiesToAll();
             currentLobby.broadcastToLobby("gameover:" + result);
-            double[] endTime = Timer.convertToMinSec(currentLobby.getGameTime());
-            logger.info("{}", currentLobby.getGameTime());
-            logger.info("game finished in {}:{}", Math.round(endTime[0]), (int)endTime[1]);
+            long gameTime = currentLobby.getGameTime();
+            double[] endTime = Timer.convertToMinSec(gameTime);
+            logger.info("Game time: {} ms", gameTime);
+            logger.info("Game finished in {}:{}", Math.round(endTime[0]), String.format("%.2f", endTime[1]));
+            
+            try {
+                HighscoreManager.initialize();
+                
+                logger.info("Saving highscore with game time: {} ms", gameTime);
+                
+                if (result) {
+                    for (ClientHandler m : currentLobby.getMembers()) {
+                        if (m.role == Role.GUARD) {
+                            logger.info("Adding guard highscore for player: {}", m.nickname);
+                            HighscoreManager.addGuardHighscore(m.nickname, gameTime);
+                            break;
+                        }
+                    }
+                } else {
+                    StringBuilder goatNames = new StringBuilder();
+                    for (ClientHandler m : currentLobby.getMembers()) {
+                        if (m.role == Role.GOAT || m.role == Role.IGOAT) {
+                            if (goatNames.length() > 0) {
+                                goatNames.append(", ");
+                            }
+                            goatNames.append(m.nickname);
+                        }
+                    }
+                    logger.info("Adding goat highscore for players: {}", goatNames.toString());
+                    HighscoreManager.addGoatHighscore(goatNames.toString(), gameTime);
+                }
+            } catch (Exception e) {
+                logger.error("Failed to save highscore", e);
+            }
 
             try {
                 Path logPath = Paths.get("finished_games.log");

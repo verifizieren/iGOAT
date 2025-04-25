@@ -1,0 +1,184 @@
+/* Highscores CSS - Retro Style */
+
+.highscore-window {
+    -fx-background-color: #ffffff;
+    background-color: #ffffff;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    border-radius: 0;
+    -fx-border-color: #000000;
+    border-color: #000000;
+    -fx-border-width: 2px;
+    border-width: 2px;
+    -fx-effect: null;
+}
+
+.highscore-title {
+    -fx-font-size: 24px;
+    font-size: 24px;
+    -fx-font-weight: bold;
+    font-weight: bold;
+    -fx-text-fill: #000000;
+    color: #000000;
+    -fx-padding: 10px 0px 5px 0px;
+    padding: 10px 0px 5px 0px;
+    -fx-font-family: "Jersey 10", "Courier New", monospace;
+    font-family: "Jersey 10", "Courier New", monospace;
+}
+
+.tab-pane {
+    -fx-background-color: #ffffff;
+    background-color: #ffffff;
+}
+
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: #b8b6b6;
+    background-color: #b8b6b6;
+    -fx-background-radius: 0;
+    border-radius: 0;
+}
+
+.tab-pane .tab {
+    -fx-background-color: #b8b6b6;
+    background-color: #b8b6b6;
+    -fx-background-radius: 0;
+    border-radius: 0;
+    -fx-border-color: #000000;
+    border-color: #000000;
+    -fx-border-width: 2px 2px 0px 2px;
+    border-width: 2px 2px 0px 2px;
+    -fx-border-radius: 0;
+    -fx-font-family: "Jersey 10", "Courier New", monospace;
+    font-family: "Jersey 10", "Courier New", monospace;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: #ffffff;
+    background-color: #ffffff;
+}
+
+.tab-pane .tab-label {
+    -fx-text-fill: #000000;
+    color: #000000;
+    -fx-font-weight: bold;
+    font-weight: bold;
+    -fx-font-family: "Jersey 10", "Courier New", monospace;
+    font-family: "Jersey 10", "Courier New", monospace;
+}
+
+.table-view {
+    -fx-background-color: #ffffff;
+    background-color: #ffffff;
+    -fx-border-color: #000000;
+    border-color: #000000;
+    -fx-border-width: 2px;
+    border-width: 2px;
+    -fx-border-radius: 0;
+    border-radius: 0;
+    -fx-font-family: "Jersey 10", "Courier New", monospace;
+    font-family: "Jersey 10", "Courier New", monospace;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #b8b6b6;
+    background-color: #b8b6b6;
+    -fx-background-radius: 0;
+    border-radius: 0;
+}
+
+.table-view .column-header {
+    -fx-background-color: #b8b6b6;
+    background-color: #b8b6b6;
+    -fx-border-color: #000000;
+    border-color: #000000;
+    -fx-border-width: 0px 1px 1px 0px;
+    border-width: 0px 1px 1px 0px;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #000000;
+    color: #000000;
+    -fx-font-weight: bold;
+    font-weight: bold;
+    -fx-font-family: "Jersey 10", "Courier New", monospace;
+    font-family: "Jersey 10", "Courier New", monospace;
+}
+
+.table-view .table-cell {
+    -fx-text-fill: #000000;
+    color: #000000;
+    -fx-alignment: center-left;
+    -fx-padding: 5px;
+    padding: 5px;
+    -fx-font-family: "Jersey 10", "Courier New", monospace;
+    font-family: "Jersey 10", "Courier New", monospace;
+}
+
+.table-view .table-row-cell {
+    -fx-background-color: #ffffff;
+    background-color: #ffffff;
+    -fx-border-color: #000000;
+    border-color: #000000;
+    -fx-border-width: 1px;
+    border-width: 1px;
+}
+
+.table-view .table-row-cell:odd {
+    -fx-background-color: #f5f5f5;
+    background-color: #f5f5f5;
+}
+
+.table-view .table-row-cell:hover {
+    -fx-background-color: #b8b6b6;
+    background-color: #b8b6b6;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: #b8b6b6;
+    background-color: #b8b6b6;
+}
+
+.close-button {
+    -fx-background-color: #b8b6b6;
+    background-color: #b8b6b6;
+    -fx-background-radius: 0;
+    border-radius: 0;
+    -fx-text-fill: #000000;
+    color: #000000;
+    -fx-font-weight: bold;
+    font-weight: bold;
+    -fx-padding: 5px 10px;
+    padding: 5px 10px;
+    -fx-border-color: #000000;
+    border-color: #000000;
+    -fx-border-width: 2px;
+    border-width: 2px;
+    -fx-font-family: "Jersey 10", "Courier New", monospace;
+    font-family: "Jersey 10", "Courier New", monospace;
+}
+
+.close-button:hover {
+    -fx-background-color: #736d6d;
+    background-color: #736d6d;
+    -fx-cursor: hand;
+    cursor: hand;
+}
+
+.highscore-container {
+    -fx-padding: 10px;
+    padding: 10px;
+}
+
+.no-data-label {
+    -fx-text-fill: #000000;
+    color: #000000;
+    -fx-font-style: italic;
+    font-style: italic;
+    -fx-font-size: 14px;
+    font-size: 14px;
+    -fx-padding: 20px;
+    padding: 20px;
+    -fx-alignment: center;
+    -fx-font-family: "Jersey 10", "Courier New", monospace;
+    font-family: "Jersey 10", "Courier New", monospace;
+}
