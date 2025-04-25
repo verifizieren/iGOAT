@@ -15,6 +15,20 @@ import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.paint.Color;
+import javafx.stage.StageStyle;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.Priority;
+import javafx.animation.FadeTransition;
+import javafx.animation.Animation;
+import javafx.animation.Timeline;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.util.Duration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +88,7 @@ public class LobbyGUI {
 
     // Configuration constants
     private boolean isGlobalChat = true;
-    private final int MAX_PLAYERS = 4;
+    private static final int MAX_PLAYERS = 4;
 
     /**
      * Constructor for LobbyGUI
@@ -282,12 +296,12 @@ public class LobbyGUI {
         Button leaveLobbyButton = new Button("Exit Lobby");
         Button nameButton = new Button("Change Name");
         Button exitButton = new Button("Exit");
-        Button viewResultsButton = new Button("View Past Results");
-        viewResultsButton.setOnAction(event -> {
+        Button highscoresButton = new Button("Highscores");
+        highscoresButton.setOnAction(event -> {
             if (serverHandler != null && serverHandler.isConnected()) {
-                serverHandler.sendMessage("getresults:");
+                serverHandler.sendMessage("gethighscores:");
             } else {
-                appendToMessageArea("Error: Cannot fetch past results. Not connected.");
+                appendToMessageArea("Error: Cannot fetch highscores. Not connected.");
             }
         });
 
@@ -336,7 +350,7 @@ public class LobbyGUI {
 
         exitButton.setOnAction(event -> exit());
 
-        VBox buttons = new VBox(10, startButton, createButton, leaveLobbyButton, nameButton, exitButton, viewResultsButton);
+        VBox buttons = new VBox(10, startButton, createButton, leaveLobbyButton, nameButton, exitButton, highscoresButton);
         buttons.setAlignment(Pos.CENTER);
         return buttons;
     }
@@ -460,6 +474,23 @@ public class LobbyGUI {
                  continue;
             }
 
+            if (message.startsWith("highscores:")) {
+                String content = message.substring("highscores:".length());
+                String type = "highscores";
+                int colonIndex = message.indexOf(':');
+                type = message.substring(0, colonIndex).toLowerCase();
+                content = message.substring(colonIndex + 1);
+                
+                switch (type) {
+                    case "highscores":
+                        displayEnhancedHighscores(content);
+                        break;
+                    default:
+                        break;
+                }
+                continue;
+            }
+
             String chatPrefix = null;
             if (message.startsWith("chat:")) {
                 chatPrefix = "chat:";
@@ -505,7 +536,7 @@ public class LobbyGUI {
                      appendToMessageArea("[System] " + chatData);
                  }
                  continue;
-            }
+             }
 
             // Handle non-chat messages
             int colonIndex = message.indexOf(':');
@@ -692,7 +723,7 @@ public class LobbyGUI {
                             roleCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getRole()));
                             TableColumn<PlayerRow, String> outCol = new TableColumn<>("Outcome");
                             outCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getOutcome()));
-                            table.getColumns().addAll(nameCol, roleCol, outCol);
+                            table.getColumns().setAll(nameCol, roleCol, outCol);
                             table.setItems(FXCollections.observableArrayList(playerRows));
                             root.getChildren().addAll(header, table);
                         }
@@ -700,6 +731,108 @@ public class LobbyGUI {
                         Scene sc = new Scene(sp, 600, 400);
                         stage2.setScene(sc);
                         stage2.show();
+                    });
+                    break;
+                case "highscores":
+                    Platform.runLater(() -> {
+                        Stage highscoreStage = new Stage();
+                        highscoreStage.setTitle("iGoat Leaderboard");
+                        highscoreStage.initStyle(StageStyle.UNDECORATED);
+                        
+                        String processedContent = content.replace("<br>", System.lineSeparator());
+                        
+                        StackPane root = new StackPane();
+                        root.setStyle("-fx-background-color: linear-gradient(to bottom, #1a2a3a, #0d1520);");
+                        
+                        Rectangle patternOverlay = new Rectangle(800, 600);
+                        patternOverlay.setFill(new Color(0, 0, 0, 0.05));
+                        patternOverlay.setOpacity(0.3);
+                        
+                        VBox mainContent = new VBox(25);
+                        mainContent.setPadding(new Insets(30, 40, 40, 40));
+                        mainContent.setMaxWidth(720);
+                        mainContent.setMaxHeight(540);
+                        mainContent.setStyle("-fx-background-color: rgba(255, 255, 255, 0.1); " +
+                                          "-fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0, 0, 5);");
+                        
+                        HBox header = new HBox(15);
+                        header.setAlignment(Pos.CENTER);
+                        
+                        Label trophyIcon = new Label("🏆");
+                        trophyIcon.setStyle("-fx-font-size: 40px; -fx-text-fill: gold;");
+                        
+                        Label title = new Label("HALL OF FAME");
+                        title.setStyle("-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: white; " +
+                                      "-fx-effect: dropshadow(gaussian, gold, 10, 0.6, 0, 0);");
+                        
+                        Button closeButton = new Button("×");
+                        closeButton.setStyle("-fx-font-size: 20px; -fx-background-color: transparent; -fx-text-fill: white; -fx-cursor: hand;");
+                        closeButton.setOnAction(e -> highscoreStage.close());
+                        
+                        Region spacer = new Region();
+                        HBox.setHgrow(spacer, Priority.ALWAYS);
+                        
+                        header.getChildren().addAll(trophyIcon, title, spacer, closeButton);
+                        
+                        Label subtitle = new Label("The Fastest Players in the Lab");
+                        subtitle.setStyle("-fx-font-size: 16px; -fx-font-style: italic; -fx-text-fill: #aaccff;");
+                        subtitle.setOpacity(0.8);
+                        
+                        FadeTransition pulse = new FadeTransition(Duration.seconds(2), subtitle);
+                        pulse.setFromValue(0.7);
+                        pulse.setToValue(1.0);
+                        pulse.setCycleCount(Animation.INDEFINITE);
+                        pulse.setAutoReverse(true);
+                        pulse.play();
+                        
+                        TabPane tabPane = new TabPane();
+                        tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+                        tabPane.setStyle("-fx-background-color: transparent; -fx-tab-min-width: 120;");
+                        
+                        String[] sections = processedContent.split("\n\n");
+                        
+                        Tab guardTab = createHighscoreTab("GUARD", "#4a90e2", sections[0], "👮");
+                        
+                        Tab goatTab = createHighscoreTab("GOAT", "#50c878", 
+                                                      sections.length > 1 ? sections[1] : "No goat highscores yet.", "🐐");
+                        
+                        tabPane.getTabs().addAll(guardTab, goatTab);
+                        
+                        mainContent.getChildren().addAll(header, subtitle, tabPane);
+                        
+                        root.getChildren().addAll(patternOverlay, mainContent);
+                        
+                        final Delta dragDelta = new Delta();
+                        root.setOnMousePressed(mouseEvent -> {
+                            dragDelta.x = highscoreStage.getX() - mouseEvent.getScreenX();
+                            dragDelta.y = highscoreStage.getY() - mouseEvent.getScreenY();
+                        });
+                        root.setOnMouseDragged(mouseEvent -> {
+                            highscoreStage.setX(mouseEvent.getScreenX() + dragDelta.x);
+                            highscoreStage.setY(mouseEvent.getScreenY() + dragDelta.y);
+                        });
+                        
+                        Scene scene = new Scene(root, 750, 600);
+                        scene.setFill(Color.TRANSPARENT);
+                        highscoreStage.setScene(scene);
+                        
+                        scene.getStylesheets().add(getClass().getResource("/CSS/highscores.css").toExternalForm());
+                        
+                        highscoreStage.setOpacity(0);
+                        highscoreStage.show();
+                        
+                        FadeTransition fadeIn = new FadeTransition(Duration.millis(400), root);
+                        fadeIn.setFromValue(0);
+                        fadeIn.setToValue(1);
+                        fadeIn.play();
+                        
+                        Timeline timeline = new Timeline();
+                        KeyFrame key = new KeyFrame(Duration.millis(400),
+                                new KeyValue(highscoreStage.opacityProperty(), 1));
+                        timeline.getKeyFrames().add(key);
+                        timeline.play();
+                        
+                        logger.info("Displayed premium highscores window");
                     });
                     break;
                 default:
@@ -816,6 +949,287 @@ public class LobbyGUI {
         String value = line.substring(startIndex, endIndex).trim();
         value = value.replaceAll("^[\\\\\"\\{\\[]+|[\\\\\"\\}\\]]+$", "");
         return value;
+    }
+
+    /**
+     * Displays the enhanced highscores UI with animations and styling.
+     * 
+     * @param content The highscore content to display
+     */
+    private void displayEnhancedHighscores(String content) {
+        Platform.runLater(() -> {
+            Stage highscoreStage = new Stage();
+            highscoreStage.setTitle("iGoat Highscores");
+            
+            String processedContent = content.replace("<br>", System.lineSeparator());
+            
+            StackPane root = new StackPane();
+            root.setStyle("-fx-background-color: #ffffff; -fx-border-color: #000000; -fx-border-width: 2px;");
+            
+            VBox mainContent = new VBox(15);
+            mainContent.setPadding(new Insets(20, 30, 30, 30));
+            mainContent.setMaxWidth(720);
+            mainContent.setMaxHeight(540);
+            
+            HBox header = new HBox(10);
+            header.setAlignment(Pos.CENTER);
+            
+            Label trophyIcon = new Label("#");
+            trophyIcon.setStyle("-fx-font-size: 24px; -fx-text-fill: #000000; -fx-font-family: 'Jersey 10', 'Courier New', monospace;");
+            
+            Label title = new Label("HIGHSCORES");
+            title.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #000000; " +
+                          "-fx-font-family: 'Jersey 10', 'Courier New', monospace;");
+            
+            Button closeButton = new Button("X");
+            closeButton.getStyleClass().add("close-button");
+            closeButton.setOnAction(e -> highscoreStage.close());
+            
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            
+            header.getChildren().addAll(trophyIcon, title, spacer, closeButton);
+            
+            Label subtitle = new Label("The Fastest Players");
+            subtitle.setStyle("-fx-font-size: 16px; -fx-font-style: italic; -fx-text-fill: #000000; -fx-font-family: 'Jersey 10', 'Courier New', monospace;");
+            
+            TabPane tabPane = new TabPane();
+            tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+            tabPane.getStyleClass().add("tab-pane");
+            
+            String[] sections = processedContent.split("\n\n");
+            
+            Tab guardTab = createHighscoreTab("GUARD", "#b8b6b6", sections[0], "G");
+            
+            Tab goatTab = createHighscoreTab("GOAT", "#b8b6b6", 
+                                           sections.length > 1 ? sections[1] : "No goat highscores yet.", "G");
+            
+            tabPane.getTabs().addAll(guardTab, goatTab);
+            
+            mainContent.getChildren().addAll(header, subtitle, tabPane);
+            
+            root.getChildren().add(mainContent);
+            
+            final Delta dragDelta = new Delta();
+            root.setOnMousePressed(mouseEvent -> {
+                dragDelta.x = highscoreStage.getX() - mouseEvent.getScreenX();
+                dragDelta.y = highscoreStage.getY() - mouseEvent.getScreenY();
+            });
+            root.setOnMouseDragged(mouseEvent -> {
+                highscoreStage.setX(mouseEvent.getScreenX() + dragDelta.x);
+                highscoreStage.setY(mouseEvent.getScreenY() + dragDelta.y);
+            });
+            
+            Scene scene = new Scene(root, 700, 550);
+            highscoreStage.setScene(scene);
+            
+            scene.getStylesheets().add(getClass().getResource("/CSS/highscores.css").toExternalForm());
+            
+            highscoreStage.show();
+            
+            logger.info("Displayed enhanced highscores window");
+        });
+    }
+
+    /**
+     * Creates a tab for displaying highscores.
+     * 
+     * @param title The title of the tab
+     * @param styleClass The CSS style class for the tab
+     * @param content The highscore content to display
+     * @param icon The icon to display in the tab (emoji)
+     * @return A Tab containing the highscore data
+     */
+    private Tab createHighscoreTab(String title, String color, String content, String icon) {
+        Tab tab = new Tab(icon + " " + title);
+        tab.setStyle("-fx-background-color: " + color + "; -fx-text-base-color: white;");
+        
+        if (content == null || content.trim().isEmpty() || content.contains("No highscores yet")) {
+            Label noDataLabel = new Label("No " + title + " highscores available yet.");
+            noDataLabel.setStyle("-fx-font-size: 16px; -fx-font-style: italic; -fx-text-fill: #aaccff; -fx-padding: 30px;");
+            VBox container = new VBox(noDataLabel);
+            container.setAlignment(Pos.CENTER);
+            tab.setContent(container);
+            return tab;
+        }
+        
+        List<HighscoreEntry> entries = parseHighscoreContent(content);
+        
+        TableView<HighscoreEntry> table = new TableView<>();
+        table.setItems(FXCollections.observableArrayList(entries));
+        
+        TableColumn<HighscoreEntry, String> rankCol = new TableColumn<>("Rank");
+        rankCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getRank()));
+        rankCol.setPrefWidth(60);
+        
+        TableColumn<HighscoreEntry, String> nameCol = new TableColumn<>("Player");
+        nameCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
+        nameCol.setPrefWidth(200);
+        
+        TableColumn<HighscoreEntry, String> timeCol = new TableColumn<>("Time");
+        timeCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTime()));
+        timeCol.setPrefWidth(100);
+        
+        TableColumn<HighscoreEntry, String> dateCol = new TableColumn<>("Date");
+        dateCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDate()));
+        dateCol.setPrefWidth(160);
+        
+        table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+        
+        table.getColumns().setAll(rankCol, nameCol, timeCol, dateCol);
+        
+        VBox container = new VBox(10);
+        container.setPadding(new Insets(15));
+        container.getChildren().add(table);
+        
+        tab.setContent(container);
+        return tab;
+    }
+    
+    /**
+     * Parses highscore content into a list of HighscoreEntry objects.
+     * 
+     * @param content The content to parse
+     * @return A list of HighscoreEntry objects
+     */
+    private List<HighscoreEntry> parseHighscoreContent(String content) {
+        List<HighscoreEntry> entries = new ArrayList<>();
+        String[] lines = content.split("\n");
+        
+        for (String line : lines) {
+            if (line.contains("===") || line.contains("---") || line.trim().isEmpty()) {
+                continue;
+            }
+            
+            if (line.matches("\\d+\\..*")) {
+                try {
+                    String rank = line.substring(0, line.indexOf(".") + 1);
+                    
+                    String remaining = line.substring(line.indexOf(".") + 2);
+                    String name = remaining.substring(0, remaining.indexOf(" - "));
+                    
+                    remaining = remaining.substring(remaining.indexOf("Time: ") + 6);
+                    String time = remaining.substring(0, remaining.indexOf(" - "));
+                    
+                    String date = remaining.substring(remaining.indexOf("Date: ") + 6);
+                    
+                    entries.add(new HighscoreEntry(rank, name, time, date));
+                } catch (Exception e) {
+                    logger.warn("Could not parse highscore line: {}", line);
+                }
+            }
+        }
+        
+        return entries;
+    }
+    
+    /**
+     * Helper class for tracking mouse drag position.
+     */
+    private static class Delta {
+        double x, y;
+    }
+    
+    /**
+     * Creates a visually appealing section for displaying highscores
+     * @param title The title of the section (e.g., "Guard Highscores")
+     * @param color The color theme for the section
+     * @param content The content to parse and display
+     * @return A VBox containing the formatted highscore section
+     */
+    private VBox createHighscoreSection(String title, String color, String content) {
+        VBox section = new VBox(10);
+        section.setPadding(new Insets(15));
+        section.setStyle("-fx-background-color: white; -fx-border-color: " + color + "; -fx-border-width: 2; -fx-border-radius: 5; -fx-background-radius: 5;");
+        
+        Label sectionTitle = new Label(title);
+        sectionTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + color + ";");
+        
+        if (content.contains("No") && content.contains("highscores yet")) {
+            Label noScores = new Label("No highscores recorded yet");
+            noScores.setStyle("-fx-font-style: italic; -fx-text-fill: #666666;");
+            section.getChildren().addAll(sectionTitle, noScores);
+            return section;
+        }
+        
+        TableView<HighscoreEntry> table = new TableView<>();
+        table.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+        table.setStyle("-fx-border-color: transparent;");
+        
+        // Create columns
+        TableColumn<HighscoreEntry, String> rankCol = new TableColumn<>("Rank");
+        rankCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getRank()));
+        rankCol.setMaxWidth(60);
+        rankCol.setMinWidth(60);
+        
+        TableColumn<HighscoreEntry, String> nameCol = new TableColumn<>("Player");
+        nameCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
+        
+        TableColumn<HighscoreEntry, String> timeCol = new TableColumn<>("Time");
+        timeCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTime()));
+        timeCol.setMaxWidth(100);
+        timeCol.setMinWidth(100);
+        
+        TableColumn<HighscoreEntry, String> dateCol = new TableColumn<>("Date");
+        dateCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDate()));
+        dateCol.setMaxWidth(160);
+        dateCol.setMinWidth(160);
+        
+        table.getColumns().setAll(rankCol, nameCol, timeCol, dateCol);
+        
+        List<HighscoreEntry> entries = new ArrayList<>();
+        String[] lines = content.split("\n");
+        
+        for (String line : lines) {
+            if (line.contains("===") || line.contains("---")) {
+                continue;
+            }
+            
+            if (line.matches("\\d+\\..*")) {
+                try {
+                    String rank = line.substring(0, line.indexOf(".") + 1);
+                    
+                    String remaining = line.substring(line.indexOf(".") + 2);
+                    String name = remaining.substring(0, remaining.indexOf(" - "));
+                    
+                    remaining = remaining.substring(remaining.indexOf("Time: ") + 6);
+                    String time = remaining.substring(0, remaining.indexOf(" - "));
+                    
+                    String date = remaining.substring(remaining.indexOf("Date: ") + 6);
+                    
+                    entries.add(new HighscoreEntry(rank, name, time, date));
+                } catch (Exception e) {
+                    logger.warn("Could not parse highscore line: {}", line);
+                }
+            }
+        }
+        
+        table.setItems(FXCollections.observableArrayList(entries));
+        
+        section.getChildren().addAll(sectionTitle, table);
+        return section;
+    }
+    
+    /**
+     * Helper class for storing highscore entry data
+     */
+    private static class HighscoreEntry {
+        private final String rank;
+        private final String name;
+        private final String time;
+        private final String date;
+        
+        public HighscoreEntry(String rank, String name, String time, String date) {
+            this.rank = rank;
+            this.name = name;
+            this.time = time;
+            this.date = date;
+        }
+        
+        public String getRank() { return rank; }
+        public String getName() { return name; }
+        public String getTime() { return time; }
+        public String getDate() { return date; }
     }
 
     public static class PlayerRow {
