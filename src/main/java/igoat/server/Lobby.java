@@ -1,6 +1,7 @@
 package igoat.server;
 
 import igoat.Role;
+import igoat.client.Map;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +30,7 @@ public class Lobby {
      * Maximum number of players allowed in a lobby
      */
     public static int MAX_PLAYERS = 4;
-    private final CollisionMap map = new CollisionMap();
+    private final Map map = new Map(true);
     private long gameTime = 0;
     private Timer timer;
 
@@ -148,7 +149,7 @@ public class Lobby {
         state = LobbyState.FINISHED;
     }
 
-    public CollisionMap getMap() {
+    public Map getMap() {
         return map;
     }
 

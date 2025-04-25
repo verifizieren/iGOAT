@@ -1,6 +1,7 @@
 package igoat.server;
 
 import igoat.Role;
+import igoat.client.Map;
 import igoat.client.Player;
 import igoat.client.Wall;
 import igoat.server.Lobby.LobbyState;
@@ -294,7 +295,7 @@ public class ClientHandler implements Runnable {
     /**
      * checks for a collision with a wall
      */
-    private static boolean checkCollision(int x, int y, double playerWidth, double playerHeight, CollisionMap map) {
+    private static boolean checkCollision(int x, int y, double playerWidth, double playerHeight, Map map) {
         for (Wall wall : map.getCollisionWalls()) {
             if (Player.collidesWithWall(x, y, playerWidth, playerHeight, wall)) {
                 return true;

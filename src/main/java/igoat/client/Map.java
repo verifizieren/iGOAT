@@ -16,6 +16,8 @@ import javafx.scene.image.ImageView;
 public class Map {
     private static final Logger logger = LoggerFactory.getLogger(Map.class);
 
+    private final boolean noVisuals;
+
     private static final int WALL_THICKNESS = 20;
     private static final int SPECIAL_ELEMENT_WIDTH = 40;
     private static final int DOOR_WIDTH = 60;
@@ -23,27 +25,33 @@ public class Map {
     private static final int MAP_WIDTH = 1500;
     private static final int MAP_HEIGHT = 1600;
 
-    private List<Rectangle> visualWalls;
     private List<Wall> collisionWalls;
     private List<Terminal> terminalList;
-    private List<Rectangle> doorVisuals;
     private List<Wall> doorCollisions;
-    private List<Rectangle> windowVisuals;
     private List<Wall> windowCollisions;
     private List<ImageView> decorItems;
-    
+
+    private List<Rectangle> visualWalls;
+    private List<Rectangle> doorVisuals;
+    private List<Rectangle> windowVisuals;
+
     /**
      * Creates a new Map with the layout from the design.
      */
-    public Map() {
-        visualWalls = new ArrayList<>();
+    public Map(boolean noVisuals) {
+        this.noVisuals = noVisuals;
+
         collisionWalls = new ArrayList<>();
         terminalList = new ArrayList<>();
-        doorVisuals = new ArrayList<>();
         doorCollisions = new ArrayList<>();
-        windowVisuals = new ArrayList<>();
         windowCollisions = new ArrayList<>();
         decorItems = new ArrayList<>();
+
+        if (!noVisuals) {
+            visualWalls = new ArrayList<>();
+            doorVisuals = new ArrayList<>();
+            windowVisuals = new ArrayList<>();
+        }
         createMapLayout();
         createTerminals();
         createDoor();
@@ -177,9 +185,11 @@ public class Map {
      * Creates a wall with both visual and collision components.
      */
     private void createWall(int x, int y, int width, int height) {
-        Rectangle visualWall = new Rectangle(x, y, width, height);
-        visualWall.setFill(Color.GRAY);
-        visualWalls.add(visualWall);
+        if (!noVisuals) {
+            Rectangle visualWall = new Rectangle(x, y, width, height);
+            visualWall.setFill(Color.GRAY);
+            visualWalls.add(visualWall);
+        }
 
         Wall collisionWall = new Wall(x, y, width, height);
         collisionWalls.add(collisionWall);
@@ -207,10 +217,12 @@ public class Map {
      * Add two exits to the map
      */
     private void addDoor(int x, int y, int width, int height) {
-        Rectangle doorVisual = new Rectangle(x, y, width, height);
-        doorVisual.setFill(Color.LIMEGREEN);
-        visualWalls.add(doorVisual);
-        doorVisuals.add(doorVisual);
+        if (!noVisuals) {
+            Rectangle doorVisual = new Rectangle(x, y, width, height);
+            doorVisual.setFill(Color.LIMEGREEN);
+            visualWalls.add(doorVisual);
+            doorVisuals.add(doorVisual);
+        }
 
         Wall collisionWall = new Wall(x, y, width, height);
         collisionWalls.add(collisionWall);
@@ -222,10 +234,12 @@ public class Map {
      */
 
     private void addWindow(int x, int y, int width, int height) {
-        Rectangle windowVisual = new Rectangle(x, y, width, height);
-        windowVisual.setFill(Color.SKYBLUE);
-        visualWalls.add(windowVisual);
-        windowVisuals.add(windowVisual);
+        if (!noVisuals) {
+            Rectangle windowVisual = new Rectangle(x, y, width, height);
+            windowVisual.setFill(Color.SKYBLUE);
+            visualWalls.add(windowVisual);
+            windowVisuals.add(windowVisual);
+        }
 
         Wall collisionWall = new Wall(x, y, width, height);
         collisionWalls.add(collisionWall);
@@ -237,16 +251,14 @@ public class Map {
      * Opens the doors by making them visually slightly transparent and removing their collision.
      */
     public void openDoors() {
-        for (Rectangle doorVisual : doorVisuals) {
-            doorVisual.setFill(Color.LIMEGREEN.deriveColor(0, 1, 1, 0.5));
-            visualWalls.remove(doorVisual);
-        }
-
         collisionWalls.removeAll(doorCollisions);
-
         doorCollisions.clear();
 
-        if (!doorVisuals.isEmpty()) {
+        if (!noVisuals) {
+            for (Rectangle doorVisual : doorVisuals) {
+                doorVisual.setFill(Color.LIMEGREEN.deriveColor(0, 1, 1, 0.5));
+                visualWalls.remove(doorVisual);
+            }
             logger.info("Doors opened and collision removed.");
         }
     }
@@ -314,7 +326,10 @@ public class Map {
     }
 
     public void addDecorItem(Decoration decor) {
-        decorItems.add(decor.createImageView());
+        if (!noVisuals) {
+            decorItems.add(decor.createImageView());
+        }
+
         Wall wall = decor.createWallIfNeeded();
         if (wall != null) {
             collisionWalls.add(wall);

@@ -229,7 +229,7 @@ public class Game extends Application {
         // Request role assignment from server
         serverHandler.sendMessage("ready:");
         
-        gameMap = new igoat.client.Map();
+        gameMap = new igoat.client.Map(false);
         gamePane = new Pane();
         gamePane.setMinSize(gameMap.getWidth(), gameMap.getHeight());
         gamePane.setMaxSize(gameMap.getWidth(), gameMap.getHeight());

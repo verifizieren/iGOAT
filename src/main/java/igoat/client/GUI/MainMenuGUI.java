@@ -50,7 +50,7 @@ public class MainMenuGUI extends Application {
         String style = "";
 
         try {
-            Font.loadFont(getClass().getResource("/Jersey10-Regular.ttf").toExternalForm(), 12);
+            Font.loadFont(getClass().getResource("/fonts/Jersey10-Regular.ttf").toExternalForm(), 12);
             style = getClass().getResource("/CSS/UI.css").toExternalForm();
             root.getStylesheets().add(style);
         } catch (NullPointerException e) {
