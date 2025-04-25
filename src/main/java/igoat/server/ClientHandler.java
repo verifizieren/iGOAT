@@ -272,7 +272,9 @@ public class ClientHandler implements Runnable {
                 sender.setPlayerY(y);
             }
 
-            if ((sender.getPlayerX() < 0 || sender.getPlayerX() > 1500) && !sender.currentLobby.getGameState().gameOver) {
+            if ((sender.getPlayerX() < 0 || sender.getPlayerX() > 1500) &&
+                    !sender.currentLobby.getGameState().gameOver &&
+                    sender.currentLobby.getGameState().isDoorOpen()) {
                 if (sender.role == Role.GOAT) {
                     logger.info("{} escaped, ending game", sender.getNickname());
                     sender.endGame(false);
