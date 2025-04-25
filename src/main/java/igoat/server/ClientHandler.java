@@ -435,7 +435,7 @@ public class ClientHandler implements Runnable {
      *
      * @param message The received message
      */
-    private void handleCommand(String message) {
+    void handleCommand(String message) {
         try {
             int colonIndex = message.indexOf(':');
             if (colonIndex == -1) {
@@ -584,7 +584,7 @@ public class ClientHandler implements Runnable {
      *
      * @param params Array of parameters, where params[0] is the desired nickname
      */
-    private void handleConnect(String[] params) {
+    void handleConnect(String[] params) {
         if (params.length < 1) {
             sendError("Kein Nickname angegeben");
             return;
@@ -927,7 +927,7 @@ public class ClientHandler implements Runnable {
      *
      * @param errorMessage The error message to send
      */
-    private void sendError(String errorMessage) {
+    void sendError(String errorMessage) {
         sendMessage("error:" + errorMessage);
     }
 

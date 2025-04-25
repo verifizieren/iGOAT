@@ -24,18 +24,18 @@ public class ServerHandler {
     private static final String NICKNAME_CONFIRM_PREFIX = "confirm:";
 
     private Socket msgSocket;
-    private PrintWriter msgWriter;
-    private BufferedReader msgReader;
+    PrintWriter msgWriter;
+    BufferedReader msgReader;
 
-    private DatagramSocket updateSocket;
+    UDPSocket updateSocket; // abstraction for testability
 
     private Thread messageReceiver;
     private Thread updateReceiver;
 
-    private boolean connected = false;
-    private final BlockingQueue<String> messageBuffer = new LinkedBlockingQueue<>();
-    private String lastUpdate = "";
-    private String confirmedNickname = null;
+    boolean connected = false;
+    final BlockingQueue<String> messageBuffer = new LinkedBlockingQueue<>();
+    String lastUpdate = "";
+    String confirmedNickname = null;
 
     private final String host;
     private final int port;
@@ -49,6 +49,15 @@ public class ServerHandler {
      * @param port Port
      * @param username Client username
      */
+    /**
+     * Protected constructor for testing: does not connect to any server or open sockets.
+     */
+    protected ServerHandler(String host, int port, String username, boolean skipNetwork) {
+        this.host = host;
+        this.port = port;
+        this.username = username;
+    }
+
     public ServerHandler(String host, int port, String username) {
         this.host = host;
         this.port = port;
@@ -98,16 +107,13 @@ public class ServerHandler {
                 logger.error("Cannot send - socket is null or not connected");
                 return;
             }
-
             //logger.info("Sending {} to {}:{}", msg, host, SERVER_UDP_LISTENING_PORT)
             //logger.info("Using local port: ", updateSocket.getLocalPort());
-            
             byte[] buffer = msg.getBytes();
             InetAddress targetAddress = InetAddress.getByName(host);
             DatagramPacket packet =
                 new DatagramPacket(buffer, buffer.length, targetAddress, SERVER_UDP_LISTENING_PORT);
             updateSocket.send(packet);
-            
             //logger.info("Packet sent - {} bytes", buffer.length);
         } catch (Exception e) {
             logger.error("Couldn't send update", e);
@@ -140,7 +146,7 @@ public class ServerHandler {
             }
 
             try {
-                updateSocket = new DatagramSocket();
+                updateSocket = new RealUDPSocket(new DatagramSocket());
                 connected = true;
 
                 messageReceiver = new Thread(this::receiveMSG);
@@ -201,7 +207,7 @@ public class ServerHandler {
      * Continuously checks for a received TCP message from the server and adds it to the message
      * buffer. If the message was a ping, it sends a response instead.
      */
-    private void receiveMSG() {
+    void receiveMSG() {
         long pingTimer = System.currentTimeMillis();
         String msg;
 
@@ -256,30 +262,35 @@ public class ServerHandler {
 
         try {
             while (connected) {
-                if (updateSocket == null || updateSocket.isClosed()) {
-                    logger.error("Cannot receive - socket is null or closed");
+                if (updateSocket == null) {
+                    logger.error("Cannot receive - socket is null");
                     break;
                 }
-                
-                updateSocket.setSoTimeout(10);
-                
-                try {
-                    DatagramPacket receivePacket = new DatagramPacket(receiveBuffer,
-                        receiveBuffer.length);
-                    
-                    updateSocket.receive(receivePacket);
-                    String receivedMsg = new String(receivePacket.getData(), 0, receivePacket.getLength());
-
-                    //logger.info("Received: {} from {}:{}", receivedMsg, receivePacket.getAddress(), receivePacket.getPort());
-
-                    if (!receivedMsg.startsWith("udp_ack:")) {
-                        lastUpdate = receivedMsg;
+                if (updateSocket instanceof RealUDPSocket real) {
+                    DatagramSocket ds = real.getSocket();
+                    if (ds.isClosed()) {
+                        logger.error("Cannot receive - socket is closed");
+                        break;
                     }
-                } catch (java.net.SocketTimeoutException e) {
+                    ds.setSoTimeout(10);
+                    try {
+                        DatagramPacket receivePacket = new DatagramPacket(receiveBuffer,
+                            receiveBuffer.length);
+                        ds.receive(receivePacket);
+                        String receivedMsg = new String(receivePacket.getData(), 0, receivePacket.getLength());
+                        //logger.info("Received: {} from {}:{}", receivedMsg, receivePacket.getAddress(), receivePacket.getPort());
+                        if (!receivedMsg.startsWith("udp_ack:")) {
+                            lastUpdate = receivedMsg;
+                        }
+                    } catch (java.net.SocketTimeoutException e) {
+                    }
+                } else {
+                    // Not supported for mocks
+                    break;
                 }
             }
         } catch (Exception e) {
-            if (connected && updateSocket != null && !updateSocket.isClosed()) {
+            if (connected && updateSocket instanceof RealUDPSocket real && !real.getSocket().isClosed()) {
                 logger.error("Receive error", e);
             }
         }
@@ -290,23 +301,26 @@ public class ServerHandler {
      * This should be called after the nickname is confirmed.
      */
     private void sendUdpRegistrationPacket() {
-        if (this.confirmedNickname == null || updateSocket == null || updateSocket.isClosed()) {
+        if (this.confirmedNickname == null || updateSocket == null) {
             logger.error("Cannot register - nickname or socket unavailable");
             return;
         }
-
+        int localUdpPort = -1;
+        if (updateSocket instanceof RealUDPSocket real) {
+            localUdpPort = real.getSocket().getLocalPort();
+        } else {
+            // For mocks, use dummy port
+            localUdpPort = 0;
+        }
         try {
-            int localUdpPort = updateSocket.getLocalPort();
-            String registrationMsg = String.format("%s%s:%d", 
-                                               UDP_REGISTRATION_PREFIX, 
-                                               this.confirmedNickname, 
+            String registrationMsg = String.format("%s%s:%d",
+                                               UDP_REGISTRATION_PREFIX,
+                                               this.confirmedNickname,
                                                localUdpPort);
-
             byte[] buffer = registrationMsg.getBytes();
             InetAddress serverAddress = InetAddress.getByName(host);
-            DatagramPacket registrationPacket = new DatagramPacket(buffer, buffer.length, 
+            DatagramPacket registrationPacket = new DatagramPacket(buffer, buffer.length,
                                                                   serverAddress, SERVER_UDP_LISTENING_PORT);
-            
             updateSocket.send(registrationPacket);
         } catch (IOException e) {
             logger.error("Registration error: " + e.getMessage());
@@ -322,3 +336,4 @@ public class ServerHandler {
         return confirmedNickname;
     }
 }
+
