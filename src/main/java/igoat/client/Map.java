@@ -188,7 +188,7 @@ public class Map {
     private void createWall(int x, int y, int width, int height) {
         if (!noVisuals) {
             Rectangle visualWall = new Rectangle(x, y, width, height);
-            visualWall.setFill(Color.GRAY);
+            visualWall.setFill(Color.web("#363442"));
             visualWalls.add(visualWall);
         }
 
