@@ -37,6 +37,8 @@ public class Map {
 
     /**
      * Creates a new Map with the layout from the design.
+     * @param noVisuals This determines whether the visual elements of the map are created, which
+     * are not necessary for the server side implementation
      */
     public Map(boolean noVisuals) {
         this.noVisuals = noVisuals;
@@ -166,7 +168,6 @@ public class Map {
     private void createDoor() {
        addDoor(0, 500, 20, DOOR_WIDTH);
        addDoor(1480, 500, 20, DOOR_WIDTH);
-
     }
 
     /**
@@ -242,9 +243,7 @@ public class Map {
         }
 
         Wall collisionWall = new Wall(x, y, width, height);
-        collisionWalls.add(collisionWall);
         windowCollisions.add(collisionWall);
-
     }
 
     /**
@@ -286,6 +285,14 @@ public class Map {
      */
     public List<Wall> getCollisionWalls() {
         return collisionWalls;
+    }
+
+    /**
+     * Gets the list of window collision objects.
+     * @return the list of window collision boxes
+     */
+    public List<Wall> getWindowCollisions() {
+        return windowCollisions;
     }
     
     /**

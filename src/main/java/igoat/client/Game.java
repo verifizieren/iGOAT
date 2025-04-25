@@ -1055,8 +1055,14 @@ public class Game extends Application {
                     break;
                 }
             }
-            if (canMoveX) {
-                newX = potentialX;
+        }
+
+        if (dx != 0 && player.getRole() != Role.GOAT) {
+            for (Wall wall : gameMap.getWindowCollisions()) {
+                if (player.collidesWithWall((int)potentialX, (int)currentY, wall)) {
+                    canMoveX = false;
+                    break;
+                }
             }
         }
 
@@ -1068,9 +1074,22 @@ public class Game extends Application {
                     break;
                 }
             }
-            if (canMoveY) {
-                newY = potentialY;
+        }
+        if (dy != 0 && player.getRole() != Role.GOAT) {
+            for (Wall wall : gameMap.getWindowCollisions()) {
+                if (player.collidesWithWall((int)newX, (int)potentialY, wall)) {
+                    canMoveY = false;
+                    break;
+                }
             }
+        }
+
+        if (canMoveX) {
+            newX = potentialX;
+        }
+
+        if (canMoveY) {
+            newY = potentialY;
         }
 
         boolean positionChanged = Math.abs(newX - currentX) > 0.01 || Math.abs(newY - currentY) > 0.01;

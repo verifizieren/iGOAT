@@ -260,7 +260,8 @@ public class ClientHandler implements Runnable {
             }
 
             // if there is a collision, we return the current coordinates
-            if (sender.currentLobby.getMap() != null && checkCollision(x, y, 32, 32, sender.currentLobby.getMap())) {
+            if (sender.currentLobby.getMap() != null &&
+                    checkCollision(x, y, 32, 32, sender.currentLobby.getMap(), sender.getRole() == Role.GOAT)) {
                 x = (int)sender.getPlayerX();
                 y = (int)sender.getPlayerY();
                 logger.info("collision prevented");
@@ -295,12 +296,20 @@ public class ClientHandler implements Runnable {
     /**
      * checks for a collision with a wall
      */
-    private static boolean checkCollision(int x, int y, double playerWidth, double playerHeight, Map map) {
+    private static boolean checkCollision(int x, int y, double playerWidth, double playerHeight, Map map, boolean ignoreWindows) {
         for (Wall wall : map.getCollisionWalls()) {
             if (Player.collidesWithWall(x, y, playerWidth, playerHeight, wall)) {
                 return true;
             }
         }
+        if (!ignoreWindows) {
+            for (Wall wall : map.getWindowCollisions()) {
+                if (Player.collidesWithWall(x, y, playerWidth, playerHeight, wall)) {
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 
