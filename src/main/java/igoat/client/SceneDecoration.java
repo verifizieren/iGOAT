@@ -8,12 +8,44 @@ public class SceneDecoration {
     public static List<Decoration> getDecorList() {
         List<Decoration> decorList = new ArrayList<>();
 
-        // Outer Top wall
+        // Outer top wall 1
         decorList.add(new Decoration(
             Objects.requireNonNull(Sprite.class.getResource("/sprites/wall.png")).toExternalForm(),
-            20, -44, 1460, 64,
+            20, -44, 110, 64,
             true,
-            0, 0, 64, 64
+            0, 0, 110, 64
+        ));
+
+        // Outer top wall 2
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/wall.png")).toExternalForm(),
+            150, -44, 500, 64,
+            true,
+            0, 0, 500, 64
+        ));
+
+        // Outer top wall 3
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/wall.png")).toExternalForm(),
+            670, -44, 230, 64,
+            true,
+            0, 0, 230, 64
+        ));
+
+        // Outer top wall 4
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/wall.png")).toExternalForm(),
+            920, -44, 250, 64,
+            true,
+            0, 0, 250, 64
+        ));
+
+        // Outer top wall 5
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/wall.png")).toExternalForm(),
+            1188, -44, 292, 64,
+            true,
+            0, 0, 292, 64
         ));
 
         // Room 1
@@ -1470,6 +1502,13 @@ public class SceneDecoration {
         decorList.add(new Decoration(
             Objects.requireNonNull(Sprite.class.getResource("/sprites/wall_cable.png")).toExternalForm(),
             250, -32, 64, 64,
+            false,
+            20, 0, 20, 62
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/electricbox.png")).toExternalForm(),
+            180, -32, 64, 64,
             false,
             20, 0, 20, 62
         ));

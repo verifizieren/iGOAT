@@ -70,15 +70,15 @@ public class Map {
         // Outer Walls
         createWall(0, 0, MAP_WIDTH, WALL_THICKNESS); // WALL TOP
         createWall(0, MAP_HEIGHT - WALL_THICKNESS, MAP_WIDTH, WALL_THICKNESS); // WALL BOTTOM
-        createWall(0, 0, WALL_THICKNESS, 500); // WALL LEFT
+        createWall(0, -42, WALL_THICKNESS, 542); // WALL LEFT
         createWall(0, 560, WALL_THICKNESS, MAP_HEIGHT - 560);
-        createWall(MAP_WIDTH - WALL_THICKNESS, 0, WALL_THICKNESS, 500); // WALL RIGHT
+        createWall(MAP_WIDTH - WALL_THICKNESS, -42, WALL_THICKNESS, 542); // WALL RIGHT
         createWall(MAP_WIDTH - WALL_THICKNESS, 560, WALL_THICKNESS, MAP_HEIGHT - 560);
 
         // Room Top right
         createWall(1170, 300, 330, WALL_THICKNESS);
         createWall(1168, 200, WALL_THICKNESS, 200);
-        createWall(1168, 0, WALL_THICKNESS, 100);
+        createWall(1168, -42, WALL_THICKNESS, 142);
 
         //2
         createWall(1168, 500, WALL_THICKNESS, 100);
@@ -86,12 +86,12 @@ public class Map {
         createWall(1010, 550, WALL_THICKNESS, 300);
         createWall(1020, 700, 168, WALL_THICKNESS);
         createWall(1010, 850, 178, WALL_THICKNESS);
-        createWall(1168, 670, WALL_THICKNESS, 250);
+        createWall(1168, 670, WALL_THICKNESS, 240);
 
         //3
         createWall(750, 550, 100, WALL_THICKNESS);
         createWall(780, 550, WALL_THICKNESS, 500);
-        createWall(750, 1050, 439, WALL_THICKNESS);
+        createWall(750, 1050, 438, WALL_THICKNESS);
         createWall(1168, 1000, WALL_THICKNESS, 52);
 
         //4
@@ -121,13 +121,13 @@ public class Map {
         createWall(0, 200, 150, WALL_THICKNESS);
         createWall(130, 130,WALL_THICKNESS, 20);
         createWall(130, 190, WALL_THICKNESS, 10);
-        createWall(130, 0, WALL_THICKNESS, 70);
+        createWall(130, -42, WALL_THICKNESS, 120);
 
         //7
         createWall(550, 150, 200, WALL_THICKNESS);
-        createWall(650, 0, WALL_THICKNESS, 150);
+        createWall(650, -42, WALL_THICKNESS, 192);
         createWall(800, 150, 100, WALL_THICKNESS);
-        createWall(900, 0, WALL_THICKNESS, 220);
+        createWall(900, -42, WALL_THICKNESS, 262);
         createWall(900, 260, WALL_THICKNESS, 140);
         createWall(550, 300, 200, WALL_THICKNESS);
         createWall(800, 300, 100, WALL_THICKNESS);
