@@ -98,13 +98,23 @@ public class Player {
      * @param newY The new Y coordinate
      */
     public void updatePosition(double newX, double newY) {
-        // set idle sprite when not moving
+        // show idle sprite when not moving
         if (x == newX && y == newY) {
             animation.stop();
             animation.getView().setVisible(false);
             idle.setVisible(true);
             return;
         }
+
+        if (x - newX < 0) {
+            idle.setScaleX(1);
+            animation.getView().setScaleX(1);
+        }
+        else if (x - newX > 0) {
+            idle.setScaleX(-1);
+            animation.getView().setScaleX(-1);
+        }
+
 
         this.x = newX;
         this.y = newY;
@@ -118,6 +128,7 @@ public class Player {
             updateCamera();
         }
 
+        // show animation when moving
         idle.setVisible(false);
         animation.getView().setVisible(true);
         animation.play();
@@ -302,13 +313,6 @@ public class Player {
             logger.error("Couldn't find visual");
             return;
         }
-
-//        visual.setFill(switch (role) {
-//            case Role.GOAT -> Color.DODGERBLUE;   // Goat
-//            case Role.IGOAT -> Color.LIMEGREEN;    // Robot
-//            case Role.GUARD  -> Color.CRIMSON;      // Guard
-//            default -> Color.ORANGE;      // Fallback/default
-//        });
     }
 
     public Role getRole() {
