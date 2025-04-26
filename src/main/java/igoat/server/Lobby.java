@@ -1,6 +1,7 @@
 package igoat.server;
 
 import igoat.Role;
+import igoat.Timer;
 import igoat.client.Map;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +34,6 @@ public class Lobby {
     public static int MAX_PLAYERS = 4;
     private final Map map = new Map(true);
     private final Timer timer = new Timer();
-    private Thread timerThread;
 
 
     /**
@@ -229,7 +229,7 @@ public class Lobby {
     public void startGame() {
         state = LobbyState.IN_GAME;
         timer.reset();
-        timerThread = new Thread(this::startTimerThread);
+        Thread timerThread = new Thread(this::startTimerThread);
         timerThread.setDaemon(true);
         timerThread.start();
     }

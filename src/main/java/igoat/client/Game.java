@@ -3,6 +3,7 @@ package igoat.client;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 
+import igoat.Timer;
 import igoat.client.GUI.Banner;
 import java.time.LocalTime;
 
@@ -95,6 +96,8 @@ public class Game extends Application {
     private String playerName;
     private String lobbyCode;
     private String username;
+    private Timer timer = new Timer();
+    private String time = "";
     
     private boolean gameStarted = false;
     
@@ -148,6 +151,7 @@ public class Game extends Application {
     private Timeline chatHideTimer;
     private FadeTransition chatFadeOutTransition;
     private ChatMode currentChatMode = ChatMode.LOBBY;
+    private Text timeText;
 
     private Banner terminalActivationBanner;
     private Banner allTerminalsBanner;
@@ -271,6 +275,13 @@ public class Game extends Application {
         uiOverlay.prefHeightProperty().bind(stage.heightProperty());
         container.getChildren().add(uiOverlay);
 
+        timeText = new Text();
+        timeText.setX(10);
+        timeText.setY(20);
+        timeText.setFill(Color.WHITE);
+        timeText.setFont(new Font("Jersey 10", 25));
+        container.getChildren().add(timeText);
+
         Scene scene = new Scene(container);
         scene.setFill(Color.BLACK);
         scene.setOnMouseMoved(event -> {
@@ -364,6 +375,8 @@ public class Game extends Application {
         }.start();
         
         initializeChatUI();
+        timer.reset(0);
+        time = "0:0";
     }
 
     /**
@@ -662,6 +675,7 @@ public class Game extends Application {
      * @param result true if the guard has won, false otherwise
      */
     private void endGame(boolean result) {
+        time = "";
         showWinLossScreen(result);
     }
 
@@ -1108,6 +1122,13 @@ public class Game extends Application {
         }
 
         updateVisuals();
+
+        // update on screen timer if necessary
+        timer.update();
+        if (!time.isEmpty() && !time.equals(timer.toString())) {
+            time = timer.toString();
+            timeText.setText(time);
+        }
     }
 
     private void pressCatch() {

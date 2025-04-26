@@ -1,4 +1,4 @@
-package igoat.server;
+package igoat;
 
 /**
  * A class for tracking time
@@ -17,6 +17,15 @@ public class Timer {
         time = 0;
     }
 
+    /**
+     * Starts/resets the timer with a certain starting time
+     * @param time The starting time in milliseconds
+     */
+    public void reset(long time) {
+        sysTime = getSystemTime();
+        elapsedTime = 0;
+        this.time = time;
+    }
     /**
      * Updates the timer to the current system time. This should be called before using getTimeElapsed
      * or getTime
