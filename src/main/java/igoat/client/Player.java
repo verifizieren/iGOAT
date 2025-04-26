@@ -349,6 +349,8 @@ public class Player {
                 idle = new ImageView(new Sprite("/sprites/goat_idle.png"));
                 idle.setX(this.x);
                 idle.setY(this.y);
+                idle.setFitWidth(32);
+                idle.setFitHeight(32);
                 idle.setVisible(true);
 
                 visual = new Group(animation.getView(), idle);

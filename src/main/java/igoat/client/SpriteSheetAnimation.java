@@ -20,22 +20,25 @@ public class SpriteSheetAnimation {
         Image image = new Image(getClass().getResource(spriteSheetPath).toExternalForm());
         this.imageView = new ImageView(image);
         this.imageView.setSmooth(false);
+        this.imageView.setFitWidth(frameWidth);
+        this.imageView.setFitHeight(frameHeight);
+
         this.frameWidth = frameWidth;
         this.frameHeight = frameHeight;
         this.frameCount = frameCount;
         this.columns = columns;
 
         // Set initial viewport
-        imageView.setViewport(new Rectangle2D(0, 0, frameWidth, frameHeight));
+        imageView.setViewport(new Rectangle2D(0, 0, frameWidth * 10, frameHeight * 10));
 
         this.timeline = new Timeline(new KeyFrame(Duration.millis(frameDurationMs), e -> updateFrame()));
         timeline.setCycleCount(Timeline.INDEFINITE);
     }
 
     private void updateFrame() {
-        int x = (currentFrame % columns) * frameWidth;
-        int y = (currentFrame / columns) * frameHeight;
-        imageView.setViewport(new Rectangle2D(x, y, frameWidth, frameHeight));
+        int x = (currentFrame % columns) * frameWidth * 10;
+        int y = (currentFrame / columns) * frameHeight * 10;
+        imageView.setViewport(new Rectangle2D(x, y, frameWidth * 10, frameHeight * 10));
         currentFrame = (currentFrame + 1) % frameCount;
     }
 
@@ -49,11 +52,5 @@ public class SpriteSheetAnimation {
 
     public ImageView getView() {
         return imageView;
-    }
-
-    public void setStaticFrame(int frameIndex) {
-        int x = (frameIndex % columns) * frameWidth;
-        int y = (frameIndex / columns) * frameHeight;
-        imageView.setViewport(new Rectangle2D(x, y, frameWidth, frameHeight));
     }
 }
