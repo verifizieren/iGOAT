@@ -2,10 +2,10 @@ package igoat.client;
 
 import igoat.Role;
 import javafx.scene.Group;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import org.slf4j.Logger;
@@ -23,15 +23,16 @@ public class Player {
     private double y;
     private final int width;
     private final int height;
-    private final Group visual;
-    private final SpriteSheetAnimation animation;
-    private final ImageView idle;
+    private Group visual;
+    private SpriteSheetAnimation animation;
+    private ImageView idle;
     private final Text usernameLabel;
     private final Camera camera;
     private boolean isBeingSpectated;
     private String username;
     private Role role = null;
     private boolean isDown;
+    private Pane gamePane;
 
     /**
      * Creates a new player with the specified position and dimensions.
@@ -59,26 +60,18 @@ public class Player {
         this.height = height;
         this.username = username;
 
-        this.animation = new SpriteSheetAnimation("/sprites/animations/goat_walking/goat_walking.png",
-            32, 32, 8, 8, 100);
-        this.animation.getView().setVisible(false);
-        this.animation.getView().setX(x);
-        this.animation.getView().setY(y);
+        this.gamePane = gamePane;
 
-
-        this.idle = new ImageView(new Sprite("/sprites/goat_side.png", 32, 32));
-        this.idle.setVisible(true);
-        this.idle.setX(x);
-        this.idle.setY(y);
-
-        this.visual = new Group(animation.getView(), idle);
+        this.animation = new SpriteSheetAnimation("/sprites/invisible_placeholder.png", 1, 1, 1, 1, 1);
+        this.idle = new ImageView();
+        this.visual = new Group();
         
         this.usernameLabel = new Text(username);
         this.usernameLabel.setFont(Font.font("Jersey 10", 12));
         this.usernameLabel.setFill(Color.BLACK);
         updateUsernamePosition();
         
-        gamePane.getChildren().addAll(visual, usernameLabel);
+        gamePane.getChildren().add(usernameLabel);
         
         if (isLocalPlayer) {
             this.camera = new Camera(gamePane, viewportWidth, viewportHeight, zoom, true);
@@ -309,10 +302,55 @@ public class Player {
     public void setRole(Role role) {
         this.role = role;
 
-        if (visual == null) {
-            logger.error("Couldn't find visual");
-            return;
+        switch (role) {
+            case Role.GOAT -> {
+                animation = new SpriteSheetAnimation("/sprites/goat_walking.png",
+                    32, 32, 8, 8, 100);
+                animation.getView().setX(this.x);
+                animation.getView().setY(this.y);
+                animation.getView().setVisible(false);
+
+                idle = new ImageView(new Sprite("/sprites/goat_idle.png", 32, 32));
+                animation.getView().setX(this.x);
+                animation.getView().setY(this.y);
+                animation.getView().setVisible(true);
+
+                visual = new Group(animation.getView(), idle);
+                gamePane.getChildren().add(visual);
+            }
+            case Role.IGOAT -> {
+                animation = new SpriteSheetAnimation("/sprites/igoat_walking.png",
+                    32, 32, 8, 8, 100);
+                animation.getView().setX(this.x);
+                animation.getView().setY(this.y);
+                animation.getView().setVisible(false);
+
+                idle = new ImageView(new Sprite("/sprites/igoat_idle.png", 32, 32));
+                animation.getView().setX(this.x);
+                animation.getView().setY(this.y);
+                animation.getView().setVisible(true);
+
+                visual = new Group(animation.getView(), idle);
+                gamePane.getChildren().add(visual);
+            }
+            default -> {
+                animation = new SpriteSheetAnimation("/sprites/goat_walking.png",
+                    32, 32, 8, 8, 100);
+                animation.getView().setX(this.x);
+                animation.getView().setY(this.y);
+                animation.getView().setVisible(false);
+
+                idle = new ImageView(new Sprite("/sprites/goat_idle.png", 32, 32));
+                animation.getView().setX(this.x);
+                animation.getView().setY(this.y);
+                animation.getView().setVisible(true);
+
+                visual = new Group(animation.getView(), idle);
+                gamePane.getChildren().add(visual);
+            }
         }
+
+        updatePosition(x + 0.001, y + 0.001);
     }
 
     public Role getRole() {
