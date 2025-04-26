@@ -310,10 +310,12 @@ public class Player {
                 animation.getView().setY(this.y);
                 animation.getView().setVisible(false);
 
-                idle = new ImageView(new Sprite("/sprites/goat_idle.png", 32, 32));
-                animation.getView().setX(this.x);
-                animation.getView().setY(this.y);
-                animation.getView().setVisible(true);
+                idle = new ImageView(new Sprite("/sprites/goat_idle.png"));
+                idle.setX(this.x);
+                idle.setY(this.y);
+                idle.setFitWidth(32);
+                idle.setFitHeight(32);
+                idle.setVisible(true);
 
                 visual = new Group(animation.getView(), idle);
                 gamePane.getChildren().add(visual);
@@ -325,10 +327,12 @@ public class Player {
                 animation.getView().setY(this.y);
                 animation.getView().setVisible(false);
 
-                idle = new ImageView(new Sprite("/sprites/igoat_idle.png", 32, 32));
-                animation.getView().setX(this.x);
-                animation.getView().setY(this.y);
-                animation.getView().setVisible(true);
+                idle = new ImageView(new Sprite("/sprites/igoat_idle.png"));
+                idle.setX(this.x);
+                idle.setY(this.y);
+                idle.setFitWidth(32);
+                idle.setFitHeight(32);
+                idle.setVisible(true);
 
                 visual = new Group(animation.getView(), idle);
                 gamePane.getChildren().add(visual);
@@ -338,19 +342,19 @@ public class Player {
                     32, 32, 8, 8, 100);
                 animation.getView().setX(this.x);
                 animation.getView().setY(this.y);
+                idle.setFitWidth(32);
+                idle.setFitHeight(32);
                 animation.getView().setVisible(false);
 
-                idle = new ImageView(new Sprite("/sprites/goat_idle.png", 32, 32));
-                animation.getView().setX(this.x);
-                animation.getView().setY(this.y);
-                animation.getView().setVisible(true);
+                idle = new ImageView(new Sprite("/sprites/goat_idle.png"));
+                idle.setX(this.x);
+                idle.setY(this.y);
+                idle.setVisible(true);
 
                 visual = new Group(animation.getView(), idle);
                 gamePane.getChildren().add(visual);
             }
         }
-
-        updatePosition(x + 0.001, y + 0.001);
     }
 
     public Role getRole() {

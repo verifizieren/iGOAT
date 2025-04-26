@@ -19,6 +19,7 @@ public class SpriteSheetAnimation {
     public SpriteSheetAnimation(String spriteSheetPath, int frameWidth, int frameHeight, int frameCount, int columns, double frameDurationMs) {
         Image image = new Image(getClass().getResource(spriteSheetPath).toExternalForm());
         this.imageView = new ImageView(image);
+        this.imageView.setSmooth(false);
         this.frameWidth = frameWidth;
         this.frameHeight = frameHeight;
         this.frameCount = frameCount;
