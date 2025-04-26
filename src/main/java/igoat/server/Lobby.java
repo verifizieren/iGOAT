@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
  * (OPEN, FULL, READY, IN_GAME) based on player count and game progression.
  */
 public class Lobby {
+    public static final long GAME_OVER_TIME = 1000 * 240; // 4 minutes
     private static final Logger logger = LoggerFactory.getLogger(Lobby.class);
     // roles
     private static final List<Role> availableRoles = new CopyOnWriteArrayList<>();
@@ -31,8 +32,9 @@ public class Lobby {
      */
     public static int MAX_PLAYERS = 4;
     private final Map map = new Map(true);
-    private long gameTime = 0;
-    private Timer timer;
+    private final Timer timer = new Timer();
+    private Thread timerThread;
+
 
     /**
      * Represents the different states a lobby can be in: - OPEN: Lobby is accepting new players -
@@ -107,7 +109,7 @@ public class Lobby {
      * Sets the serverside positions of the players to the correct spawn locations
      */
     private void setSpawnPoints(ClientHandler player) {
-        if (player.isPositionWasSet()) {
+        if (player.positionWasSet()) {
             logger.info("Spawnpoint für {} wurde bereits gesetzt, wird nicht erneut überschrieben.", player.getNickname());
             return;
         }
@@ -142,15 +144,12 @@ public class Lobby {
         return state;
     }
 
-    /**
-     * Sets the lobby status to finished
-     */
-    public void setGameFinished() {
-        state = LobbyState.FINISHED;
-    }
-
     public Map getMap() {
         return map;
+    }
+
+    public Timer getTimer() {
+        return timer;
     }
 
     /**
@@ -161,6 +160,22 @@ public class Lobby {
      */
     public Lobby(int code) {
         this.code = code;
+    }
+
+    /**
+     * Method for the timer thread. This constantly updates the game timer and ends the game if the
+     * maximal game length was reached.
+     */
+    private void startTimerThread() {
+        while (state != LobbyState.FINISHED) {
+            timer.update();
+
+            if (timer.getTime() >= GAME_OVER_TIME) {
+                members.getFirst().endGame(true);
+                logger.info("Time limit reached - game over");
+                break;
+            }
+        }
     }
 
     /**
@@ -213,25 +228,10 @@ public class Lobby {
 
     public void startGame() {
         state = LobbyState.IN_GAME;
-        timer = new Timer();
-    }
-
-    /**
-     * updates the game timer
-     */
-    public void updateTimer() {
-        if (state == LobbyState.IN_GAME && timer != null) {
-            gameTime += timer.getTimeElapsed();
-        }
-    }
-
-    /**
-     * updates the game time and returns it
-     * @return game time
-     */
-    public long getGameTime() {
-        updateTimer();
-        return gameTime;
+        timer.reset();
+        timerThread = new Thread(this::startTimerThread);
+        timerThread.setDaemon(true);
+        timerThread.start();
     }
 
     public void endGame() {

@@ -69,7 +69,7 @@ public class ClientHandler implements Runnable {
 
     private boolean positionWasSet = false;
 
-    public boolean isPositionWasSet() {
+    public boolean positionWasSet() {
         return positionWasSet;
     }
 
@@ -376,11 +376,6 @@ public class ClientHandler implements Runnable {
 
             String message;
             while (running && (message = in.readLine()) != null) {
-                //logger.info("Received from {}: {}", nickname, message);
-                if (currentLobby != null) {
-                    currentLobby.updateTimer();
-                }
-
                 if (message.equals("pong")) {
                     handlePong();
                     continue;
@@ -1084,16 +1079,16 @@ public class ClientHandler implements Runnable {
      * ends the game and broadcasts the result
      * @param result true if the guard won, false otherwise
      */
-    private void endGame(boolean result) {
+    void endGame(boolean result) {
         if (!currentLobby.getGameState().gameOver) {
             currentLobby.getGameState().gameOver = true;
-            currentLobby.setGameFinished();
+            currentLobby.endGame();
             broadcastGetLobbiesToAll();
             currentLobby.broadcastToLobby("gameover:" + result);
-            long gameTime = currentLobby.getGameTime();
+            long gameTime = currentLobby.getTimer().getTime();
             double[] endTime = Timer.convertToMinSec(gameTime);
             logger.info("Game time: {} ms", gameTime);
-            logger.info("Game finished in {}:{}", Math.round(endTime[0]), String.format("%.2f", endTime[1]));
+            logger.info("Game finished in {}", currentLobby.getTimer().toString());
             
             try {
                 HighscoreManager.initialize();
