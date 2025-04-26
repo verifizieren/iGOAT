@@ -1,6 +1,7 @@
 package igoat.client;
 
 import igoat.Role;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -22,6 +23,7 @@ public class Player {
     private final int width;
     private final int height;
     private final Rectangle visualRepresentation;
+    private final SpriteSheetAnimation animation;
     private final Text usernameLabel;
     private final Camera camera;
     private boolean isBeingSpectated;
@@ -59,13 +61,16 @@ public class Player {
         this.visualRepresentation.setFill(color);
         this.visualRepresentation.setX(x);
         this.visualRepresentation.setY(y);
+
+        this.animation = new SpriteSheetAnimation("/sprites/animations/goat_walking/goat_walking.png",
+            32, 32, 8, 8, 100);
         
         this.usernameLabel = new Text(username);
         this.usernameLabel.setFont(Font.font("Jersey 10", 12));
         this.usernameLabel.setFill(Color.BLACK);
         updateUsernamePosition();
         
-        gamePane.getChildren().addAll(visualRepresentation, usernameLabel);
+        gamePane.getChildren().addAll(/*visualRepresentation, */usernameLabel, animation.getView());
         
         if (isLocalPlayer) {
             this.camera = new Camera(gamePane, viewportWidth, viewportHeight, zoom, true);
@@ -94,6 +99,10 @@ public class Player {
         if (isBeingSpectated && camera != null) {
             updateCamera();
         }
+
+        animation.getView().setX(newX);
+        animation.getView().setY(newY);
+        animation.play();
     }
 
     /**
