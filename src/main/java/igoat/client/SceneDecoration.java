@@ -55,6 +55,27 @@ public class SceneDecoration {
         ));
 
         decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/closet_updown.png")).toExternalForm(),
+            1135, 210, 64, 64,
+            true,
+            0, 0, 32, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/closet_updown.png")).toExternalForm(),
+            1135, 247, 64, 64,
+            true,
+            0, 0, 32, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/closet_updown.png")).toExternalForm(),
+            1135, 284, 64, 64,
+            true,
+            0, 0, 32, 64
+        ));
+
+        decorList.add(new Decoration(
             Objects.requireNonNull(Sprite.class.getResource("/sprites/wall_cable.png")).toExternalForm(),
             970, -30, 64, 64,
             false,
@@ -182,7 +203,7 @@ public class SceneDecoration {
         ));
 
         decorList.add(new Decoration(
-            Objects.requireNonNull(Sprite.class.getResource("/sprites/potions.png")).toExternalForm(),
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/centrifuge.png")).toExternalForm(),
             1280, 130, 64, 64,
             false,
             0, 0, 32, 32
@@ -389,6 +410,13 @@ public class SceneDecoration {
             9, 8, 42, 36
         ));
 
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/book.png")).toExternalForm(),
+            1280, 1110, 32, 32,
+            false,
+            9, 8, 42, 36
+        ));
+
         // Table group 2
         decorList.add(new Decoration(
             Objects.requireNonNull(Sprite.class.getResource("/sprites/table3.png")).toExternalForm(),
@@ -415,6 +443,13 @@ public class SceneDecoration {
             Objects.requireNonNull(Sprite.class.getResource("/sprites/table3.png")).toExternalForm(),
             1383, 1215, 64, 64,
             true,
+            9, 8, 42, 36
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/book_closed.png")).toExternalForm(),
+            1398, 1195, 32, 32,
+            false,
             9, 8, 42, 36
         ));
 
