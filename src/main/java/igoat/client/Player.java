@@ -1,6 +1,7 @@
 package igoat.client;
 
 import igoat.Role;
+import javafx.scene.Group;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -22,8 +23,9 @@ public class Player {
     private double y;
     private final int width;
     private final int height;
-    private final Rectangle visualRepresentation;
+    private final Group visual;
     private final SpriteSheetAnimation animation;
+    private final ImageView idle;
     private final Text usernameLabel;
     private final Camera camera;
     private boolean isBeingSpectated;
@@ -56,21 +58,27 @@ public class Player {
         this.width = width;
         this.height = height;
         this.username = username;
-        
-        this.visualRepresentation = new Rectangle(width, height);
-        this.visualRepresentation.setFill(color);
-        this.visualRepresentation.setX(x);
-        this.visualRepresentation.setY(y);
 
         this.animation = new SpriteSheetAnimation("/sprites/animations/goat_walking/goat_walking.png",
             32, 32, 8, 8, 100);
+        this.animation.getView().setVisible(false);
+        this.animation.getView().setX(x);
+        this.animation.getView().setY(y);
+
+
+        this.idle = new ImageView(new Sprite("/sprites/goat_side.png", 32, 32));
+        this.idle.setVisible(true);
+        this.idle.setX(x);
+        this.idle.setY(y);
+
+        this.visual = new Group(animation.getView(), idle);
         
         this.usernameLabel = new Text(username);
         this.usernameLabel.setFont(Font.font("Jersey 10", 12));
         this.usernameLabel.setFill(Color.BLACK);
         updateUsernamePosition();
         
-        gamePane.getChildren().addAll(/*visualRepresentation, */usernameLabel, animation.getView());
+        gamePane.getChildren().addAll(visual, usernameLabel);
         
         if (isLocalPlayer) {
             this.camera = new Camera(gamePane, viewportWidth, viewportHeight, zoom, true);
@@ -90,18 +98,28 @@ public class Player {
      * @param newY The new Y coordinate
      */
     public void updatePosition(double newX, double newY) {
+        // set idle sprite when not moving
+        if (x == newX && y == newY) {
+            animation.stop();
+            animation.getView().setVisible(false);
+            idle.setVisible(true);
+            return;
+        }
+
         this.x = newX;
         this.y = newY;
-        this.visualRepresentation.setX(newX);
-        this.visualRepresentation.setY(newY);
+        this.animation.getView().setX(x);
+        this.animation.getView().setY(y);
+        this.idle.setX(x);
+        this.idle.setY(y);
         updateUsernamePosition();
         
         if (isBeingSpectated && camera != null) {
             updateCamera();
         }
 
-        animation.getView().setX(newX);
-        animation.getView().setY(newY);
+        idle.setVisible(false);
+        animation.getView().setVisible(true);
         animation.play();
     }
 
@@ -145,7 +163,7 @@ public class Player {
      */
     public void updateCamera() {
         if (camera != null) {
-            camera.update(visualRepresentation.getX(), visualRepresentation.getY());
+            camera.update(idle.getX(), idle.getY());
         }
     }
 
@@ -185,8 +203,8 @@ public class Player {
      *
      * @return The Rectangle object representing the player in the game
      */
-    public Rectangle getVisualRepresentation() {
-        return visualRepresentation;
+    public Group getVisual() {
+        return visual;
     }
 
     /**
@@ -280,17 +298,17 @@ public class Player {
     public void setRole(Role role) {
         this.role = role;
 
-        if (visualRepresentation == null) {
+        if (visual == null) {
             logger.error("Couldn't find visual");
             return;
         }
 
-        visualRepresentation.setFill(switch (role) {
-            case Role.GOAT -> Color.DODGERBLUE;   // Goat
-            case Role.IGOAT -> Color.LIMEGREEN;    // Robot
-            case Role.GUARD  -> Color.CRIMSON;      // Guard
-            default -> Color.ORANGE;      // Fallback/default
-        });
+//        visual.setFill(switch (role) {
+//            case Role.GOAT -> Color.DODGERBLUE;   // Goat
+//            case Role.IGOAT -> Color.LIMEGREEN;    // Robot
+//            case Role.GUARD  -> Color.CRIMSON;      // Guard
+//            default -> Color.ORANGE;      // Fallback/default
+//        });
     }
 
     public Role getRole() {

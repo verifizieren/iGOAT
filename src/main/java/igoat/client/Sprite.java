@@ -22,6 +22,10 @@ public class Sprite extends Image {
         super(url);
     }
 
+    public Sprite(String url, int width, int height) {
+        super(url, width, height, true, false);
+    }
+
     /**
      * Creates a repeating background pattern
      * @return Repeating background using the image specified in the constructor

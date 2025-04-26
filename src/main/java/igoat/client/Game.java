@@ -8,6 +8,7 @@ import igoat.client.GUI.Banner;
 import java.time.LocalTime;
 
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.FontWeight;
@@ -87,7 +88,7 @@ public class Game extends Application {
     private Set<KeyCode> activeKeys;
     private long lastUpdate;
     private long lastPositionUpdate = 0;
-    private static final long POSITION_UPDATE_INTERVAL = 1000;
+    private static final long POSITION_UPDATE_INTERVAL = 100;
     
     private Player player;
     private igoat.client.Map gameMap;
@@ -320,8 +321,8 @@ public class Game extends Application {
         activeCamera = player.getCamera();
         
         for (Player other : otherPlayers.values()) {
-            if (!gamePane.getChildren().contains(other.getVisualRepresentation())) {
-                Rectangle otherVisual = other.getVisualRepresentation();
+            if (!gamePane.getChildren().contains(other.getVisual())) {
+                Group otherVisual = other.getVisual();
                 // add clipping for fog effect
 
                 gamePane.getChildren().add(otherVisual);
@@ -880,8 +881,8 @@ public class Game extends Application {
                 logger.info("Player {} already exists in map, updating position and ensuring visuals.", playerName);
                 remotePlayer.updatePosition(x, y);
 
-                if (!gamePane.getChildren().contains(remotePlayer.getVisualRepresentation())) {
-                    gamePane.getChildren().add(remotePlayer.getVisualRepresentation());
+                if (!gamePane.getChildren().contains(remotePlayer.getVisual())) {
+                    gamePane.getChildren().add(remotePlayer.getVisual());
                     logger.info("Added missing visual representation for {}", playerName);
                 }
                 if (!gamePane.getChildren().contains(remotePlayer.getUsernameLabel())) {
@@ -952,7 +953,7 @@ public class Game extends Application {
                 labelClip = new Circle(centerX, centerY, 100);
             }
             
-            otherPlayer.getVisualRepresentation().setClip(visualClip);
+            otherPlayer.getVisual().setClip(visualClip);
             otherPlayer.getUsernameLabel().setClip(labelClip);
         }
 
@@ -987,7 +988,7 @@ public class Game extends Application {
         Player removedPlayer = otherPlayers.remove(remotePlayerName);
         if (removedPlayer != null) {
             Platform.runLater(() -> {
-                gamePane.getChildren().remove(removedPlayer.getVisualRepresentation());
+                gamePane.getChildren().remove(removedPlayer.getVisual());
                 gamePane.getChildren().remove(removedPlayer.getUsernameLabel());
             });
             logger.info("Removed visual for player {}", remotePlayerName);
@@ -1106,10 +1107,9 @@ public class Game extends Application {
             newY = potentialY;
         }
 
+        player.updatePosition(newX, newY);
+
         boolean positionChanged = Math.abs(newX - currentX) > 0.01 || Math.abs(newY - currentY) > 0.01;
-        if (positionChanged) {
-            player.updatePosition(newX, newY);
-        }
 
         long currentTime = System.currentTimeMillis();
         if (positionChanged || (currentTime - lastPositionUpdate > POSITION_UPDATE_INTERVAL)) {
