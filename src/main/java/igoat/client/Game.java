@@ -818,7 +818,7 @@ public class Game extends Application {
                         initialX = x;
                         initialY = y;
                     } else {
-                        player.updatePosition(x, y);
+                        Platform.runLater(() -> player.updatePosition(x, y));
                     }
                     return;
                 }
