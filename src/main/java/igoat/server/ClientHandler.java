@@ -1186,11 +1186,8 @@ public class ClientHandler implements Runnable {
                 currentLobby.broadcastToLobby("terminal:" + terminalId);
                 for (ClientHandler player : currentLobby.getMembers()) {
                     if (player.getRole() == Role.GOAT && player.isCaught) {
-                        player.playerX = 920;
-                        player.playerY = 230;
-                        player.positionWasSet = false;
                         player.setCaught(false);
-                        currentLobby.broadcastUpdateToLobby("player_position:" + player.getNickname() + ":" + 920 + ":" + 230, null);
+                        player.teleport(920, 230);
                         currentLobby.broadcastToLobby("revive:" + player.getNickname());
                         player.spawnProtection.reset();
                     }
@@ -1314,10 +1311,7 @@ public class ClientHandler implements Runnable {
                 logger.info("spawn protection inactive {}", target.spawnProtection.getTime());
             }
 
-            target.playerX = 1080;
-            target.playerY = 800;
-            target.positionWasSet = false;
-            currentLobby.broadcastUpdateToLobby("player_position:" + target.getNickname() + ":" + 1080 + ":" + 800, null);
+            target.teleport(1080, 800);
         }
 
         target.setCaught(true);
@@ -1348,6 +1342,18 @@ public class ClientHandler implements Runnable {
         }
         target.setCaught(false);
         broadcast("revive:" + targetName);
+    }
+
+    /**
+     * Moves the player to the specified location
+     * @param x target x-coordinate
+     * @param y target y-coordinate
+     */
+    public void teleport(double x, double y) {
+        playerX = x;
+        playerY = y;
+        positionWasSet = false;
+        currentLobby.broadcastUpdateToLobby("player_position:" + nickname + ":" + x + ":" + y, null);
     }
 
     public boolean isCaught() {
