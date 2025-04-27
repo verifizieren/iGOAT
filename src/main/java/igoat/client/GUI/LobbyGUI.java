@@ -739,7 +739,7 @@ public class LobbyGUI {
                         highscoreStage.setTitle("iGoat Leaderboard");
                         highscoreStage.initStyle(StageStyle.UNDECORATED);
                         
-                        String processedContent = content.replace("<br>", System.lineSeparator());
+                        String processedContent = content.replace("<br>", "\n");
                         
                         StackPane root = new StackPane();
                         root.setStyle("-fx-background-color: linear-gradient(to bottom, #1a2a3a, #0d1520);");
@@ -961,7 +961,7 @@ public class LobbyGUI {
             Stage highscoreStage = new Stage();
             highscoreStage.setTitle("iGoat Highscores");
             
-            String processedContent = content.replace("<br>", System.lineSeparator());
+            String processedContent = content.replace("<br>", "\n");
             
             StackPane root = new StackPane();
             root.setStyle("-fx-background-color: #ffffff; -fx-border-color: #000000; -fx-border-width: 2px;");
