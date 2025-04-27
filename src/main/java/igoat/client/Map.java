@@ -8,6 +8,9 @@ import javafx.scene.shape.Rectangle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.Image;
+import javafx.scene.paint.ImagePattern;
+import java.util.Objects;
 
 /**
  * Represents a game map containing walls and their layout.
@@ -113,7 +116,6 @@ public class Map {
         //6
         createWall(0, 600, 280, WALL_THICKNESS);
         createWall(330, 600, 90, WALL_THICKNESS);
-        //für niggi
         createWall(200, 300, WALL_THICKNESS, 300);
         createWall(200, 300, 300, WALL_THICKNESS);
         createWall(300, 150, WALL_THICKNESS, 150);
@@ -152,14 +154,22 @@ public class Map {
      */
     private void createTerminals(){
         //create Terminals
-        addTerminal(1380, 20, SPECIAL_ELEMENT_WIDTH, 20, 0);
-        addTerminal(1460, 1450, 20, SPECIAL_ELEMENT_WIDTH, 1);
-        addTerminal(950, 1560, SPECIAL_ELEMENT_WIDTH, 20, 2);
-        addTerminal(480, 1450, 20, SPECIAL_ELEMENT_WIDTH, 3);
-        addTerminal(20, 800,20, SPECIAL_ELEMENT_WIDTH, 4);
-        addTerminal(800, 20, SPECIAL_ELEMENT_WIDTH, 20, 5);
-        addTerminal(760, 620, 20, SPECIAL_ELEMENT_WIDTH, 6);
-        addTerminal(1080, 680, SPECIAL_ELEMENT_WIDTH, 20, 7);
+        addTerminal(1454, 75, 56, 64, 0,
+            "/sprites/terminal.png");
+        addTerminal(1460, 1450, 52, 64, 1,
+            "/sprites/terminal_side.png");
+        addTerminal(1040, 1517, 56, 64, 2,
+            "/sprites/terminal_behind.png");
+        addTerminal(480, 1450, 52, 64, 3,
+            "/sprites/terminal_side.png");
+        addTerminal(61, 735,56, 64, 4,
+            "/sprites/terminal.png");
+        addTerminal(874, 50, 56, 64, 5,
+            "/sprites/terminal.png");
+        addTerminal(760, 620, 52, 64, 6,
+            "/sprites/terminal_side.png");
+        addTerminal(1070, 660, 56, 64, 7,
+            "/sprites/terminal_behind.png");
     }
 
     /**
@@ -205,9 +215,10 @@ public class Map {
     /**
      * Adds a terminal to the map.
      */
-    private void addTerminal(int x, int y, int width, int height, int id) {
+    private void addTerminal(int x, int y, int width, int height, int id, String imagePath) {
         Terminal terminal = new Terminal(x, y, width, height, id);
-        terminal.setFill(Color.RED);
+        Image image = new Image(Objects.requireNonNull(getClass().getResource(imagePath)).toExternalForm());
+        terminal.setFill(new ImagePattern(image));
         terminalList.add(terminal);
 
         Wall collisionWall = new Wall(x, y, width, height);

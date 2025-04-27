@@ -1170,7 +1170,7 @@ public class Game extends Application {
         for (Terminal terminal : gameMap.getTerminalList()) {
             double tx = terminal.getX() + (terminal.getWidth() / 2.0);
             double ty = terminal.getY() + (terminal.getHeight() / 2.0);
-            if (sqrt(pow(tx - x, 2) + pow(ty - y, 2)) < 35.0) {
+            if (sqrt(pow(tx - x, 2) + pow(ty - y, 2)) < 60.0) {
                 serverHandler.sendMessage("terminal:" + terminal.getTerminalID());
                 return;
             }
