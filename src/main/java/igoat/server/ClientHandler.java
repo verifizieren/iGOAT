@@ -65,6 +65,7 @@ public class ClientHandler implements Runnable {
     private boolean isCaught = false;
     private double playerX = 80;
     private double playerY = 80;
+    private final Timer spawnProtection = new Timer();
 
     private Role role;
 
@@ -251,12 +252,15 @@ public class ClientHandler implements Runnable {
                 return;
             }
 
-            // check correct spawn location
+            // check correct spawn/teleport location
             if (!sender.positionWasSet) {
-                x = (int)sender.getPlayerX();
-                y = (int)sender.getPlayerY();
-                sender.currentLobby.broadcastUpdateToLobby("player_position:"+senderName+":"+x+":"+y, null);
-                sender.positionWasSet = true;
+                if (x == sender.getPlayerX() && y == sender.getPlayerY()) {
+                    sender.positionWasSet = true;
+                } else {
+                    x = (int)sender.getPlayerX();
+                    y = (int)sender.getPlayerY();
+                    sender.currentLobby.broadcastUpdateToLobby("player_position:"+senderName+":"+x+":"+y, null);
+                }
             }
 
             // if there is a collision, we return the current coordinates
@@ -357,6 +361,7 @@ public class ClientHandler implements Runnable {
     public ClientHandler(Socket clientSocket) {
         this.clientSocket = clientSocket;
         this.lastPongTime = System.currentTimeMillis();
+        this.spawnProtection.reset();
         this.nickname = generateUniqueNickname("player");
     }
 
@@ -1181,7 +1186,13 @@ public class ClientHandler implements Runnable {
                 currentLobby.broadcastToLobby("terminal:" + terminalId);
                 for (ClientHandler player : currentLobby.getMembers()) {
                     if (player.getRole() == Role.GOAT && player.isCaught) {
+                        player.playerX = 920;
+                        player.playerY = 230;
+                        player.positionWasSet = false;
+                        player.setCaught(false);
+                        currentLobby.broadcastUpdateToLobby("player_position:" + player.getNickname() + ":" + 920 + ":" + 230, null);
                         currentLobby.broadcastToLobby("revive:" + player.getNickname());
+                        player.spawnProtection.reset();
                     }
                 }
             } else {
@@ -1295,6 +1306,14 @@ public class ClientHandler implements Runnable {
         }
 
         if (target.getRole() == Role.GOAT) {
+            target.spawnProtection.update();
+            if (target.spawnProtection.getTime() < 5000) {
+                logger.info("spawn protection active {}", target.spawnProtection.getTime());
+                return;
+            } else {
+                logger.info("spawn protection inactive {}", target.spawnProtection.getTime());
+            }
+
             target.playerX = 1080;
             target.playerY = 800;
             target.positionWasSet = false;

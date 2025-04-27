@@ -320,14 +320,14 @@ public class Game extends Application {
         player.setSpectated(false);
         activeCamera = player.getCamera();
         
-        for (Player other : otherPlayers.values()) {
-            if (!gamePane.getChildren().contains(other.getVisual())) {
-                Group otherVisual = other.getVisual();
-                // add clipping for fog effect
-
-                gamePane.getChildren().add(otherVisual);
-            }
-        }
+//        for (Player other : otherPlayers.values()) {
+//            if (!gamePane.getChildren().contains(other.getVisual())) {
+//                Group otherVisual = other.getVisual();
+//                // add clipping for fog effect
+//
+//                gamePane.getChildren().add(otherVisual);
+//            }
+//        }
         
         scene.widthProperty().addListener((obs, oldVal, newVal) -> {
             activeCamera.updateViewport(newVal.doubleValue(), scene.getHeight());
@@ -881,14 +881,14 @@ public class Game extends Application {
                 logger.info("Player {} already exists in map, updating position and ensuring visuals.", playerName);
                 remotePlayer.updatePosition(x, y);
 
-                if (!gamePane.getChildren().contains(remotePlayer.getVisual())) {
-                    gamePane.getChildren().add(remotePlayer.getVisual());
-                    logger.info("Added missing visual representation for {}", playerName);
-                }
-                if (!gamePane.getChildren().contains(remotePlayer.getUsernameLabel())) {
-                    gamePane.getChildren().add(remotePlayer.getUsernameLabel());
-                     logger.info("Added missing username label for {}", playerName);
-                }
+//                if (!gamePane.getChildren().contains(remotePlayer.getVisual())) {
+//                    gamePane.getChildren().add(remotePlayer.getVisual());
+//                    logger.info("Added missing visual representation for {}", playerName);
+//                }
+//                if (!gamePane.getChildren().contains(remotePlayer.getUsernameLabel())) {
+//                    gamePane.getChildren().add(remotePlayer.getUsernameLabel());
+//                     logger.info("Added missing username label for {}", playerName);
+//                }
                 Role pendingRole = pendingRoles.remove(playerName);
                 if (pendingRole != null) {
                     remotePlayer.setRole(pendingRole);

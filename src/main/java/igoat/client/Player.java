@@ -300,6 +300,11 @@ public class Player {
     }
 
     public void setRole(Role role) {
+        if (this.role != null) {
+            logger.warn("role already set!");
+            return;
+        }
+
         this.role = role;
 
         switch (role) {
@@ -342,8 +347,6 @@ public class Player {
                     32, 32, 8, 8, 100);
                 animation.getView().setX(this.x);
                 animation.getView().setY(this.y);
-                idle.setFitWidth(32);
-                idle.setFitHeight(32);
                 animation.getView().setVisible(false);
 
                 idle = new ImageView(new Sprite("/sprites/goat_idle.png"));
