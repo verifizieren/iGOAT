@@ -53,15 +53,40 @@ java -jar build/libs/iGOAT-0.1-ALPHA.jar
 
 ### Projektstruktur
 ```
-src/main/java/igoat/
-├── Main.java           # Haupteinstiegspunkt
-├── server/            
-│   ├── Server.java     # Server-Implementation
-│   └── ClientHandler.java  # Client-Verbindungshandling
-└── client/
-    ├── MainMenuGUI.java  # Menu-Implementation
-    ├── ChatGUI.java  # Chat-Implementation
-    └── ServerHandler.java  # Server-Verbindungshandling
+src
+├── main
+│   ├── java
+│   │   └── igoat
+│   │       ├── client
+│   │       │   ├── Camera.java
+│   │       │   ├── Decoration.java
+│   │       │   ├── Game.java
+│   │       │   ├── GUI
+│   │       │   │   ├── Banner.java
+│   │       │   │   ├── LobbyGUI.java
+│   │       │   │   ├── Main.java
+│   │       │   │   └── MainMenuGUI.java
+│   │       │   ├── Map.java
+│   │       │   ├── MapTest.java
+│   │       │   ├── MockUDPSocket.java
+│   │       │   ├── Player.java
+│   │       │   ├── RealUDPSocket.java
+│   │       │   ├── SceneDecoration.java
+│   │       │   ├── ServerHandler.java
+│   │       │   ├── Sprite.java
+│   │       │   ├── SpriteSheetAnimation.java
+│   │       │   ├── Terminal.java
+│   │       │   ├── UDPSocket.java
+│   │       │   └── Wall.java
+│   │       ├── Main.java
+│   │       ├── Role.java
+│   │       ├── server
+│   │       │   ├── ClientHandler.java
+│   │       │   ├── GameState.java
+│   │       │   ├── HighscoreManager.java
+│   │       │   ├── Lobby.java
+│   │       │   └── Server.java
+│   │       └── Timer.java
 ```
 
 ### Verwendete Technologien
