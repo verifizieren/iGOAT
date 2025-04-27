@@ -1050,7 +1050,7 @@ public class Game extends Application {
             pressedE = false;
         }
 
-        double slow_factor = player.getRole() == Role.GUARD ? 1 : 0.9;
+        double slow_factor = player.getRole() == Role.GUARD ? 1 : 0.75;
 
         if (!direction.equals(Point2D.ZERO)) {
             direction = direction.normalize();
