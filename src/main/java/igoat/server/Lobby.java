@@ -136,6 +136,11 @@ public class Lobby {
         player.setPlayerY(y);
     }
 
+    /**
+     * Generates an array of 3 unique random terminal IDs between 0 and 7.
+     *
+     * @return An array containing 3 different terminal IDs
+     */
     private int[] generateRandomTerminalIDs() {
         List<Integer> allTerminalIDs = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
