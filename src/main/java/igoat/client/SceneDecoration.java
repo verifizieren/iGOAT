@@ -4,7 +4,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Utility class for providing a list of default scene decorations.
+ */
 public class SceneDecoration {
+    /**
+     * Generates and returns a list of decorations to be placed in the scene.
+     * <p>
+     * Each {@link Decoration} may include position, size, image path, and collision settings.
+     * </p>
+     *
+     * @return A list of {@link Decoration} objects representing scene decorations.
+     */
     public static List<Decoration> getDecorList() {
         List<Decoration> decorList = new ArrayList<>();
 
