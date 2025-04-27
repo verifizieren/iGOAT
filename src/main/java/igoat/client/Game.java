@@ -8,7 +8,6 @@ import igoat.client.GUI.Banner;
 import java.time.LocalTime;
 
 import javafx.geometry.Pos;
-import javafx.scene.Group;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.FontWeight;
@@ -76,7 +75,7 @@ public class Game extends Application {
 
     private static final double PLAYER_WIDTH = 32;
     private static final double PLAYER_HEIGHT = 32;
-    private static final double MOVEMENT_SPEED = 300;
+    private static final double MOVEMENT_SPEED = 200;
     private static final double CAMERA_ZOOM = 3; // Default is 3
     
     private Pane gamePane;
@@ -1050,10 +1049,12 @@ public class Game extends Application {
         else {
             pressedE = false;
         }
-        
+
+        double slow_factor = player.getRole() == Role.GUARD ? 1 : 0.9;
+
         if (!direction.equals(Point2D.ZERO)) {
             direction = direction.normalize();
-            direction = direction.multiply(MOVEMENT_SPEED * deltaTime);
+            direction = direction.multiply(MOVEMENT_SPEED * deltaTime * slow_factor);
         }
         
         double dx = direction.getX();

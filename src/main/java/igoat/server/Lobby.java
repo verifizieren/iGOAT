@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
  * (OPEN, FULL, READY, IN_GAME) based on player count and game progression.
  */
 public class Lobby {
-    public static final long GAME_OVER_TIME = 1000 * 240; // 4 minutes
+    public static final long GAME_OVER_TIME = 1000 * 300; // 5 minutes
     private static final Logger logger = LoggerFactory.getLogger(Lobby.class);
     // roles
     private static final List<Role> availableRoles = new CopyOnWriteArrayList<>();
