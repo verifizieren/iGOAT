@@ -54,7 +54,8 @@ public class MainMenuGUI extends Application {
 
         try {
             Font.loadFont(getClass().getResource("/fonts/Jersey10-Regular.ttf").toExternalForm(), 12);
-            scene.getStylesheets().add(getClass().getResource("/CSS/UI.css").toExternalForm());
+            style = getClass().getResource("/CSS/UI.css").toExternalForm();
+            scene.getStylesheets().add(style);
             scene.getStylesheets().add(getClass().getResource("/CSS/MainMenuBackground.css").toExternalForm());
         } catch (NullPointerException e) {
             logger.error("Failed to load CSS resources", e);
@@ -88,6 +89,7 @@ public class MainMenuGUI extends Application {
 
             DialogPane dialogPane = portDialog.getDialogPane();
             dialogPane.getStylesheets().add(finalStyle);
+            logger.info(finalStyle);
 
             portDialog.showAndWait().ifPresent(serverPort -> {
                 serverThread = new Thread(() -> Server.startServer(Integer.parseInt(serverPort)));
