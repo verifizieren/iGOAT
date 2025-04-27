@@ -11,8 +11,8 @@ public class SpriteSheetAnimation {
     private final ImageView imageView;
     private final Timeline timeline;
     private final int frameCount;
-    private final int frameWidth;
-    private final int frameHeight;
+    private final int actualFrameWidth;
+    private final int actualFrameHeight;
     private final int columns;
     private int currentFrame = 0;
 
@@ -22,9 +22,9 @@ public class SpriteSheetAnimation {
         this.imageView.setSmooth(false);
         this.imageView.setFitWidth(frameWidth);
         this.imageView.setFitHeight(frameHeight);
+        this.actualFrameWidth = (int)(image.getWidth() / columns);
+        this.actualFrameHeight = (int)(image.getHeight());
 
-        this.frameWidth = frameWidth;
-        this.frameHeight = frameHeight;
         this.frameCount = frameCount;
         this.columns = columns;
 
@@ -36,9 +36,9 @@ public class SpriteSheetAnimation {
     }
 
     private void updateFrame() {
-        int x = (currentFrame % columns) * frameWidth * 10;
-        int y = (currentFrame / columns) * frameHeight * 10;
-        imageView.setViewport(new Rectangle2D(x, y, frameWidth * 10, frameHeight * 10));
+        int x = (currentFrame % columns) * actualFrameWidth;
+        int y = (currentFrame / columns) * actualFrameHeight;
+        imageView.setViewport(new Rectangle2D(x, y, actualFrameWidth, actualFrameHeight));
         currentFrame = (currentFrame + 1) % frameCount;
     }
 
