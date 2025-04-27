@@ -131,7 +131,7 @@ public class LobbyGUI {
         mainLayout.setPadding(new Insets(20));
         mainLayout.setAlignment(Pos.CENTER);
 
-        Scene scene = new Scene(mainLayout, 750, 500);
+        Scene scene = new Scene(mainLayout, 750, 600);
         scene.getStylesheets().add(style);
         scene.getStylesheets().add(getClass().getResource("/CSS/LobbyBackground.css").toExternalForm());
 

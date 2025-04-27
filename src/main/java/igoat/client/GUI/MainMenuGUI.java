@@ -50,7 +50,7 @@ public class MainMenuGUI extends Application {
         root.setAlignment(Pos.CENTER);
         root.setPadding(new Insets(20));
         String style = "";
-        Scene scene = new Scene(root, 400, 300);
+        Scene scene = new Scene(root, 400, 350);
 
         try {
             Font.loadFont(getClass().getResource("/fonts/Jersey10-Regular.ttf").toExternalForm(), 12);

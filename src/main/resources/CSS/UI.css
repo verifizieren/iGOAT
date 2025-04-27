@@ -23,7 +23,7 @@
   -fx-effect: null; /* No blur effects */
   -fx-background-radius: 0;
   -fx-border-radius: 0;
-  -fx-font-size: 18px;
+  -fx-font-size: 20px;
 }
 
 .button:hover {
