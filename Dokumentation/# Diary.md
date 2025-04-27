@@ -75,5 +75,10 @@
 * Die bisherigen Ergebnisse wurden angeschaut und getestet.
 * Die Gruppe stellte fest, dass die Map gut aussieht, jedoch war die Pixelart nicht korrekt skaliert und musste überarbeitet werden. Es fehlten außerdem noch weitere Punkte für den vierten Meilenstein, die noch bearbeitet werden müssen.
 * ToDo: Meilenstein vier fertigstellen.
-* Das nächste Treffen wurde für den Freitag, den 25.04.2025 festgelegt.
+* Das nächste Treffen wurde für den Freitag, den 27.04.2025 festgelegt.
+## <p align = "center"> 27. April
+* Die Gruppe testete das Spiel und überprüfte, ob alle Anforderungen für den Meilenstein erfüllt waren.
+* Die Gruppe war mit den Ergebnissen zufrieden.
+* ToDo: JAR-Review
+* Das nächste Treffen wurde für den Dienstag, den 29.04.2025 festgelegt.
 
