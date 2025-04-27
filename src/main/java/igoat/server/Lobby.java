@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Collections;
+import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,8 +67,7 @@ public class Lobby {
     }
 
     private LobbyState state = LobbyState.OPEN;
-    private GameState gameState = new GameState(map.getTerminalList().size(), new int[]{1, 2, 3},
-        members);
+    private GameState gameState = new GameState(map.getTerminalList().size(), generateRandomTerminalIDs(), members);
 
     /**
      * Assigns roles to all players in the lobby
@@ -133,6 +134,16 @@ public class Lobby {
 
         player.setPlayerX(x);
         player.setPlayerY(y);
+    }
+
+    private int[] generateRandomTerminalIDs() {
+        List<Integer> allTerminalIDs = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            allTerminalIDs.add(i);
+        }
+
+        Collections.shuffle(allTerminalIDs, new Random());
+        return new int[]{allTerminalIDs.get(0), allTerminalIDs.get(1), allTerminalIDs.get(2)};
     }
 
     /**

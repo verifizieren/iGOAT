@@ -56,7 +56,7 @@ public class MainMenuGUI extends Application {
             Font.loadFont(getClass().getResource("/fonts/Jersey10-Regular.ttf").toExternalForm(), 12);
             style = getClass().getResource("/CSS/UI.css").toExternalForm();
             scene.getStylesheets().add(style);
-            scene.getStylesheets().add(getClass().getResource("/CSS/MainMenuBackground.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("/CSS/LobbyBackground.css").toExternalForm());
         } catch (NullPointerException e) {
             logger.error("Failed to load CSS resources", e);
         }
