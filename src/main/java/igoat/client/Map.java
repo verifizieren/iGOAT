@@ -217,8 +217,10 @@ public class Map {
      */
     private void addTerminal(int x, int y, int width, int height, int id, String imagePath) {
         Terminal terminal = new Terminal(x, y, width, height, id);
-        Image image = new Image(Objects.requireNonNull(getClass().getResource(imagePath)).toExternalForm());
-        terminal.setFill(new ImagePattern(image));
+        if (!noVisuals) {
+            Image image = new Image(Objects.requireNonNull(getClass().getResource(imagePath)).toExternalForm());
+            terminal.setFill(new ImagePattern(image));
+        }
         terminalList.add(terminal);
 
         Wall collisionWall = new Wall(x, y, width, height);
