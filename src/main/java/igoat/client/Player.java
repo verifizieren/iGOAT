@@ -344,7 +344,7 @@ public class Player {
             }
             case GUARD -> {
                 animation = new SpriteSheetAnimation("/sprites/guard.png",
-                    20, 32, 0, 1, 100);
+                    20, 32, 1, 1, 100);
                 animation.getView().setX(this.x);
                 animation.getView().setY(this.y);
                 animation.getView().setVisible(false);
