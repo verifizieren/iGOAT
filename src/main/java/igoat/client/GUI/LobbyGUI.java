@@ -375,10 +375,11 @@ public class LobbyGUI {
      * including sending initial connection messages and launching the
      * background message-receiving thread.
      */
-    private void initializeServerCommunication() {
+    public void initializeServerCommunication() {
         if (serverHandler != null && serverHandler.isConnected()) {
             serverHandler.sendMessage("getlobbies:");
             serverHandler.sendMessage("getplayers:");
+            running = true;
 
             isGlobalChat = true;
             updateChatUIForMode();
@@ -1035,7 +1036,6 @@ public class LobbyGUI {
      * Creates a tab for displaying highscores.
      * 
      * @param title The title of the tab
-     * @param styleClass The CSS style class for the tab
      * @param content The highscore content to display
      * @param icon The icon to display in the tab (emoji)
      * @return A Tab containing the highscore data
@@ -1254,5 +1254,9 @@ public class LobbyGUI {
         public String getOutcome() {
             return outcome;
         }
+    }
+
+    public Stage getStage() {
+        return stage;
     }
 }

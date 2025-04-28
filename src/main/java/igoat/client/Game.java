@@ -165,6 +165,7 @@ public class Game extends Application {
      */
     public Game(LobbyGUI lobby) {
         this.lobby = lobby;
+        logger.info("created new game instance");
     }
 
     /**
@@ -219,14 +220,14 @@ public class Game extends Application {
 
         if (serverHandler == null || playerName == null || lobbyCode == null) {
             showError("Initialization Error", "Game cannot start without server connection details.");
-            exit();
+            returnToLobby();
             return;
         }
 
         String confirmedNickname = serverHandler.getConfirmedNickname();
         if (confirmedNickname == null) {
             showError("Initialization Error", "Cannot start game without confirmed nickname from server.");
-            exit();
+            returnToLobby();
             return;
         }
 
@@ -382,7 +383,19 @@ public class Game extends Application {
     /**
      * Exit routine for the Game instance. This will close the game window and return to the lobby screen.
      */
+
+    private void returnToLobby() {
+        gameStarted = false;
+        stage.close();
+        lobby.getStage().show();
+        lobby.initializeServerCommunication();
+    }
+
+    /**
+     * Forced exit routine. This will exit the game and disconnect from the server
+     */
     private void exit() {
+        gameStarted = false;
         stage.close();
         lobby.exit();
     }
@@ -732,7 +745,7 @@ public class Game extends Application {
             }
 
             Button exitButton = new Button("Exit Game");
-            exitButton.setOnAction(e -> exit());
+            exitButton.setOnAction(e -> returnToLobby());
 
             VBox layout = new VBox(20, title, grid, exitButton);
             layout.setAlignment(Pos.CENTER);
