@@ -29,7 +29,6 @@ public class SpriteSheetAnimation {
         this.imageView.setFitHeight(frameHeight);
         this.actualFrameWidth = image.getWidth() / columns;
         this.actualFrameHeight = image.getHeight();
-        logger.info("w: {}, h: {}", actualFrameWidth, actualFrameHeight);
 
         this.frameCount = frameCount;
         this.columns = columns;

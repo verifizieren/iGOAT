@@ -53,10 +53,6 @@ public class Lobby {
          */
         FULL,
         /**
-         * All players in the lobby are ready to start
-         */
-        READY,
-        /**
          * Game is currently in progress
          */
         IN_GAME,
@@ -67,17 +63,17 @@ public class Lobby {
     }
 
     private LobbyState state = LobbyState.OPEN;
-    private GameState gameState = new GameState(map.getTerminalList().size(), generateRandomTerminalIDs(), members);
+    private GameState gameState;
 
     /**
      * Assigns roles to all players in the lobby
      */
     public void setRoles() {
-        for (ClientHandler player : members) {
+        for (ClientHandler client : members) {
             Role assignedRole = assignRole();
-            player.setRole(assignedRole);
-            roleMap.put(player.getNickname(), assignedRole);
-            setSpawnPoints(player);
+            client.getPlayer().setRole(assignedRole);
+            roleMap.put(client.getNickname(), assignedRole);
+            setSpawnPoints(client);
         }
 
         synchronized (availableRoles) {
@@ -109,16 +105,11 @@ public class Lobby {
     /**
      * Sets the serverside positions of the players to the correct spawn locations
      */
-    private void setSpawnPoints(ClientHandler player) {
-        if (player.positionWasSet()) {
-            logger.info("Spawnpoint für {} wurde bereits gesetzt, wird nicht erneut überschrieben.", player.getNickname());
-            return;
-        }
-
+    private void setSpawnPoints(ClientHandler client) {
         int x;
         int y;
 
-        switch (player.getRole()) {
+        switch (client.getPlayer().getRole()) {
             case GOAT, IGOAT:
                 x = 700;
                 y = 1450;
@@ -128,12 +119,11 @@ public class Lobby {
                 y = 50;
                 break;
             default:
-                logger.warn("Unknown role for player: {}", player.getNickname());
+                logger.warn("Unknown role for player: {}", client.getNickname());
                 return;
         }
 
-        player.setPlayerX(x);
-        player.setPlayerY(y);
+        client.getPlayer().teleport(x, y);
     }
 
     /**
@@ -235,14 +225,28 @@ public class Lobby {
             return;
         }
 
-        if (members.size() >= MAX_PLAYERS && state != LobbyState.IN_GAME) {
+        if (members.size() >= MAX_PLAYERS) {
             state = LobbyState.FULL;
         } else {
             state = LobbyState.OPEN;
         }
     }
 
+    /**
+     * Resets the lobby state. This should only be called after a game has ended.
+     */
+    public void resetState() {
+        state = LobbyState.OPEN;
+        updateState();
+    }
+
     public void startGame() {
+        // new gamestate
+        gameState = new GameState(map.getTerminalList().size(), generateRandomTerminalIDs(), members);
+        for (ClientHandler client : members) {
+            client.resetGameState();
+        }
+
         state = LobbyState.IN_GAME;
         timer.reset();
         Thread timerThread = new Thread(this::startTimerThread);

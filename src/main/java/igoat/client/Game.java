@@ -507,6 +507,7 @@ public class Game extends Application {
                     playersToRemove.removeAll(currentPlayers);
                     for (String nameToRemove : playersToRemove) {
                         removeRemotePlayer(nameToRemove);
+                        logger.info("removed player");
                     }
 
                     for (String name : playerNames) {
@@ -731,7 +732,8 @@ public class Game extends Application {
                 Player p = allPlayers.get(i);
                 boolean isWinner = (guardWon && p.getRole()==Role.GUARD) || (!guardWon && p.getRole()!=Role.GUARD);
                 Label nameLabel = new Label(p.getUsername());
-                Label roleLabel = new Label(p.getRole().name());
+
+                Label roleLabel = new Label(p.getRole() == null ? "unkown role" : p.getRole().name());
                 Label resultLabel = new Label(isWinner ? "Won" : "Lost");
                 String rowStyle = isWinner
                     ? "-fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-padding: 5;"
@@ -761,7 +763,6 @@ public class Game extends Application {
      * Handles the opening of doors when all terminals are activated.
      */
     private void handleDoorsOpen() {
-        logger.info("Handling doors open command.");
         if (gameMap != null) {
             gameMap.openDoors();
              logger.info("Doors have been opened.");
@@ -985,6 +986,7 @@ public class Game extends Application {
      *
      * @param remotePlayerName The name of the player to remove.
      */
+
     private void removeRemotePlayer(String remotePlayerName) {
         String confirmedNickname = serverHandler.getConfirmedNickname();
         if (confirmedNickname == null) {

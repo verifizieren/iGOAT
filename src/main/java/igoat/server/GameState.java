@@ -44,12 +44,13 @@ public class GameState {
             return false;
         }
 
-        for (ClientHandler player : players) {
-            if (player.getRole() == Role.GUARD) {
+        for (ClientHandler client : players) {
+            if (client.getPlayer().getRole() == Role.GUARD) {
                 continue;
             }
 
-            if (!player.isCaught()) {
+            if (!client.getPlayer().isCaught()) {
+                logger.info("found uncaught player {}", client.getNickname());
                 return false;
             }
         }
@@ -96,8 +97,8 @@ public class GameState {
         }
 
         // check if GOAT is caught
-        for (ClientHandler player : players) {
-            if (player.getRole() == Role.GOAT && player.isCaught()) {
+        for (ClientHandler client : players) {
+            if (client.getPlayer().getRole() == Role.GOAT && client.getPlayer().isCaught()) {
                 terminals[id] = true;
                 return true;
             }

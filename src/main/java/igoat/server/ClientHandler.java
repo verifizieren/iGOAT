@@ -3,7 +3,7 @@ package igoat.server;
 import igoat.Role;
 import igoat.Timer;
 import igoat.client.Map;
-import igoat.client.Player;
+import igoat.server.Player;
 import igoat.client.Wall;
 import igoat.server.Lobby.LobbyState;
 import java.io.BufferedReader;
@@ -48,7 +48,6 @@ public class ClientHandler implements Runnable {
     private BufferedReader in;
     private PrintWriter out;
     private Thread pingThread;
-    private String nickname;
     private volatile boolean running = true;
     private long lastPongTime;
     private static final long PING_INTERVAL = 2000; // 2 seconds
@@ -60,30 +59,15 @@ public class ClientHandler implements Runnable {
     private static final List<Lobby> lobbyList = new CopyOnWriteArrayList<>();
     private Lobby currentLobby;
     private static int nextLobbyCode = 1000;
-
     private boolean isReady = false;
-    private boolean isCaught = false;
-    private double playerX = 80;
-    private double playerY = 80;
-    private final Timer spawnProtection = new Timer();
-
-    private Role role;
-
-    private boolean positionWasSet = false;
-
-    public boolean positionWasSet() {
-        return positionWasSet;
-    }
-
-    public void setPositionWasSet(boolean positionWasSet) {
-        this.positionWasSet = positionWasSet;
-    }
-
+    
     private static DatagramSocket serverUpdateSocket;
-
     private static DatagramSocket udpListeningSocket;
     private static volatile boolean udpListenerRunning = false;
     private static Thread udpListenerThread;
+    
+    private String nickname;
+    private Player player = new Player(80, 80, null, null);
 
     static {
         try {
@@ -253,40 +237,35 @@ public class ClientHandler implements Runnable {
             }
 
             // check correct spawn/teleport location
-            if (!sender.positionWasSet) {
-                if (x == sender.getPlayerX() && y == sender.getPlayerY()) {
-                    sender.positionWasSet = true;
+            if (!sender.getPlayer().getPositionWasSet()) {
+                if (x == sender.getPlayer().getX() && y == sender.getPlayer().getY()) {
+                    sender.getPlayer().setPositionWasSet(true);
                 } else {
-                    x = (int)sender.getPlayerX();
-                    y = (int)sender.getPlayerY();
+                    x = (int)sender.getPlayer().getX();
+                    y = (int)sender.getPlayer().getY();
                     sender.currentLobby.broadcastUpdateToLobby("player_position:"+senderName+":"+x+":"+y, null);
                 }
             }
 
             // if there is a collision, we return the current coordinates
             if (sender.currentLobby.getMap() != null &&
-                    checkCollision(x, y, 32, 32, sender.currentLobby.getMap(), sender.getRole() == Role.GOAT)) {
-                x = (int)sender.getPlayerX();
-                y = (int)sender.getPlayerY();
+                    checkCollision(x, y, 32, 32, sender.currentLobby.getMap(), sender.getPlayer()
+                        .getRole() == Role.GOAT)) {
+                x = (int)sender.getPlayer().getX();
+                y = (int)sender.getPlayer().getY();
                 logger.info("collision prevented");
                 sender.currentLobby.broadcastUpdateToLobby("player_position:"+senderName+":"+x+":"+y, null);
             }
             else {
-                sender.setPlayerX(x);
-                sender.setPlayerY(y);
+                sender.getPlayer().setX(x);
+                sender.getPlayer().setY(y);
             }
 
-            if ((sender.getPlayerX() < 0 || sender.getPlayerX() > 1500) &&
-                    !sender.currentLobby.getGameState().gameOver &&
-                    sender.currentLobby.getGameState().isDoorOpen()) {
-                if (sender.role == Role.GOAT) {
-                    logger.info("{} escaped, ending game", sender.getNickname());
-                    sender.endGame(false);
-
-                }
-            } else if (sender.currentLobby.getGameState().isGuardWin() && !sender.currentLobby.getGameState().gameOver) {
-                logger.info("guard won, ending game");
-                sender.endGame(true);
+            if (sender.getPlayer().getRole() == Role.GOAT &&
+                !sender.currentLobby.getGameState().gameOver && sender.currentLobby.getGameState().isDoorOpen() &&
+                (sender.getPlayer().getX() < 0 || sender.getPlayer().getX() > 1500)) {
+                logger.info("{} escaped, ending game", sender.getNickname());
+                sender.endGame(false);
             }
 
             String broadcastMessage = "player_position:" + senderName + ":" + x + ":" + y;
@@ -304,13 +283,13 @@ public class ClientHandler implements Runnable {
      */
     private static boolean checkCollision(int x, int y, double playerWidth, double playerHeight, Map map, boolean ignoreWindows) {
         for (Wall wall : map.getCollisionWalls()) {
-            if (Player.collidesWithWall(x, y, playerWidth, playerHeight, wall)) {
+            if (igoat.client.Player.collidesWithWall(x, y, playerWidth, playerHeight, wall)) {
                 return true;
             }
         }
         if (!ignoreWindows) {
             for (Wall wall : map.getWindowCollisions()) {
-                if (Player.collidesWithWall(x, y, playerWidth, playerHeight, wall)) {
+                if (igoat.client.Player.collidesWithWall(x, y, playerWidth, playerHeight, wall)) {
                     return true;
                 }
             }
@@ -361,7 +340,7 @@ public class ClientHandler implements Runnable {
     public ClientHandler(Socket clientSocket) {
         this.clientSocket = clientSocket;
         this.lastPongTime = System.currentTimeMillis();
-        this.spawnProtection.reset();
+        this.getPlayer().getSpawnProtection().reset();
         this.nickname = generateUniqueNickname("player");
     }
 
@@ -535,16 +514,6 @@ public class ClientHandler implements Runnable {
         } catch (Exception e) {
             sendError("Fehler beim Verarbeiten des Befehls: " + e.getMessage());
             logger.error("Error when processing command {} : {}", message, e);
-        }
-        // check game state
-        if (currentLobby == null || currentLobby.getGameState() == null) {
-            return;
-        }
-        if (currentLobby.getGameState().isDoorOpen()) {
-            currentLobby.broadcastChatToLobby("Exits have been opened!");
-            currentLobby.broadcastToLobby("door");
-            currentLobby.getMap().openDoors();
-            logger.info("Exits have been opened!");
         }
     }
 
@@ -844,13 +813,13 @@ public class ClientHandler implements Runnable {
     private void handleRoleConfirmation(String roleString) {
         try {
             Role parsedRole = Role.valueOf(roleString);
-            this.role = parsedRole;
+            this.getPlayer().setRole(parsedRole);
             Lobby.roleMap.put(nickname, parsedRole);
             logger.info("role confirmed");
-            appendToLobbyChat("Player " + nickname + " hat Rolle " + role + " erhalten", false);
+            appendToLobbyChat("Player " + nickname + " hat Rolle " + player.getRole() + " erhalten", false);
         } catch (NumberFormatException e){
             logger.error("Invalid Role {}",roleString ,e);
-            sendError("Ungültige Rolle");
+            sendError("Invalid role");
             handleGetRoles();
         }
     }
@@ -973,6 +942,10 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    public void resetGameState() {
+        player = new Player(80, 80, nickname, currentLobby);
+    }
+
     /**
      * Handles the start game command from a client.
      * Only the lobby creator can start the game.
@@ -996,14 +969,19 @@ public class ClientHandler implements Runnable {
             }
         }
 
+        if (currentLobby.getState() == LobbyState.IN_GAME) {
+            sendError("Game already in progress");
+            return;
+        }
+
         if (!allReadyCheck) {
-             sendError("Nicht alle Spieler sind bereit.");
+             sendError("Not everyone is ready.");
             logger.info("Start game requested for lobby {} but not all players are ready.", currentLobby.getCode());
             return;
         }
 
         if (currentLobby.getMembers().isEmpty() || currentLobby.getMembers().get(0) != this) {
-             sendError("Nur der Lobby-Ersteller kann das Spiel starten.");
+             sendError("Only the lobby creator can start the game.");
              logger.info("Start game requested by non-creator ({}) for lobby {}. Denied.", nickname, currentLobby.getCode());
              return;
         }
@@ -1087,6 +1065,9 @@ public class ClientHandler implements Runnable {
      */
     void endGame(boolean result) {
         if (!currentLobby.getGameState().gameOver) {
+            isReady = false;
+            currentLobby.resetState();
+
             currentLobby.getGameState().gameOver = true;
             currentLobby.endGame();
             broadcastGetLobbiesToAll();
@@ -1103,7 +1084,7 @@ public class ClientHandler implements Runnable {
                 
                 if (result) {
                     for (ClientHandler m : currentLobby.getMembers()) {
-                        if (m.role == Role.GUARD) {
+                        if (m.getPlayer().getRole() == Role.GUARD) {
                             logger.info("Adding guard highscore for player: {}", m.nickname);
                             HighscoreManager.addGuardHighscore(m.nickname, gameTime);
                             break;
@@ -1112,8 +1093,8 @@ public class ClientHandler implements Runnable {
                 } else {
                     StringBuilder goatNames = new StringBuilder();
                     for (ClientHandler m : currentLobby.getMembers()) {
-                        if (m.role == Role.GOAT || m.role == Role.IGOAT) {
-                            if (goatNames.length() > 0) {
+                        if (m.getPlayer().getRole() == Role.GOAT || m.getPlayer().getRole() == Role.IGOAT) {
+                            if (!goatNames.isEmpty()) {
                                 goatNames.append(", ");
                             }
                             goatNames.append(m.nickname);
@@ -1136,9 +1117,9 @@ public class ClientHandler implements Runnable {
                 sb.append("\"result\":").append(result).append(',');
                 sb.append("\"players\":[");
                 for (ClientHandler m : currentLobby.getMembers()) {
-                    boolean win = (result && m.role == Role.GUARD) || (!result && m.role != Role.GUARD);
+                    boolean win = (result && m.getPlayer().getRole() == Role.GUARD) || (!result && m.getPlayer().getRole() != Role.GUARD);
                     sb.append("{\"name\":\"").append(m.nickname).append("\",")
-                      .append("\"role\":\"").append(m.role).append("\",")
+                      .append("\"role\":\"").append(m.getPlayer().getRole()).append("\",")
                       .append("\"outcome\":\"").append(win?"Won":"Lost").append("\"},");
                 }
                 if (sb.charAt(sb.length()-1) == ',') sb.setLength(sb.length()-1);
@@ -1148,26 +1129,6 @@ public class ClientHandler implements Runnable {
                 logger.error("Failed to write finished game", e);
             }
         }
-    }
-
-    public double getPlayerX() {
-        return playerX;
-    }
-
-    public double getPlayerY() {
-        return playerY;
-    }
-
-    public void setPlayerX(double x) {
-        playerX = x;
-    }
-
-    public void setPlayerY(double y) {
-        playerY = y;
-    }
-
-    public void setRole(Role assignedRole) {
-        this.role = assignedRole;
     }
 
     /**
@@ -1182,14 +1143,22 @@ public class ClientHandler implements Runnable {
         try {
             int terminalId = Integer.parseInt(params);
             boolean activated = currentLobby.getGameState().activateTerminal(terminalId);
+
+            if (currentLobby.getGameState().isDoorOpen()) {
+                currentLobby.broadcastChatToLobby("Exits have been opened!");
+                currentLobby.broadcastToLobby("door");
+                currentLobby.getMap().openDoors();
+                logger.info("Exits have been opened!");
+            }
+
             if (activated) {
                 currentLobby.broadcastToLobby("terminal:" + terminalId);
                 for (ClientHandler player : currentLobby.getMembers()) {
-                    if (player.getRole() == Role.GOAT && player.isCaught) {
-                        player.setCaught(false);
-                        player.teleport(920, 230);
+                    if (player.getPlayer().getRole() == Role.GOAT && player.getPlayer().isCaught()) {
+                        player.getPlayer().revive();
+                        player.getPlayer().teleport(920, 230);
                         currentLobby.broadcastToLobby("revive:" + player.getNickname());
-                        player.spawnProtection.reset();
+                        player.getPlayer().getSpawnProtection().reset();
                     }
                 }
             } else {
@@ -1289,7 +1258,7 @@ public class ClientHandler implements Runnable {
             sendError("Spieler " + targetName + " nicht gefunden.");
             return;
         }
-        if (this.role != Role.GUARD) {
+        if (player.getRole() != Role.GUARD) {
             sendError("Nur Wächter dürfen fangen.");
             return;
         }
@@ -1297,25 +1266,27 @@ public class ClientHandler implements Runnable {
             sendError("Spieler " + targetName + " nicht in reichweite.");
             return;
         }
-        if (target.isCaught()) {
+        if (player.isCaught()) {
             sendError("Spieler " + targetName + " ist bereits gefangen");
             return;
         }
 
-        if (target.getRole() == Role.GOAT) {
-            target.spawnProtection.update();
-            if (target.spawnProtection.getTime() < 5000) {
-                logger.info("spawn protection active {}", target.spawnProtection.getTime());
+        if (target.getPlayer().getRole() == Role.GOAT) {
+            target.getPlayer().getSpawnProtection().update();
+            if (target.getPlayer().getSpawnProtection().getTime() < 5000) {
                 return;
-            } else {
-                logger.info("spawn protection inactive {}", target.spawnProtection.getTime());
             }
 
-            target.teleport(1080, 800);
+            target.getPlayer().teleport(1080, 800);
         }
 
-        target.setCaught(true);
+        target.getPlayer().catchPlayer();
         broadcast("catch:" + targetName);
+
+        if (currentLobby.getGameState().isGuardWin() && !currentLobby.getGameState().gameOver) {
+            logger.info("guard won, ending game");
+            endGame(true);
+        }
     }
 
     private void handleRevive(String targetName) {
@@ -1324,15 +1295,15 @@ public class ClientHandler implements Runnable {
             sendError("Player " + targetName + " not found.");
             return;
         }
-        if (this.role != Role.GOAT) {
+        if (player.getRole() != Role.GOAT) {
             sendError("Only goats can reactivate.");
             return;
         }
-        if (isCaught) {
+        if (player.isCaught()) {
             sendError("Can't revive while caught");
             return;
         }
-        if (target.getRole() != Role.IGOAT || !target.isCaught()) {
+        if (target.getPlayer().getRole() != Role.IGOAT || !target.getPlayer().isCaught()) {
             sendError("Can't reactivate target.");
             return;
         }
@@ -1340,32 +1311,12 @@ public class ClientHandler implements Runnable {
             sendError("Player " + targetName + " not in range");
             return;
         }
-        target.setCaught(false);
+        target.getPlayer().revive();
         broadcast("revive:" + targetName);
     }
 
-    /**
-     * Moves the player to the specified location
-     * @param x target x-coordinate
-     * @param y target y-coordinate
-     */
-    public void teleport(double x, double y) {
-        playerX = x;
-        playerY = y;
-        positionWasSet = false;
-        currentLobby.broadcastUpdateToLobby("player_position:" + nickname + ":" + x + ":" + y, null);
-    }
-
-    public boolean isCaught() {
-        return isCaught;
-    }
-
-    public void setCaught(boolean caught) {
-        this.isCaught = caught;
-    }
-
-    public Role getRole() {
-        return role;
+    public Player getPlayer() {
+        return player;
     }
 
     public boolean isReady() {

@@ -10,11 +10,11 @@ public class ClientHandlerTest {
     @Test
     public void testPositionWasSetGetterSetter() {
         ClientHandler handler = new ClientHandler(null); // null socket for unit test
-        handler.setPositionWasSet(true);
-        boolean result = handler.positionWasSet();
+        handler.getPlayer().setPositionWasSet(true);
+        boolean result = handler.getPlayer().getPositionWasSet();
         assertTrue(result);
-        handler.setPositionWasSet(false);
-        assertFalse(handler.positionWasSet());
+        handler.getPlayer().setPositionWasSet(false);
+        assertFalse(handler.getPlayer().getPositionWasSet());
     }
 
     static class TestClientHandler extends ClientHandler {

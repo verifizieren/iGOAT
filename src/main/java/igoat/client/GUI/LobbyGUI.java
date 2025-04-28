@@ -380,6 +380,9 @@ public class LobbyGUI {
             serverHandler.sendMessage("getlobbies:");
             serverHandler.sendMessage("getplayers:");
             running = true;
+            isReady = false;
+            updateReadyButton();
+            playerReadyStatus.replaceAll((key, value) -> false);
 
             isGlobalChat = true;
             updateChatUIForMode();
