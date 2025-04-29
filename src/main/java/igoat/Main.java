@@ -68,14 +68,21 @@ public class Main {
                         String host = hostPort[0];
                         int port = Integer.parseInt(hostPort[1]);
                         String username = args.length > 2 ? args[2] : System.getProperty("user.name");
+                        // sanitize string
+                        username = username.replaceAll("[\\s=:]", "");
+                        if (username.isEmpty()) {
+                            logger.error("invalid username");
+                            System.exit(1);
+                        }
                         logger.info("Using username: {}", username);
-                        
+
+                        String finalUsername = username;
                         Platform.startup(() -> {
                             try {
                                 Stage stage = new Stage();
                                 MainMenuGUI mainMenu = new MainMenuGUI();
                                 mainMenu.start(stage);
-                                mainMenu.join(host, port, username);
+                                mainMenu.join(host, port, finalUsername);
 
                             } catch (Exception e) {
                                 logger.error("Couldn't start client: ", e);

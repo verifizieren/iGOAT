@@ -341,6 +341,8 @@ public class LobbyGUI {
             nameDialogPane.getStylesheets().add(style);
 
             dialog.showAndWait().ifPresent(name -> {
+                // sanitize string
+                name = name.replaceAll("[\\s=:]", "");
                 if (!name.isBlank()) {
                     serverHandler.sendMessage("username:" + name);
                     // Username will be updated when server confirms the change

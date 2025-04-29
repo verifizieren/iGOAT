@@ -558,11 +558,18 @@ public class ClientHandler implements Runnable {
      */
     void handleConnect(String[] params) {
         if (params.length < 1) {
-            sendError("Kein Nickname angegeben");
+            sendError("no nickname provided");
             return;
         }
 
+        // sanitize string
         String requestedNickname = params[0].replaceAll("\\s", "");
+
+        if (requestedNickname.isEmpty()) {
+            sendError("invalid nickname");
+            return;
+        }
+
         this.nickname = generateUniqueNickname(requestedNickname);
 
         if (!requestedNickname.equals(this.nickname)) {
@@ -606,12 +613,18 @@ public class ClientHandler implements Runnable {
      */
     private void handleUsername(String[] params) {
         if (params.length < 1) {
-            sendError("Kein Username angegeben");
+            sendError("no username provided");
             return;
         }
 
         String oldNickname = this.nickname;
-        String requestedNickname = params[0].replaceAll("\\s", "");
+        // sanitize string
+        String requestedNickname = params[0].replaceAll("[\\s=:]", "");
+        if (requestedNickname.isEmpty()) {
+            sendError("invalid username");
+            return;
+        }
+
         String newNickname = generateUniqueNickname(requestedNickname);
 
         if (!requestedNickname.equals(newNickname)) {

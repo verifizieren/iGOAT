@@ -125,10 +125,12 @@ public class MainMenuGUI extends Application {
                     nameDialogPane.getStylesheets().add(finalStyle);
 
                     nameDialog.showAndWait().ifPresent(name -> {
+                        name = name.replaceAll("[\\s=:]", "");
                         if (name.isEmpty()) {
                             showAlert(Alert.AlertType.ERROR, "Username cannot be empty");
                             return;
                         }
+                        // sanitize string
                         username = name;
                         join(serverIP, Integer.parseInt(port), username);
                     });
