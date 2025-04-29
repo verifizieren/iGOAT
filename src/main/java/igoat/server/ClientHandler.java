@@ -788,6 +788,11 @@ public class ClientHandler implements Runnable {
             return;
         }
 
+        if (currentLobby.getState() == LobbyState.FINISHED) {
+            currentLobby.resetState();
+            broadcastGetLobbiesToAll();
+        }
+
         this.setReady(true);
 
         String statusMessage = "ready_status:" + this.nickname + "," + this.isReady;
@@ -1066,7 +1071,6 @@ public class ClientHandler implements Runnable {
     void endGame(boolean result) {
         if (!currentLobby.getGameState().gameOver) {
             isReady = false;
-            currentLobby.resetState();
 
             currentLobby.getGameState().gameOver = true;
             currentLobby.endGame();

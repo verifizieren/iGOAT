@@ -379,6 +379,8 @@ public class LobbyGUI {
         if (serverHandler != null && serverHandler.isConnected()) {
             serverHandler.sendMessage("getlobbies:");
             serverHandler.sendMessage("getplayers:");
+            serverHandler.sendMessage(isGlobalChat ? "getplayers:" : "getlobbyplayers:");
+
             running = true;
             isReady = false;
             updateReadyButton();
@@ -669,14 +671,9 @@ public class LobbyGUI {
                         }
                         readyButton.setDisable(true);
 
-                        List<String> playerNames = new ArrayList<>();
-                        for (String item : playerListView.getItems()) {
-                            playerNames.add(item.replace(" ✓", ""));
-                        }
-
                         try {
                             Game game = new Game(this);
-                            game.initialize(serverHandler, username, currentLobbyCode, playerNames);
+                            game.initialize(serverHandler, username, currentLobbyCode);
 
                             Stage gameStage = new Stage();
                             logger.info("New game started!");

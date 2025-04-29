@@ -174,9 +174,8 @@ public class Game extends Application {
      * @param handler The active ServerHandler.
      * @param name The player's confirmed name.
      * @param code The lobby code.
-     * @param initialPlayerNames List of players already in the lobby.
      */
-    public void initialize(ServerHandler handler, String name, String code, List<String> initialPlayerNames) {
+    public void initialize(ServerHandler handler, String name, String code) {
         this.serverHandler = handler;
         this.playerName = name;
         this.lobbyCode = code;
@@ -195,12 +194,6 @@ public class Game extends Application {
             if (confirmedNickname == null) {
                 logger.error("Cannot initialize - confirmed nickname is null");
                 return;
-            }
-
-            for (String pName : initialPlayerNames) {
-                if (!pName.equals(confirmedNickname)) {
-                    createVisualForRemotePlayer(pName, 100, 100);
-                }
             }
         });
     }
@@ -730,10 +723,14 @@ public class Game extends Application {
 
             for (int i = 0; i < allPlayers.size(); i++) {
                 Player p = allPlayers.get(i);
+                if (p.getRole() == null) {
+                    continue;
+                }
+
                 boolean isWinner = (guardWon && p.getRole()==Role.GUARD) || (!guardWon && p.getRole()!=Role.GUARD);
                 Label nameLabel = new Label(p.getUsername());
 
-                Label roleLabel = new Label(p.getRole() == null ? "unkown role" : p.getRole().name());
+                Label roleLabel = new Label(p.getRole().name());
                 Label resultLabel = new Label(isWinner ? "Won" : "Lost");
                 String rowStyle = isWinner
                     ? "-fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-padding: 5;"
