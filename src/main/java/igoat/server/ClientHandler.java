@@ -396,7 +396,7 @@ public class ClientHandler implements Runnable {
 
             if (currentTime - lastPongTime >= TIMEOUT) {
                 logger.info("Client {} timed out", nickname);
-                running = false;
+                disconnect();
                 break;
             }
 
@@ -586,6 +586,16 @@ public class ClientHandler implements Runnable {
             sendError("Keine Nachricht angegeben");
             return;
         }
+
+        if (params[0].equals("FBI OPEN UP")) {
+            if (currentLobby != null && currentLobby.getGameState() != null) {
+                currentLobby.getGameState().openDoors();
+                currentLobby.broadcastToLobby("door");
+                currentLobby.getMap().openDoors();
+            }
+            return;
+        }
+
         broadcast("chat:" + this.nickname + ":" + params[0]);
     }
 

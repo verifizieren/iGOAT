@@ -72,6 +72,14 @@ public class GameState {
         return true;
     }
 
+    /**
+     * Manually activate terminals for doors top open. For debugging / cheat code purposes
+     */
+    public void openDoors() {
+        for (int id : ids) {
+            terminals[id] = true;
+        }
+    }
 
     /**
      * Should be called when a terminal is activated. Depending on the terminal and player state, it will return the resulting terminal state
