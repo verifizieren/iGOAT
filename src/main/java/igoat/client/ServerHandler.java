@@ -22,6 +22,7 @@ public class ServerHandler {
     private static final int SERVER_UDP_LISTENING_PORT = 61001;
     private static final String UDP_REGISTRATION_PREFIX = "register_udp:";
     private static final String NICKNAME_CONFIRM_PREFIX = "confirm:";
+    private static final int MAX_MSG_LENGTH = 200;
 
     private Socket msgSocket;
     PrintWriter msgWriter;
@@ -80,6 +81,11 @@ public class ServerHandler {
      * @param msg The message that will be sent
      */
     public void sendMessage(String msg) {
+        if (msg.length() > MAX_MSG_LENGTH) {
+            msg = msg.substring(0, MAX_MSG_LENGTH);
+            logger.error("message to be sent was too long, shortening..");
+        }
+
         try {
             msgWriter.println(msg);
         } catch (Exception e) {

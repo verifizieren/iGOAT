@@ -43,6 +43,7 @@ public class ClientHandler implements Runnable {
     public static final int SERVER_UDP_LISTENING_PORT = 61001;
     private static final String UDP_REGISTRATION_PREFIX = "register_udp:";
     private static final int UDP_BUFFER_SIZE = 512;
+    private static final int MAX_NAME_LENGTH = 15;
 
     private final Socket clientSocket;
     private BufferedReader in;
@@ -570,6 +571,9 @@ public class ClientHandler implements Runnable {
             return;
         }
 
+        // cut off if too long
+        requestedNickname = requestedNickname.length() > MAX_NAME_LENGTH ? requestedNickname.substring(0, MAX_NAME_LENGTH) : requestedNickname;
+
         this.nickname = generateUniqueNickname(requestedNickname);
 
         if (!requestedNickname.equals(this.nickname)) {
@@ -624,6 +628,8 @@ public class ClientHandler implements Runnable {
             sendError("invalid username");
             return;
         }
+
+        requestedNickname = requestedNickname.length() > MAX_NAME_LENGTH ? requestedNickname.substring(0, MAX_NAME_LENGTH) : requestedNickname;
 
         String newNickname = generateUniqueNickname(requestedNickname);
 
