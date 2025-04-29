@@ -417,6 +417,7 @@ public class LobbyGUI {
         if (serverHandler != null && serverHandler.isConnected()) {
             String prefix = isGlobalChat ? "chat:" : "lobbychat:";
             String text = chatInput.getText().trim();
+            chatInput.setText(""); // clear chat field
 
             if (!text.isEmpty()) {
                 // Get the confirmed nickname, fallback to username if needed
@@ -458,11 +459,6 @@ public class LobbyGUI {
                     serverHandler.sendMessage(messageToSend);
                     logger.info("Sent {} message: {}", isGlobalChat ? "Global" : "Lobby", messageToSend);
                 }
-
-                chatInput.setText(""); // Clear input field after processing
-            } else {
-                 logger.error("Cannot send chat message: ServerHandler not available or connected.");
-                 appendToMessageArea("Error: Not connected to server.");
             }
         }
     }
