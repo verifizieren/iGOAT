@@ -5,6 +5,7 @@ import static java.lang.Math.sqrt;
 
 import igoat.Timer;
 import igoat.client.GUI.Banner;
+import igoat.client.GUI.Sound;
 import java.time.LocalTime;
 
 import javafx.geometry.Pos;
@@ -108,6 +109,7 @@ public class Game extends Application {
     private double mouseY;
     private double initialX = 80;
     private double initialY = 80;
+    private boolean doorsOpen = false;
 
 
     /**
@@ -515,6 +517,7 @@ public class Game extends Application {
                 String caughtPlayerName = message.substring("catch:".length());
                 logger.info("{} was caught!", caughtPlayerName);
                 caughtBanner.showAnimation(caughtPlayerName + " was caught!", 2);
+                Sound.realer.play();
 
                 Platform.runLater(() -> {
                     if (player != null && caughtPlayerName.equals(player.getUsername())) {
@@ -760,11 +763,13 @@ public class Game extends Application {
      * Handles the opening of doors when all terminals are activated.
      */
     private void handleDoorsOpen() {
-        if (gameMap != null) {
+        if (gameMap != null && !doorsOpen) {
             gameMap.openDoors();
-             logger.info("Doors have been opened.");
+            doorsOpen = true;
+            logger.info("Doors have been opened.");
         }
 
+        Sound.realest.play();
         allTerminalsBanner.showAnimation("All Terminals Activated! Exits Open!", 4);
     }
 
@@ -1204,6 +1209,7 @@ public class Game extends Application {
 
         // display terminal activation banner
         terminalActivationBanner.showAnimation("Terminal " + id + " Activated!", 2.5f);
+        Sound.real.play();
 
         for (Terminal terminal : gameMap.getTerminalList()) {
             if (terminal.getTerminalID() == id) {
