@@ -356,7 +356,7 @@ public class ClientHandler implements Runnable {
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             out = new PrintWriter(clientSocket.getOutputStream(), true);
 
-            // Starte den Ping-Thread
+            // start ping thread
             pingThread = new Thread(this::runPingPong);
             pingThread.start();
 
@@ -419,7 +419,7 @@ public class ClientHandler implements Runnable {
         try {
             int colonIndex = message.indexOf(':');
             if (colonIndex == -1) {
-                sendError("Ungültige Befehlsformatierung - fehlender Doppelpunkt");
+                sendError("Invalid command format - missing colon");
                 return;
             }
             String command = message.substring(0, colonIndex).toLowerCase();
@@ -445,14 +445,14 @@ public class ClientHandler implements Runnable {
                     if (currentLobby != null) {
                         currentLobby.broadcastChatToLobby(nickname + ":" + params);
                     } else {
-                        sendError("Du bist in keiner Lobby");
+                        sendError("You are not in a lobby");
                     }
                     break;
                 case "teamchat": // WORK IN PROGRESS
                     if (currentLobby != null) {
                         broadcast(nickname + ":" + params);
                     } else {
-                        sendError("Du bist in keiner Lobby");
+                        sendError("You are not in a lobby");
                     }
                     break;
                 case "getplayers":
@@ -483,7 +483,7 @@ public class ClientHandler implements Runnable {
                         String whisperMessage = params.substring(commaIndex + 1);
                         handleWhisper(new String[]{recipient, whisperMessage});
                     } else {
-                        sendError("Ungültige Whisper Nachricht. Nutze: whisper:recipient,message");
+                        sendError("Invalid whisper message. Use: whisper:recipient,message");
                     }
                     break;
                 case "udp_bcast":
@@ -510,10 +510,10 @@ public class ClientHandler implements Runnable {
                     handleGetHighscores();
                     break;
                 default:
-                    sendError("Unbekannter Befehl: " + command);
+                    sendError("Unknown command: " + command);
             }
         } catch (Exception e) {
-            sendError("Fehler beim Verarbeiten des Befehls: " + e.getMessage());
+            sendError("Error when processing command: " + e.getMessage());
             logger.error("Error when processing command {} : {}", message, e);
         }
     }
@@ -578,7 +578,7 @@ public class ClientHandler implements Runnable {
 
         if (!requestedNickname.equals(this.nickname)) {
             sendMessage(
-                "chat:Dein gewünschter Nickname war bereits vergeben. Neuer Nickname: "
+                "chat:Your nickname was already chosen. New nickname: "
                     + this.nickname);
         }
 
@@ -594,7 +594,7 @@ public class ClientHandler implements Runnable {
      */
     private void handleChat(String[] params) {
         if (params.length < 1 || params[0].isEmpty()) {
-            sendError("Keine Nachricht angegeben");
+            sendError("No message provided");
             return;
         }
 
@@ -635,18 +635,18 @@ public class ClientHandler implements Runnable {
 
         if (!requestedNickname.equals(newNickname)) {
             sendMessage(
-                "chat:Dein gewünschter Nickname war bereits vergeben. Neuer Nickname: "
-                    + newNickname);
+                    "chat:Dein gewünschter Nickname war bereits vergeben. Neuer Nickname: "
+                            + newNickname);
         }
 
         this.nickname = newNickname;
-        sendMessage("confirm:Username gesetzt zu " + this.nickname);
+        sendMessage("confirm:" + this.nickname);
         broadcast(
-            "chat:User "
-                + oldNickname
-                + " hat seinen/ihren Username zu "
-                + this.nickname
-                + " geändert");
+                "chat:User "
+                        + oldNickname
+                        + " hat seinen/ihren Username zu "
+                        + this.nickname
+                        + " geändert");
         logger.info("User nickname changed");
         broadcastGlobalPlayerList();
         if (currentLobby != null) broadcastLobbyPlayerList();
@@ -659,7 +659,7 @@ public class ClientHandler implements Runnable {
      */
     private void handleLobby(String[] params) {
         if (params.length < 1) {
-            sendError("Kein Lobby Code angegeben");
+            sendError("No lobby code received");
             sendMessage("lobby:0");
             return;
         }
@@ -668,13 +668,13 @@ public class ClientHandler implements Runnable {
         try{
             code = Integer.parseInt(params[0]);
         } catch(NumberFormatException e){
-            sendError("Ungültiger Code angegeben");
+            sendError("Invalid lobby code");
             sendMessage("lobby:0");
             return;
         }
 
         if (currentLobby != null && code != 0) {
-            sendError("Du bist bereits in einem Lobby");
+            sendError("Already in a lobby");
             return;
         }
 
@@ -693,13 +693,13 @@ public class ClientHandler implements Runnable {
         }
 
         if (lobbyToJoin == null) {
-            sendError("lobby mit Code " + code + " nicht gefunden");
+            sendError("Couldn't find lobby " + code);
             sendMessage("lobby:0");
             return;
         }
 
         if (lobbyToJoin.isFull()) {
-            sendError("Die Lobby " + code + " ist voll");
+            sendError("Lobby " + code + " is full");
             sendMessage("lobby:0");
             return;
         }
@@ -715,7 +715,7 @@ public class ClientHandler implements Runnable {
         currentLobby.addMember(this);
 
         sendMessage("lobby:" + code);
-        currentLobby.broadcastChatToLobby(nickname + " ist der Lobby " + code + " beigetreten");
+        currentLobby.broadcastChatToLobby(nickname + " has joined lobby " + code);
 
         broadcastGetLobbiesToAll();
         broadcastLobbyPlayerList();
@@ -724,7 +724,7 @@ public class ClientHandler implements Runnable {
 
     private void handleNewLobby() {
         if (currentLobby != null) {
-            sendError("Du bist bereits in einem Lobby");
+            sendError("Already in a lobby");
             return;
         }
 
@@ -739,7 +739,7 @@ public class ClientHandler implements Runnable {
 
         sendMessage("lobby:" + code);
         logger.info("Created lobby {}", code);
-        currentLobby.broadcastChatToLobby(nickname + " hat eine neue Lobby erstellt (" + code + ")");
+        currentLobby.broadcastChatToLobby(nickname + " has created a new lobby (" + code + ")");
 
         broadcastGetLobbiesToAll();
         broadcastLobbyPlayerList();
@@ -748,7 +748,7 @@ public class ClientHandler implements Runnable {
     private void leaveCurrentLobby() {
         if (currentLobby != null) {
             currentLobby.removeMember(this);
-            currentLobby.broadcastChatToLobby(nickname + " hat die Lobby verlassen");
+            currentLobby.broadcastChatToLobby(nickname + " has left the lobby");
 
             if (currentLobby.getMembers().isEmpty()) {
                 lobbyList.remove(currentLobby);
@@ -813,7 +813,7 @@ public class ClientHandler implements Runnable {
 
     private void handleReady() {
         if (currentLobby == null) {
-            sendError("Du bist in keiner Lobby");
+            sendError("Not in a lobby");
             return;
         }
 
@@ -827,7 +827,7 @@ public class ClientHandler implements Runnable {
         String statusMessage = "ready_status:" + this.nickname + "," + this.isReady;
         currentLobby.broadcastToLobby(statusMessage);
 
-        appendToLobbyChat("Player " + nickname + " ist bereit.", false);
+        appendToLobbyChat("Player " + nickname + " is ready.", false);
     }
 
 
@@ -850,7 +850,7 @@ public class ClientHandler implements Runnable {
             this.getPlayer().setRole(parsedRole);
             Lobby.roleMap.put(nickname, parsedRole);
             logger.info("role confirmed");
-            appendToLobbyChat("Player " + nickname + " hat Rolle " + player.getRole() + " erhalten", false);
+            appendToLobbyChat("Player " + nickname + " was assigned " + player.getRole(), false);
         } catch (NumberFormatException e){
             logger.error("Invalid Role {}",roleString ,e);
             sendError("Invalid role");
@@ -896,11 +896,11 @@ public class ClientHandler implements Runnable {
             leaveCurrentLobby();
 
             if (!running) {
-                broadcast("chat:User " + this.nickname + " hat sich abgemeldet");
-                logger.info("Client {} hat sich ausgeloggt", nickname);
+                broadcast("chat:User " + this.nickname + " disconnected");
+                logger.info("Client {} disconnected", nickname);
             } else {
-                broadcast("chat:User " + this.nickname + " wurde getrennt");
-                logger.info("Client {} wurde getrennt", nickname);
+                broadcast("chat:User " + this.nickname + " was disconnected");
+                logger.info("Client {} was disconnected", nickname);
             }
             broadcastGlobalPlayerList();
 
@@ -1207,7 +1207,7 @@ public class ClientHandler implements Runnable {
      */
     private void handleWhisper(String[] params) {
         if (params.length < 2) {
-            sendError("Keine Whisper Nachricht angegeben");
+            sendError("Empty whisper message");
             return;
         }
         String recipient = params[0];
@@ -1218,7 +1218,7 @@ public class ClientHandler implements Runnable {
                 return;
             }
         }
-        sendError("User " + recipient + " nicht gefunden");
+        sendError("User " + recipient + " not found");
     }
 
     /**
@@ -1288,19 +1288,19 @@ public class ClientHandler implements Runnable {
     private void handleCatch(String targetName) {
         ClientHandler target = findPlayer(targetName);
         if (target == null) {
-            sendError("Spieler " + targetName + " nicht gefunden.");
+            sendError("Player " + targetName + " not found.");
             return;
         }
         if (player.getRole() != Role.GUARD) {
-            sendError("Nur Wächter dürfen fangen.");
+            sendError("Only guards can catch.");
             return;
         }
         if (!isInRange(this, target)) {
-            sendError("Spieler " + targetName + " nicht in reichweite.");
+            sendError("Player " + targetName + " not in range.");
             return;
         }
         if (player.isCaught()) {
-            sendError("Spieler " + targetName + " ist bereits gefangen");
+            sendError("Player " + targetName + " was already caught.");
             return;
         }
 
@@ -1366,7 +1366,7 @@ public class ClientHandler implements Runnable {
 
     private void handleGetRoles() {
         if (currentLobby == null) {
-            sendError("Du bist in keiner Lobby");
+            sendError("Not in a lobby");
             return;
         }
         StringBuilder sb = new StringBuilder();

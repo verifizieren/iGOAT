@@ -190,7 +190,6 @@ public class MainMenuGUI extends Application {
                 stage.hide();
             } catch (Exception ex) {
                 logger.error("Couldn't launch LobbyGUI", ex);
-                ex.printStackTrace();
                 showAlert(Alert.AlertType.ERROR, "Error launching lobby: " + ex.getMessage());
             }
         });

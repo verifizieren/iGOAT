@@ -37,14 +37,14 @@ public class ClientHandlerTest {
     public void testHandleCommandMalformedCommand() {
         TestClientHandler handler = new TestClientHandler(null);
         handler.handleCommand("malformedcommand");
-        assertTrue(handler.errors.stream().anyMatch(msg -> msg.contains("fehlender Doppelpunkt")));
+        assertTrue(handler.errors.stream().anyMatch(msg -> msg.contains("missing colon")));
     }
 
     @Test
     public void testHandleCommandUnknownCommand() {
         TestClientHandler handler = new TestClientHandler(null);
         handler.handleCommand("unknown:foo");
-        assertTrue(handler.errors.stream().anyMatch(msg -> msg.contains("Unbekannter Befehl")));
+        assertTrue(handler.errors.stream().anyMatch(msg -> msg.contains("Unknown command")));
     }
 
     @Test
