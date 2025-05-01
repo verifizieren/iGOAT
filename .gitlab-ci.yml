@@ -1,0 +1,52 @@
+image: gradle:7.6-jdk21
+
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  # Store the Gradle cache in your project workspace
+  GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
+
+before_script:
+  - echo "Using GRADLE_USER_HOME=$GRADLE_USER_HOME"
+
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .gradle/
+    - build/
+
+build:
+  stage: build
+  script:
+    # Runs your custom build-cs108 task (which depends on javadoc & jar)
+    - gradle --no-daemon --build-cache build-cs108
+  artifacts:
+    paths:
+      # Folders where your jars and Javadoc land
+      - build/libs/*.jar
+      - build/docs/javadoc
+    expire_in: 1 week
+
+test:
+  stage: test
+  script:
+    # Runs checks (tests + any other verifications)
+    - gradle --no-daemon --build-cache check
+  artifacts:
+    when: always
+    reports:
+      junit: build/test-results/**/*.xml
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Here you can copy or publish your fat jar to your server/repo"
+    # for example:
+    # - scp build/libs/igoat-0.15-ALPHA-fat.jar user@host:/opt/apps/
+  environment: production
+  dependencies:
+    - build
+    - test
