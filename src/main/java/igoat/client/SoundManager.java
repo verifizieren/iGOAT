@@ -10,8 +10,12 @@ public class SoundManager {
     private static final Logger logger = LoggerFactory.getLogger(SoundManager.class);
 
     private static final SoundManager instance = new SoundManager();
+    private double volume = 0.8;
 
-    private SoundManager() {}
+    private SoundManager() {
+        setVolume(volume);
+        logger.info("SoundManager created");
+    }
 
     public static SoundManager getInstance() {
         return instance;
@@ -32,5 +36,18 @@ public class SoundManager {
         terminal.stop();
         doors.stop();
         igoatCatch.stop();
+    }
+
+    public double getVolume() {
+        return volume;
+    }
+
+    public void setVolume(double volume) {
+        this.volume = volume;
+        click.setVolume(volume);
+        goat.setVolume(volume);
+        terminal.setVolume(volume);
+        doors.setVolume(volume);
+        igoatCatch.setVolume(volume);
     }
 }

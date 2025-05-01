@@ -772,7 +772,7 @@ public class Game extends Application {
             logger.info("Doors have been opened.");
         }
 
-        sound.igoatCatch.play();
+        sound.doors.play();
         allTerminalsBanner.showAnimation("All Terminals Activated! Exits Open!", 4);
     }
 

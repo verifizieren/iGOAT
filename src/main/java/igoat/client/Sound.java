@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 public class Sound {
     private static final Logger logger = LoggerFactory.getLogger(Sound.class);
     private Clip clip;
+    private FloatControl volumeControl;
 
     /**
      * Loads a sound from a file (ideally .wav format) which can then be played
@@ -25,6 +26,10 @@ public class Sound {
             AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundURL);
             clip = AudioSystem.getClip();
             clip.open(audioIn);
+
+            if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                volumeControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+            }
         } catch (Exception e) {
             logger.error("Couldn't load sound", e);
         }
@@ -55,6 +60,20 @@ public class Sound {
      */
     public void stop() {
         if (clip != null) clip.stop();
+    }
+
+    /**
+     * Sets the volume for the sound
+     * @param volume The volume between 0.0 and 1.0
+     */
+    public void setVolume(double volume) {
+        if (volumeControl != null) {
+            float min = volumeControl.getMinimum();
+            float max = volumeControl.getMaximum();
+            float dB = (float)(Math.log10(Math.max(volume, 0.0001)) * 20.0);
+            dB = Math.max(min, Math.min(dB, max));
+            volumeControl.setValue(dB);
+        }
     }
 }
 
