@@ -6,10 +6,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javafx.application.Platform;
 import javafx.stage.Stage;
-import igoat.client.ServerHandler;
-import igoat.client.GUI.LobbyGUI;
 
 /**
  * Main entry point for the iGoat application. Handles command-line arguments to start either the

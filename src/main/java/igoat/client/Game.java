@@ -5,6 +5,7 @@ import static java.lang.Math.sqrt;
 
 import igoat.Timer;
 import igoat.client.GUI.Banner;
+import igoat.client.GUI.SoundButton;
 import java.time.LocalTime;
 
 import javafx.geometry.Pos;
@@ -41,7 +42,6 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextFormatter;
@@ -749,7 +749,7 @@ public class Game extends Application {
                 grid.add(resultLabel, 2, i + 1);
             }
 
-            Button exitButton = new Button("Exit Game");
+            SoundButton exitButton = new SoundButton("Exit Game");
             exitButton.setOnAction(e -> returnToLobby());
 
             VBox layout = new VBox(20, title, grid, exitButton);

@@ -18,7 +18,7 @@ public class Sound {
      */
     public Sound(String path) {
         try {
-            URL soundURL = getClass().getResource(path); // e.g., "/sounds/effect.wav"
+            URL soundURL = getClass().getResource(path);
             if (soundURL == null) {
                 throw new IllegalArgumentException("Sound resource not found: " + path);
             }

@@ -8,7 +8,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
@@ -80,12 +79,13 @@ public class MainMenuGUI extends Application {
         titleLabel.setFont(new Font("Jersey 10", 24));
         titleLabel.setStyle("-fx-font-size: 50px;");
 
-        Button createServerButton = new Button("Create Server");
+        SoundButton createServerButton = new SoundButton("Create Server");
         createServerButton.setOnAction(e -> {
             TextInputDialog portDialog = new TextInputDialog("61000");
             portDialog.setTitle("Create Server");
             portDialog.setHeaderText(null);
             portDialog.setContentText("Enter server port:");
+            SoundButton.addDialogSound(portDialog);
 
             DialogPane dialogPane = portDialog.getDialogPane();
             dialogPane.getStylesheets().add(finalStyle);
@@ -98,12 +98,14 @@ public class MainMenuGUI extends Application {
             });
         });
 
-        Button joinServerButton = new Button("Join Server");
+        SoundButton joinServerButton = new SoundButton("Join Server");
         joinServerButton.setOnAction(e -> {
             TextInputDialog ipDialog = new TextInputDialog("localhost");
             ipDialog.setTitle("Join Server");
             ipDialog.setHeaderText(null);
             ipDialog.setContentText("Enter server IP:");
+            SoundButton.addDialogSound(ipDialog);
+
             DialogPane joinDialogPane = ipDialog.getDialogPane();
             joinDialogPane.getStylesheets().add(finalStyle);
 
@@ -112,6 +114,8 @@ public class MainMenuGUI extends Application {
                 portDialog.setTitle("Join Server");
                 portDialog.setHeaderText(null);
                 portDialog.setContentText("Enter server port:");
+                SoundButton.addDialogSound(portDialog);
+
                 DialogPane portDialogPane = portDialog.getDialogPane();
                 portDialogPane.getStylesheets().add(finalStyle);
 
@@ -121,6 +125,8 @@ public class MainMenuGUI extends Application {
                     nameDialog.setTitle("Join Server");
                     nameDialog.setHeaderText(null);
                     nameDialog.setContentText("Enter your username (default: " + systemUsername + "):");
+                    SoundButton.addDialogSound(nameDialog);
+
                     DialogPane nameDialogPane = nameDialog.getDialogPane();
                     nameDialogPane.getStylesheets().add(finalStyle);
 
@@ -139,7 +145,7 @@ public class MainMenuGUI extends Application {
             });
         });
 
-        Button exitButton = new Button("Exit");
+        SoundButton exitButton = new SoundButton("Exit");
         exitButton.setOnAction(e -> exit());
 
         root.getChildren().addAll(

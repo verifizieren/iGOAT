@@ -39,7 +39,6 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -70,8 +69,8 @@ public class LobbyGUI {
 
     private TextArea messageArea;
     private TextField chatInput;
-    private Button sendButton;
-    private Button toggleChatButton;
+    private SoundButton sendButton;
+    private SoundButton toggleChatButton;
     private Label chatModeLabel;
     private final String style = getClass().getResource("/CSS/UI.css").toExternalForm();
 
@@ -79,7 +78,7 @@ public class LobbyGUI {
     private ListView<String> lobbyListView;
     private ListView<String> playerListView;
     private Label playerListLabel;
-    private Button readyButton;
+    private SoundButton readyButton;
     private boolean isReady = false;
     
     // Player ready status tracking
@@ -161,7 +160,7 @@ public class LobbyGUI {
         playerListView = new ListView<>();
         playerListView.setPrefHeight(300);
         
-        readyButton = new Button("Ready");
+        readyButton = new SoundButton("Ready");
         readyButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
         readyButton.setOnAction(e -> toggleReadyStatus());
         readyButton.setDisable(true); 
@@ -191,10 +190,10 @@ public class LobbyGUI {
         chatInput.setPromptText("Type a message...");
         chatInput.setDisable(true);
 
-        sendButton = new Button("Send");
+        sendButton = new SoundButton("Send");
         sendButton.setDisable(true);
 
-        toggleChatButton = new Button("Switch to Lobby Chat");
+        toggleChatButton = new SoundButton("Switch to Lobby Chat");
 
         setupChatEvents();
         VBox buttonBox = setupButtonActions();
@@ -291,12 +290,12 @@ public class LobbyGUI {
      * @return a VBox with all main action buttons
      */
     private VBox setupButtonActions() {
-        Button startButton = new Button("Start Game");
-        Button createButton = new Button("Create Lobby");
-        Button leaveLobbyButton = new Button("Exit Lobby");
-        Button nameButton = new Button("Change Name");
-        Button exitButton = new Button("Exit");
-        Button highscoresButton = new Button("Highscores");
+        SoundButton startButton = new SoundButton("Start Game");
+        SoundButton createButton = new SoundButton("Create Lobby");
+        SoundButton leaveLobbyButton = new SoundButton("Exit Lobby");
+        SoundButton nameButton = new SoundButton("Change Name");
+        SoundButton exitButton = new SoundButton("Exit");
+        SoundButton highscoresButton = new SoundButton("Highscores");
         highscoresButton.setOnAction(event -> {
             if (serverHandler != null && serverHandler.isConnected()) {
                 serverHandler.sendMessage("gethighscores:");
@@ -336,6 +335,7 @@ public class LobbyGUI {
             dialog.setTitle("Change Username");
             dialog.setHeaderText("Enter a new username:");
             dialog.setContentText("Username:");
+            SoundButton.addDialogSound(dialog);
 
             DialogPane nameDialogPane = dialog.getDialogPane();
             nameDialogPane.getStylesheets().add(style);
@@ -763,8 +763,8 @@ public class LobbyGUI {
                         Label title = new Label("HALL OF FAME");
                         title.setStyle("-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: white; " +
                                       "-fx-effect: dropshadow(gaussian, gold, 10, 0.6, 0, 0);");
-                        
-                        Button closeButton = new Button("×");
+
+                        SoundButton closeButton = new SoundButton("×");
                         closeButton.setStyle("-fx-font-size: 20px; -fx-background-color: transparent; -fx-text-fill: white; -fx-cursor: hand;");
                         closeButton.setOnAction(e -> highscoreStage.close());
                         
@@ -979,8 +979,8 @@ public class LobbyGUI {
             Label title = new Label("HIGHSCORES");
             title.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #000000; " +
                           "-fx-font-family: 'Jersey 10', 'Courier New', monospace;");
-            
-            Button closeButton = new Button("X");
+
+            SoundButton closeButton = new SoundButton("X");
             closeButton.getStyleClass().add("close-button");
             closeButton.setOnAction(e -> highscoreStage.close());
             

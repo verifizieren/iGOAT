@@ -20,8 +20,8 @@ public class SoundManager {
     public final Sound click = new Sound("/sounds/click.wav");
     public final Sound goat = new Sound("/sounds/goat.wav");
     public final Sound terminal = new Sound("/sounds/terminal.wav");
-    public final Sound doors = new Sound("/sounds/doors.wav");
-    public final Sound igoatCatch = new Sound("/sounds/igoatCatch.wav");
+    public final Sound doors = new Sound("/sounds/door.wav");
+    public final Sound igoatCatch = new Sound("/sounds/igoat_caught.wav");
 
     /**
      * Stops all sound playback
