@@ -1,6 +1,5 @@
 # .gitlab-ci.yml
 
-# Use a Gradle image that bundles JDK21
 image: gradle:8.2.1-jdk21
 
 stages:
@@ -9,7 +8,6 @@ stages:
   - deploy
 
 variables:
-  # Cache Gradle data in your project dir
   GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
 
 cache:
@@ -19,14 +17,12 @@ cache:
     - build/
 
 before_script:
-  # Make sure the wrapper is executable
   - chmod +x ./gradlew
   - echo "Using GRADLE_USER_HOME=$GRADLE_USER_HOME"
 
 build:
   stage: build
   script:
-    # Runs your custom task to generate the fat-jar and Javadoc
     - ./gradlew --no-daemon --build-cache build-cs108
   artifacts:
     paths:
@@ -37,7 +33,6 @@ build:
 test:
   stage: test
   script:
-    # Compile and run tests
     - ./gradlew --no-daemon --build-cache check
   artifacts:
     when: always
@@ -49,11 +44,8 @@ test:
 deploy:
   stage: deploy
   script:
-    # Replace the following with your actual deploy commands!
-    - echo "📦 Deploying fat-jar to production server..."
-    # - scp build/libs/*-fat.jar user@host:/path/to/deploy/
+    - echo "📦 Deploying"
   environment:
     name: production
   rules:
-    # Only run deploy on the main branch
     - if: '$CI_COMMIT_BRANCH == "main"'
