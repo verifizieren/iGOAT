@@ -1,6 +1,6 @@
 # .gitlab-ci.yml
 
-image: gradle:8.2.1-jdk21
+image: gradle:alpine
 
 stages:
   - build
