@@ -5,7 +5,6 @@ import static java.lang.Math.sqrt;
 
 import igoat.Timer;
 import igoat.client.GUI.Banner;
-import igoat.client.GUI.Sound;
 import java.time.LocalTime;
 
 import javafx.geometry.Pos;
@@ -89,6 +88,7 @@ public class Game extends Application {
     private long lastUpdate;
     private long lastPositionUpdate = 0;
     private static final long POSITION_UPDATE_INTERVAL = 100;
+    private final SoundManager sound = SoundManager.getInstance();
     
     private Player player;
     private igoat.client.Map gameMap;
@@ -517,11 +517,14 @@ public class Game extends Application {
                 String caughtPlayerName = message.substring("catch:".length());
                 logger.info("{} was caught!", caughtPlayerName);
                 caughtBanner.showAnimation(caughtPlayerName + " was caught!", 2);
-                Sound.realer.play();
 
                 Platform.runLater(() -> {
                     if (player != null && caughtPlayerName.equals(player.getUsername())) {
                         player.setDown(true);
+                        if (player.getRole() == Role.IGOAT) {
+                            sound.igoatCatch.play();
+                        }
+
                     } else {
                         Player other = otherPlayers.get(caughtPlayerName);
                         if (other != null) {
@@ -769,7 +772,7 @@ public class Game extends Application {
             logger.info("Doors have been opened.");
         }
 
-        Sound.realest.play();
+        sound.igoatCatch.play();
         allTerminalsBanner.showAnimation("All Terminals Activated! Exits Open!", 4);
     }
 
@@ -1200,7 +1203,6 @@ public class Game extends Application {
      * @param id The ID of the terminal
      */
     private void activateTerminal(int id) {
-        //
         if (id == -1) {
             noActivationBanner.showAnimation("Can't activate Terminal", 1.5);
             noActivationBanner.shake();
@@ -1209,7 +1211,7 @@ public class Game extends Application {
 
         // display terminal activation banner
         terminalActivationBanner.showAnimation("Terminal " + id + " Activated!", 2.5f);
-        Sound.real.play();
+        sound.terminal.play();
 
         for (Terminal terminal : gameMap.getTerminalList()) {
             if (terminal.getTerminalID() == id) {
