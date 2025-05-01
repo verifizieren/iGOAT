@@ -1,6 +1,7 @@
 # .gitlab-ci.yml
 
-image: gradle:7.6-jdk21
+# Use a Gradle image that bundles JDK21
+image: gradle:8.2.1-jdk21
 
 stages:
   - build
@@ -8,7 +9,7 @@ stages:
   - deploy
 
 variables:
-  # Persist Gradle cache inside project
+  # Cache Gradle data in your project dir
   GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
 
 cache:
@@ -18,42 +19,41 @@ cache:
     - build/
 
 before_script:
+  # Make sure the wrapper is executable
+  - chmod +x ./gradlew
   - echo "Using GRADLE_USER_HOME=$GRADLE_USER_HOME"
 
 build:
   stage: build
   script:
-    # Your custom task that builds both JAR and Javadoc
-    - gradle --no-daemon --build-cache build-cs108
+    # Runs your custom task to generate the fat-jar and Javadoc
+    - ./gradlew --no-daemon --build-cache build-cs108
   artifacts:
     paths:
-      # Your fat jar(s) land here
       - build/libs/*.jar
-      # Javadoc directory
       - build/docs/javadoc/
     expire_in: 1 week
 
 test:
   stage: test
   script:
-    # Run all checks (compilation + tests)
-    - gradle --no-daemon --build-cache check
+    # Compile and run tests
+    - ./gradlew --no-daemon --build-cache check
   artifacts:
     when: always
     reports:
       junit: build/test-results/test/**/*.xml
     paths:
-      # HTML test reports (optional)
       - build/reports/tests/
 
 deploy:
   stage: deploy
-  dependencies:
-    - build
-    - test
   script:
-    - echo "Deploy step – replace with your upload/publish commands"
-    # e.g. scp build/libs/*-fat.jar user@server:/opt/apps/
-  environment: production
-  only:
-    - main
+    # Replace the following with your actual deploy commands!
+    - echo "📦 Deploying fat-jar to production server..."
+    # - scp build/libs/*-fat.jar user@host:/path/to/deploy/
+  environment:
+    name: production
+  rules:
+    # Only run deploy on the main branch
+    - if: '$CI_COMMIT_BRANCH == "main"'
