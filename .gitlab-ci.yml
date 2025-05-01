@@ -1,3 +1,5 @@
+# .gitlab-ci.yml
+
 image: gradle:7.6-jdk21
 
 stages:
@@ -6,11 +8,8 @@ stages:
   - deploy
 
 variables:
-  # Store the Gradle cache in your project workspace
+  # Persist Gradle cache inside project
   GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
-
-before_script:
-  - echo "Using GRADLE_USER_HOME=$GRADLE_USER_HOME"
 
 cache:
   key: "$CI_COMMIT_REF_SLUG"
@@ -18,35 +17,43 @@ cache:
     - .gradle/
     - build/
 
+before_script:
+  - echo "Using GRADLE_USER_HOME=$GRADLE_USER_HOME"
+
 build:
   stage: build
   script:
-    # Runs your custom build-cs108 task (which depends on javadoc & jar)
+    # Your custom task that builds both JAR and Javadoc
     - gradle --no-daemon --build-cache build-cs108
   artifacts:
     paths:
-      # Folders where your jars and Javadoc land
+      # Your fat jar(s) land here
       - build/libs/*.jar
-      - build/docs/javadoc
+      # Javadoc directory
+      - build/docs/javadoc/
     expire_in: 1 week
 
 test:
   stage: test
   script:
-    # Runs checks (tests + any other verifications)
+    # Run all checks (compilation + tests)
     - gradle --no-daemon --build-cache check
   artifacts:
     when: always
     reports:
-      junit: build/test-results/**/*.xml
+      junit: build/test-results/test/**/*.xml
+    paths:
+      # HTML test reports (optional)
+      - build/reports/tests/
 
 deploy:
   stage: deploy
-  script:
-    - echo "Here you can copy or publish your fat jar to your server/repo"
-    # for example:
-    # - scp build/libs/igoat-0.15-ALPHA-fat.jar user@host:/opt/apps/
-  environment: production
   dependencies:
     - build
     - test
+  script:
+    - echo "Deploy step – replace with your upload/publish commands"
+    # e.g. scp build/libs/*-fat.jar user@server:/opt/apps/
+  environment: production
+  only:
+    - main
