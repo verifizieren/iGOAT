@@ -1,0 +1,41 @@
+.root {
+  -fx-fill: black;
+  -fx-font-family: "Jersey 10", "Courier New", monospace;
+  -fx-font-size: 17px;
+}
+
+.slider {
+  -fx-pref-width: 200px;
+}
+
+.slider .track {
+  -fx-background-color: white;
+  -fx-border-color: black;
+  -fx-border-width: 1px;
+  -fx-border-radius: 0;
+  -fx-pref-height: 10px;
+}
+
+.slider .thumb {
+  -fx-background-color: black;
+  -fx-border-color: black;
+  -fx-border-width: 1px;
+  -fx-border-radius: 0;
+  -fx-pref-width: 15px;
+  -fx-pref-height: 15px;
+}
+
+.slider:hover .thumb {
+  -fx-background-color: #736d6d;
+}
+
+.slider .axis .tick-label {
+  -fx-fill: black;
+  -fx-font-family: "Jersey 10", "Courier New", monospace;
+  -fx-font-size: 17px;
+}
+
+.slider .axis .tick-mark {
+  -fx-stroke: black;
+  -fx-stroke-width: 1px;
+}

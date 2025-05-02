@@ -3,7 +3,6 @@ package igoat.client.GUI;
 import igoat.client.SoundManager;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -21,6 +20,8 @@ public class SettingsWindow {
     private static final SettingsWindow instance = new SettingsWindow();
 
     private final String style = getClass().getResource("/CSS/UI.css").toExternalForm();
+    private final String sliderStyle = getClass().getResource("/CSS/slider.css").toExternalForm();
+
     private Stage stage = new Stage();
 
     private SettingsWindow() {
@@ -32,19 +33,15 @@ public class SettingsWindow {
         // Volume Control
         Label volumeLabel = new Label("Volume:");
         Slider volumeSlider = new Slider(0, 100, SoundManager.getInstance().getVolume() * 100);
+        volumeSlider.getStylesheets().add(sliderStyle);
         volumeSlider.setShowTickLabels(true);
         volumeSlider.setShowTickMarks(true);
-        volumeSlider.valueChangingProperty().addListener((observable, oldValue, newValue) -> {
-            if (volumeSlider.isValueChanging()) {
-                SoundManager.getInstance().setVolume(volumeSlider.getValue() / 100);
-            }
-        });
 
-        // Difficulty ChoiceBox
-        Label difficultyLabel = new Label("Difficulty:");
+        // Window mode
+        Label difficultyLabel = new Label("Window Mode:");
         ChoiceBox<String> difficultyChoice = new ChoiceBox<>();
-        difficultyChoice.getItems().addAll("Easy", "Medium", "Hard");
-        difficultyChoice.setValue("Medium");
+        difficultyChoice.getItems().addAll("Windowed", "Fullscreen");
+        difficultyChoice.setValue("Windowed");
 
         // Apply and Close Buttons
         SoundButton applyButton = new SoundButton("Apply");
@@ -53,10 +50,7 @@ public class SettingsWindow {
 
         applyButton.setOnAction(e -> {
             double volume = volumeSlider.getValue() / 100;
-            String difficulty = difficultyChoice.getValue();
             SoundManager.getInstance().setVolume(volume);
-
-            System.out.println("Difficulty: " + difficulty);
             stage.close();
         });
 
