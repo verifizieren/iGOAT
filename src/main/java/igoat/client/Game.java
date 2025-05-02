@@ -315,15 +315,6 @@ public class Game extends Application {
         player.setSpectated(false);
         activeCamera = player.getCamera();
         
-//        for (Player other : otherPlayers.values()) {
-//            if (!gamePane.getChildren().contains(other.getVisual())) {
-//                Group otherVisual = other.getVisual();
-//                // add clipping for fog effect
-//
-//                gamePane.getChildren().add(otherVisual);
-//            }
-//        }
-        
         scene.widthProperty().addListener((obs, oldVal, newVal) -> {
             activeCamera.updateViewport(newVal.doubleValue(), scene.getHeight());
             windowWidth = newVal.doubleValue();
@@ -478,6 +469,10 @@ public class Game extends Application {
             logger.warn("Could not parse sender from message using known patterns: {}", msg);
             return new String[]{ "System", data }; 
         };
+
+        if (message.startsWith("error:")) {
+            logger.warn("Received: {}", message.substring("error:".length()));
+        }
 
         ChatMode mode = null;
         String prefixString = null;
@@ -1171,6 +1166,7 @@ public class Game extends Application {
         double x = player.getX() + (player.getWidth() / 2.0);
         double y = player.getY() + (player.getHeight() / 2.0);
 
+        // revive at current location
         for (Player target : otherPlayers.values()) {
             double tx = target.getX() + (target.getWidth() / 2.0);
             double ty = target.getY() + (target.getHeight() / 2.0);
@@ -1178,6 +1174,11 @@ public class Game extends Application {
                 serverHandler.sendMessage("revive:" + target.getUsername());
                 return;
             }
+        }
+
+        // revive at igoat station
+        if (sqrt(pow(50 - x, 2) + pow(120 - y, 2)) < 40.0 || sqrt(pow(640 - x, 2) + pow(1450 - y, 2)) < 40.0) {
+            serverHandler.sendMessage("station:");
         }
     }
 

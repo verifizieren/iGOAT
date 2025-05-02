@@ -1,9 +1,11 @@
 package igoat.server;
 
+import static java.lang.Math.pow;
+import static java.lang.Math.sqrt;
+
 import igoat.Role;
 import igoat.Timer;
 import igoat.client.Map;
-import igoat.server.Player;
 import igoat.client.Wall;
 import igoat.server.Lobby.LobbyState;
 import java.io.BufferedReader;
@@ -473,6 +475,8 @@ public class ClientHandler implements Runnable {
                 case "revive":
                     handleRevive(params.trim());
                     break;
+                case "station":
+                    handleStation();
                 case "username":
                     handleUsername(new String[]{params.trim()});
                     break;
@@ -515,6 +519,49 @@ public class ClientHandler implements Runnable {
         } catch (Exception e) {
             sendError("Error when processing command: " + e.getMessage());
             logger.error("Error when processing command {} : {}", message, e);
+        }
+    }
+
+    /**
+     * Performs checks for whether the player has the correct role and if they're in range and then
+     * revives a caught iGOAT
+     */
+    private void handleStation() {
+        // role check
+        if (player.getRole() != Role.GOAT) {
+            return;
+        }
+
+        // cooldown check
+        if (currentLobby.getStationCooldown().check()) {
+            return;
+        }
+
+        double x = player.getX();
+        double y = player.getY();
+
+        // igoat station location
+        double tx;
+        double ty;
+
+        if (sqrt(pow(50 - x, 2) + pow(120 - y, 2)) < 45.0) {
+            tx = 50;
+            ty = 120;
+        } else if (sqrt(pow(640 - x, 2) + pow(1450 - y, 2)) < 45.0) {
+            tx = 640;
+            ty = 1450;
+        } else {
+            return;
+        }
+
+        for (ClientHandler client : currentLobby.getMembers()) {
+            if (client.getPlayer().getRole() == Role.IGOAT && client.getPlayer().isCaught()) {
+                client.getPlayer().revive();
+                client.getPlayer().teleport(tx, ty + 40);
+                broadcast("revive:" + client.getNickname());
+                currentLobby.getStationCooldown().start();
+                return;
+            }
         }
     }
 

@@ -36,7 +36,7 @@ public class Lobby {
     public static int MAX_PLAYERS = 4;
     private final Map map = new Map(true);
     private final Timer timer = new Timer();
-
+    private final Cooldown stationCooldown = new Cooldown(10000);
 
     /**
      * Represents the different states a lobby can be in: - OPEN: Lobby is accepting new players -
@@ -311,5 +311,9 @@ public class Lobby {
 
             member.sendUpdate(message);
         }
+    }
+
+    public Cooldown getStationCooldown() {
+        return stationCooldown;
     }
 }
