@@ -477,6 +477,7 @@ public class ClientHandler implements Runnable {
                     break;
                 case "station":
                     handleStation();
+                    break;
                 case "username":
                     handleUsername(new String[]{params.trim()});
                     break;
@@ -558,7 +559,7 @@ public class ClientHandler implements Runnable {
             if (client.getPlayer().getRole() == Role.IGOAT && client.getPlayer().isCaught()) {
                 client.getPlayer().revive();
                 client.getPlayer().teleport(tx, ty + 40);
-                broadcast("revive:" + client.getNickname());
+                currentLobby.broadcastToLobby("revive:" + client.getNickname());
                 currentLobby.getStationCooldown().start();
                 return;
             }
@@ -1361,7 +1362,7 @@ public class ClientHandler implements Runnable {
         }
 
         target.getPlayer().catchPlayer();
-        broadcast("catch:" + targetName);
+        currentLobby.broadcastToLobby("catch:" + targetName);
 
         if (currentLobby.getGameState().isGuardWin() && !currentLobby.getGameState().gameOver) {
             logger.info("guard won, ending game");
@@ -1392,7 +1393,7 @@ public class ClientHandler implements Runnable {
             return;
         }
         target.getPlayer().revive();
-        broadcast("revive:" + targetName);
+        currentLobby.broadcastToLobby("revive:" + targetName);
     }
 
     public Player getPlayer() {

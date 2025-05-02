@@ -167,7 +167,6 @@ public class Game extends Application {
      */
     public Game(LobbyGUI lobby) {
         this.lobby = lobby;
-        logger.info("created new game instance");
     }
 
     /**
@@ -471,7 +470,8 @@ public class Game extends Application {
         };
 
         if (message.startsWith("error:")) {
-            logger.warn("Received: {}", message.substring("error:".length()));
+            logger.warn("Received error: {}", message.substring("error:".length()));
+            return;
         }
 
         ChatMode mode = null;
