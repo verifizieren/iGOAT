@@ -1,5 +1,6 @@
 package igoat.client.GUI;
 
+import igoat.client.Sprite;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,6 +18,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.image.ImageView;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
 import javafx.stage.StageStyle;
@@ -72,6 +74,8 @@ public class LobbyGUI {
     private SoundButton sendButton;
     private SoundButton toggleChatButton;
     private Label chatModeLabel;
+
+    private final SettingsWindow settings = SettingsWindow.getInstance();
     private final String style = getClass().getResource("/CSS/UI.css").toExternalForm();
 
     // Lobby and player list components
@@ -80,7 +84,7 @@ public class LobbyGUI {
     private Label playerListLabel;
     private SoundButton readyButton;
     private boolean isReady = false;
-    
+
     // Player ready status tracking
     private Map<String, Boolean> playerReadyStatus = new HashMap<>();
     private String currentLobbyCode = null;
@@ -126,7 +130,15 @@ public class LobbyGUI {
         VBox leftPanel = setupLeftPanel();
         VBox rightPanel = setupRightPanel();
 
-        HBox mainLayout = new HBox(20, leftPanel, rightPanel);
+        // Settings button
+        SoundButton settingsButton = new SoundButton("");
+        settingsButton.setGraphic(new ImageView(new Sprite("/sprites/cog.png", 32, 32)));
+        settingsButton.setOnAction(event -> {settings.open();});
+        settingsButton.setStyle("-fx-padding: 0px 0px;");
+        HBox topBar = new HBox(10, settingsButton);
+        topBar.setAlignment(Pos.TOP_RIGHT);
+
+        HBox mainLayout = new HBox(20, leftPanel, rightPanel, topBar);
         mainLayout.setPadding(new Insets(20));
         mainLayout.setAlignment(Pos.CENTER);
 
@@ -295,6 +307,7 @@ public class LobbyGUI {
         SoundButton nameButton = new SoundButton("Change Name");
         SoundButton exitButton = new SoundButton("Exit");
         SoundButton highscoresButton = new SoundButton("Highscores");
+
         highscoresButton.setOnAction(event -> {
             if (serverHandler != null && serverHandler.isConnected()) {
                 serverHandler.sendMessage("gethighscores:");
@@ -679,6 +692,7 @@ public class LobbyGUI {
                             game.start(gameStage);
 
                             stage.hide();
+                            settings.close();
                             running = false; // Stop the message receiver thread
                         } catch (Exception ex) {
                             logger.error("Error starting game", ex);
