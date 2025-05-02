@@ -220,8 +220,7 @@ public class LobbyGUI {
                 serverHandler.sendMessage("ready:");
                 appendToMessageArea("You are now ready!");
             } else {
-                // Hier koennte man unready machen
-                appendToMessageArea("You are ready!");
+                serverHandler.sendMessage("unready:");
             }
         }
     }
@@ -388,7 +387,7 @@ public class LobbyGUI {
             updateReadyButton();
             playerReadyStatus.replaceAll((key, value) -> false);
 
-            isGlobalChat = true;
+            isGlobalChat = currentLobbyCode == null;
             updateChatUIForMode();
 
             chatInput.setDisable(false);
@@ -650,6 +649,7 @@ public class LobbyGUI {
                         playerReadyStatus.put(playerName, ready);
 
                         Platform.runLater(() -> {
+                            logger.info("bruh");
                             updatePlayerListWithReadyStatus();
                             String[] currentPlayersArray = playerListView.getItems().stream()
                                    .map(item -> item.replace(" ✓", ""))
@@ -856,7 +856,6 @@ public class LobbyGUI {
      */
     private void updatePlayerListWithReadyStatus() {
         if (isGlobalChat) return;
-
         List<String> currentItems = new ArrayList<>(playerListView.getItems());
         playerListView.getItems().clear();
 

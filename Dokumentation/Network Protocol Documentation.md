@@ -3,7 +3,7 @@
 The protocol consists of text commands sent as strings between the server and the client. Commands consist of the command followed by parameters, if required. The command and the parameters are separated by a colon. Parameters are separated by commas *except* for relayed chat messages from the server (see below). TCP is used for most commands to ensure stable communication. UDP is used for time-sensitive information like position updates and registration.
 
 Format: *command*:*parameter*s
-or: *command*
+or: *command:* (colon only for some commands)
 
 Parameter Format: param1,param2,...
 Relayed Chat Format (Server -> Client): prefix:sender:message
@@ -39,7 +39,8 @@ The following list contains the TCP commands used in the protocol.
 | Server | getplayers:[list]            | Response with comma-separated list of all connected players.                                                       | getplayers:bob,alice                   | TCP      |
 | Client | getlobbyplayers              | Request list of players in the current lobby.                                                                      | getlobbyplayers                        | TCP      |
 | Server | getlobbyplayers:[list]       | Response with comma-separated list of players in the current lobby.                                                | getlobbyplayers:bob,alice              | TCP      |
-| Client | ready                        | Player notifies server they are ready for the game to start in the current lobby.                                  | ready                                  | TCP      |
+| Client | ready:                       | Player notifies server they are ready for the game to start in the current lobby.                                  | ready:                                 | TCP      |
+| Client | unready:                     | Player notifies the server that they are no longer ready                                                           | unready:                               | TCP      |
 | Server | ready_status:[player],[bool] | Broadcasts the ready status change of a player in the lobby.                                                       | ready_status:bob,true                  | TCP      |
 | Server | role:[player]:[roleId]       | Assigns a role (0: Goat, 1: Robot, 2: Guard) to a specific player. Broadcast to lobby.                             | role:bob:1                             | TCP      |
 | Client | getroles:                    | Request the roles of all players in the current lobby.                                                             | getroles:                              | TCP      |
@@ -50,7 +51,7 @@ The following list contains the TCP commands used in the protocol.
 | Client | station:                     | Goat request to revive random igoat at an igoat station                                                            | station:                               | TCP      |
 | Client | getresults                   | Request list of past finished game results.                                                                        | getresults:                            | TCP      |
 | Server | results:[data]               | Response with past game results log. Data is newline-separated JSON objects.                                       | results:{"timestamp":"2025-04-22T..."} | TCP      |
-| Client | gethighscores                | Request highscores for both guard and goat players.                                                                | gethighscores:                         | TCP      |
+| Client | gethighscores:               | Request highscores for both guard and goat players.                                                                | gethighscores:                         | TCP      |
 | Server | highscores:[data]            | Response with highscores data. Data contains guard and goat highscores separated by newlines, with <br> markers.   | highscores:=== GUARD HIGHSCORES...     | TCP      |
 | Server | revive:[target]              | Broadcasts that a player was revived.                                                                              | revive:bob                             | TCP      |
 | Client | terminal:[id]                | Player reports activating a terminal with the specified ID.                                                        | terminal:0                             | TCP      |

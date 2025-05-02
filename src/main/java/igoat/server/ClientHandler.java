@@ -464,7 +464,10 @@ public class ClientHandler implements Runnable {
                     handleGetLobbyPlayers();
                     break;
                 case "ready":
-                    handleReady();
+                    handleReady(true);
+                    break;
+                case "unready":
+                    handleReady(false);
                     break;
                 case "role":
                     handleRoleConfirmation(params.trim());
@@ -859,23 +862,23 @@ public class ClientHandler implements Runnable {
         sendMessage("getlobbyplayers:" + sb);
     }
 
-    private void handleReady() {
+    private void handleReady(boolean status) {
         if (currentLobby == null) {
             sendError("Not in a lobby");
+            setReady(false);
             return;
         }
+
+        this.setReady(status);
 
         if (currentLobby.getState() == LobbyState.FINISHED) {
             currentLobby.resetState();
             broadcastGetLobbiesToAll();
         }
 
-        this.setReady(true);
-
         String statusMessage = "ready_status:" + this.nickname + "," + this.isReady;
         currentLobby.broadcastToLobby(statusMessage);
-
-        appendToLobbyChat("Player " + nickname + " is ready.", false);
+        appendToLobbyChat("Player " + nickname + (isReady ? " is ready." : " is no longer ready."), false);
     }
 
 
@@ -1066,6 +1069,10 @@ public class ClientHandler implements Runnable {
              sendError("Only the lobby creator can start the game.");
              logger.info("Start game requested by non-creator ({}) for lobby {}. Denied.", nickname, currentLobby.getCode());
              return;
+        }
+
+        for (ClientHandler member : currentLobby.getMembers()) {
+            member.setReady(false);
         }
 
         logger.info("Starting game in lobby {} (Initiated by creator: {})", currentLobby.getCode(), nickname);
