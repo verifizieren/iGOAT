@@ -81,4 +81,10 @@
 * Die Gruppe war mit den Ergebnissen zufrieden.
 * ToDo: JAR-Review
 * Das nächste Treffen wurde für den Dienstag, den 29.04.2025 festgelegt.
+## <p align = "center"> 29. Apri
+* Die Gruppe traf sich, um gemeinsam die JAR-Review durchzuführen und konnte diese erfolgreich abschließen.
+* Bei der JAR-Review gab es einige kleinere Schwierigkeiten: Da es keine Anleitung zu den gegebenen Spielen gab, musste die Gruppe zunächst herausfinden, wie und ob man die Spiele überhaupt spielen konnte.
+* Später arbeitete die Gruppe außerdem die ToDos für den letzten Meilenstein aus.
+* ToDo: Jonas: iGOAT-Station implementieren, Multiple-Client-Tests, Sounds hinzufügen, Fullscreen- und Spectator-Mode hinzufügen. Marvin: Manual updaten und eine Spielerklärung im Spiel selbst implementieren, QA-Dokumentation erweitern und Cheat-Codes einbauen. Max: Username-Visibility, Custom-Windowbar, Controller-Support sowie Key-Bindings und Unit-Tests fertigstellen. Nicolas: iGOAT-Station und Guard-Animationen hinzufügen, Bug-Tracker anlegen und ein Intro erstellen.
+* Das nächste Treffen wurde für den Dienstag, den 06.05.2025 festgelegt.
 
