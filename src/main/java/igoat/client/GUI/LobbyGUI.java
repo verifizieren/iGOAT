@@ -136,7 +136,7 @@ public class LobbyGUI {
         // Settings button
         SoundButton settingsButton = new SoundButton("");
         settingsButton.setGraphic(new ImageView(new Sprite("/sprites/cog.png", 32, 32)));
-        settingsButton.setOnAction(event -> {settings.open();});
+        settingsButton.setOnAction(event -> {settings.open(stage);});
         settingsButton.setStyle("-fx-padding: 0px 0px;");
         HBox topBar = new HBox(10, settingsButton);
         topBar.setAlignment(Pos.TOP_RIGHT);

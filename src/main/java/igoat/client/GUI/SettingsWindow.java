@@ -9,7 +9,7 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.GridPane;
-import javafx.stage.Modality;
+import javafx.stage.Popup;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,7 @@ public class SettingsWindow {
     private final String style = getClass().getResource("/CSS/UI.css").toExternalForm();
     private final String sliderStyle = getClass().getResource("/CSS/slider.css").toExternalForm();
 
-    private final Stage stage = new Stage();
+    private final Popup popup = new Popup();
     private final Slider volumeSlider;
     private ChoiceBox<String> windowModeChoice;
     private GridPane layout;
@@ -34,12 +34,6 @@ public class SettingsWindow {
     private boolean fullscreen = true;
 
     private SettingsWindow() {
-        stage.initModality(Modality.NONE);
-        stage.setAlwaysOnTop(true);
-        stage.setTitle("Settings");
-        stage.setMinWidth(300);
-        stage.setMinHeight(200);
-
         // Volume Control
         Label volumeLabel = new Label("Volume:");
         volumeSlider = new Slider(0, 100, SoundManager.getInstance().getVolume() * 100.0);
@@ -73,11 +67,7 @@ public class SettingsWindow {
             if (gameStage != null) {
                 gameStage.setFullScreen(fullscreen);
             }
-            stage.close();
-        });
-
-        stage.setOnCloseRequest(e -> {
-            close();
+            popup.hide();
         });
 
         // Layout
@@ -92,27 +82,25 @@ public class SettingsWindow {
         layout.add(windowModeChoice, 1, 1);
         layout.add(applyButton, 0, 2);
         layout.add(closeButton, 1, 2);
+        layout.getStylesheets().add(style);
 
-        Scene scene = new Scene(layout);
-        scene.getStylesheets().add(style);
-        stage.setScene(scene);
+        layout.setStyle("-fx-background-color: white; -fx-border-color: black; -fx-border-width: 1; -fx-font-family: \"Jersey 10\", \"Courier New\", monospace;");
+        popup.getContent().add(layout);
     }
     
     public static SettingsWindow getInstance() {
         return instance;
     }
 
-    public void open() {
+    public void open(Stage parentStage) {
         volumeSlider.setValue(volume * 100.0);
         windowModeChoice.setValue(fullscreen ? "Fullscreen" : "Windowed");
-        ScreenUtil.moveStageToCursorScreen(stage, layout.getPrefWidth() > 0 ? layout.getPrefWidth() : 300, layout.getPrefHeight() > 0 ? layout.getPrefHeight() : 200);
-        stage.show();
+        popup.show(parentStage);
     }
 
     public void close() {
         SoundManager.getInstance().setVolume(volume);
-        stage.close();
-        stage.hide();
+        popup.hide();
     }
 
     public void setGameStage(Stage stage) {

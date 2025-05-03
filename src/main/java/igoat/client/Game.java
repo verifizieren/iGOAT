@@ -1370,7 +1370,7 @@ public class Game extends Application {
             if (!chatInput.isFocused()) {
                 activeKeys.add(event.getCode());
                 if (event.getCode() == KeyCode.ESCAPE) {
-                    SettingsWindow.getInstance().open();
+                    SettingsWindow.getInstance().open(stage);
                 }
             }
 
