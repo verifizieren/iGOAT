@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SpriteSheetAnimation {
+    private static final Logger logger = LoggerFactory.getLogger(SpriteSheetAnimation.class);
+
     private final ImageView imageView;
     private final Timeline timeline;
     private final int frameCount;
@@ -20,8 +22,6 @@ public class SpriteSheetAnimation {
     private int currentFrame = 0;
 
     public SpriteSheetAnimation(String spriteSheetPath, int frameWidth, int frameHeight, int frameCount, int columns, double frameDurationMs) {
-        Logger logger = LoggerFactory.getLogger(SpriteSheetAnimation.class);
-
         Image image = new Image(getClass().getResource(spriteSheetPath).toExternalForm());
         this.imageView = new ImageView(image);
         this.imageView.setSmooth(false);
@@ -29,6 +29,7 @@ public class SpriteSheetAnimation {
         this.imageView.setFitHeight(frameHeight);
         this.actualFrameWidth = image.getWidth() / columns;
         this.actualFrameHeight = image.getHeight();
+        logger.info("name {}, width {}, height {}", spriteSheetPath, actualFrameWidth, actualFrameHeight);
 
         this.frameCount = frameCount;
         this.columns = columns;
@@ -41,7 +42,7 @@ public class SpriteSheetAnimation {
     }
 
     private void updateFrame() {
-        int x = (int)((currentFrame % columns) * actualFrameWidth);
+        double x = (currentFrame % columns) * actualFrameWidth + (0.5) * imageView.getScaleX(); // + 0.5 mitigates visual glitch (javafx is shit)
         imageView.setViewport(new Rectangle2D(x, 0, actualFrameWidth, actualFrameHeight));
         currentFrame = (currentFrame + 1) % frameCount;
     }

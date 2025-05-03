@@ -22,7 +22,11 @@ public class SettingsWindow {
     private final String style = getClass().getResource("/CSS/UI.css").toExternalForm();
     private final String sliderStyle = getClass().getResource("/CSS/slider.css").toExternalForm();
 
-    private Stage stage = new Stage();
+    private final Stage stage = new Stage();
+    private final Slider volumeSlider;
+    private ChoiceBox<String> windowModeChoice;
+
+    private double volume = SoundManager.getInstance().getVolume();
 
     private SettingsWindow() {
         stage.initModality(Modality.APPLICATION_MODAL);
@@ -32,26 +36,37 @@ public class SettingsWindow {
 
         // Volume Control
         Label volumeLabel = new Label("Volume:");
-        Slider volumeSlider = new Slider(0, 100, SoundManager.getInstance().getVolume() * 100);
+        volumeSlider = new Slider(0, 100, SoundManager.getInstance().getVolume() * 100.0);
         volumeSlider.getStylesheets().add(sliderStyle);
         volumeSlider.setShowTickLabels(true);
         volumeSlider.setShowTickMarks(true);
+        volumeSlider.valueChangingProperty().addListener((obs, wasChanging, isChanging) -> {
+            if (!isChanging) {
+                SoundManager.getInstance().setVolume(volumeSlider.getValue() / 100.0);
+            }
+        });
 
         // Window mode
-        Label difficultyLabel = new Label("Window Mode:");
-        ChoiceBox<String> difficultyChoice = new ChoiceBox<>();
-        difficultyChoice.getItems().addAll("Windowed", "Fullscreen");
-        difficultyChoice.setValue("Windowed");
+        Label windowModeLabel = new Label("Window Mode:");
+        windowModeChoice = new ChoiceBox<>();
+        windowModeChoice.getItems().addAll("Windowed", "Fullscreen");
+        windowModeChoice.setValue("Windowed");
 
         // Apply and Close Buttons
-        SoundButton applyButton = new SoundButton("Apply");
+        SoundButton applyButton = new SoundButton("OK");
         SoundButton closeButton = new SoundButton("Close");
-        closeButton.setOnAction(e -> stage.close());
+        closeButton.setOnAction(e -> {
+            close();
+        });
 
         applyButton.setOnAction(e -> {
-            double volume = volumeSlider.getValue() / 100;
+            volume = volumeSlider.getValue() / 100.0;
             SoundManager.getInstance().setVolume(volume);
             stage.close();
+        });
+
+        stage.setOnCloseRequest(e -> {
+            close();
         });
 
         // Layout
@@ -62,8 +77,8 @@ public class SettingsWindow {
 
         layout.add(volumeLabel, 0, 0);
         layout.add(volumeSlider, 1, 0);
-        layout.add(difficultyLabel, 0, 1);
-        layout.add(difficultyChoice, 1, 1);
+        layout.add(windowModeLabel, 0, 1);
+        layout.add(windowModeChoice, 1, 1);
         layout.add(applyButton, 0, 2);
         layout.add(closeButton, 1, 2);
 
@@ -77,10 +92,13 @@ public class SettingsWindow {
     }
 
     public void open() {
+        volumeSlider.setValue(volume * 100.0);
         stage.show();
     }
 
     public void close() {
+        SoundManager.getInstance().setVolume(volume);
+        stage.close();
         stage.hide();
     }
 }
