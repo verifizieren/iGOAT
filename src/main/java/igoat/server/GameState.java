@@ -1,6 +1,7 @@
 package igoat.server;
 
 import igoat.Role;
+import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,8 @@ public class GameState {
     private boolean[] terminals;
     private int[] ids;
     private final List<ClientHandler> players;
+    private final List<String> eventLog;
+    private boolean doorsOpen = false;
 
     public boolean gameOver = false;
 
@@ -26,6 +29,8 @@ public class GameState {
         for (boolean terminal : terminals) {
             terminal = false;
         }
+
+        eventLog = new ArrayList<>();
 
         this.ids = ids;
 
@@ -63,12 +68,16 @@ public class GameState {
      * @return True if the correct terminals are active, false otherwise
      */
     public boolean isDoorOpen() {
+        if (doorsOpen) {
+            return true;
+        }
+
         for (int i : ids) {
             if (!terminals[i]) {
                 return false;
             }
         }
-
+        eventLog.add("door");
         return true;
     }
 
@@ -76,6 +85,7 @@ public class GameState {
      * Manually activate terminals for doors top open. For debugging / cheat code purposes
      */
     public void openDoors() {
+        eventLog.add("door");
         for (int id : ids) {
             terminals[id] = true;
         }
@@ -100,6 +110,7 @@ public class GameState {
         for (int val : ids) {
             if (val == id) {
                 terminals[id] = true;
+                eventLog.add("terminal:" + id);
                 return true;
             }
         }
@@ -108,10 +119,19 @@ public class GameState {
         for (ClientHandler client : players) {
             if (client.getPlayer().getRole() == Role.GOAT && client.getPlayer().isCaught()) {
                 terminals[id] = true;
+                eventLog.add("terminal:" + id);
                 return true;
             }
         }
 
         return false;
+    }
+
+    /**
+     * Gets the list of all events that happened until now
+     * @return List containing the protocol commands for each event
+     */
+    public List<String> getEventLog() {
+        return eventLog;
     }
 }

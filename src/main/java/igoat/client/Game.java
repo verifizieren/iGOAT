@@ -340,7 +340,7 @@ public class Game extends Application {
         gamePane.requestFocus();
         
         lastUpdate = System.nanoTime();
-        new AnimationTimer() {
+        AnimationTimer mainLoop = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 double deltaTime = (now - lastUpdate) / 1_000_000_000.0;
@@ -348,11 +348,14 @@ public class Game extends Application {
                 update(deltaTime);
                 if (serverHandler == null || !serverHandler.isConnected()) {
                     logger.error("Lost connection to server");
+                    stop();
                     exit();
                 }
             }
-        }.start();
-        
+        };
+        mainLoop.start();
+
+
         initializeChatUI();
         timer.reset(0);
         time = "0:0";

@@ -10,7 +10,7 @@ public class SoundManager {
     private static final Logger logger = LoggerFactory.getLogger(SoundManager.class);
 
     private static final SoundManager instance = new SoundManager();
-    private double volume = 0.5;
+    private double volume = 0.2;
 
     private SoundManager() {
         setVolume(volume);

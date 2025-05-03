@@ -30,6 +30,7 @@ public class Lobby {
 
     private final int code;
     private final List<ClientHandler> members = new ArrayList<>();
+    private final List<Player> playerList = new ArrayList<>();
     /**
      * Maximum number of players allowed in a lobby
      */
@@ -208,6 +209,23 @@ public class Lobby {
     }
 
     /**
+     * Gets the list of player names that were in the lobby when the game was started
+     * @return List of player names in the game
+     */
+    public List<Player> getPlayerList() {
+        return playerList;
+    }
+
+    public Player getPlayer(String name) {
+        for (Player player : playerList) {
+            if (name.equals(player.getNickname())) {
+                return player;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Checks if the lobby has reached its maximum player capacity.
      *
      * @return true if the number of players equals or exceeds MAX_PLAYERS
@@ -244,7 +262,9 @@ public class Lobby {
         // new gamestate
         gameState = new GameState(map.getTerminalList().size(), generateRandomTerminalIDs(), members);
         for (ClientHandler client : members) {
-            client.resetGameState();
+            Player player = new Player(200, 80, client.getNickname(), this);
+            playerList.add(player);
+            client.setPlayer(player);
         }
 
         state = LobbyState.IN_GAME;
@@ -255,6 +275,7 @@ public class Lobby {
     }
 
     public void endGame() {
+        playerList.clear();
         state = LobbyState.FINISHED;
     }
 

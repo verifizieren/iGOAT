@@ -7,16 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClientHandlerTest {
-    @Test
-    public void testPositionWasSetGetterSetter() {
-        ClientHandler handler = new ClientHandler(null); // null socket for unit test
-        handler.getPlayer().setPositionWasSet(true);
-        boolean result = handler.getPlayer().getPositionWasSet();
-        assertTrue(result);
-        handler.getPlayer().setPositionWasSet(false);
-        assertFalse(handler.getPlayer().getPositionWasSet());
-    }
-
     static class TestClientHandler extends ClientHandler {
         List<String> errors = new ArrayList<>();
         List<String[]> connectCalls = new ArrayList<>();

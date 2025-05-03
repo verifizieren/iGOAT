@@ -41,6 +41,10 @@ public class Player {
         lobby.broadcastUpdateToLobby("player_position:" + nickname + ":" + (int)x + ":" + (int)y, null);
     }
 
+    public String getNickname() {
+        return nickname;
+    }
+
     public double getX() {
         return x;
     }

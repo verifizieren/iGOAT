@@ -601,7 +601,6 @@ public class LobbyGUI {
                             serverHandler.sendMessage("getplayers:");
                         }
                     } else {
-                        appendToMessageArea("Info: Du bist Lobby " + content + " beigetreten.");
                         logger.info("Joined lobby {}", content);
                         currentLobbyCode = content;
                         readyButton.setDisable(false);
@@ -671,7 +670,6 @@ public class LobbyGUI {
                         playerReadyStatus.put(playerName, ready);
 
                         Platform.runLater(() -> {
-                            logger.info("bruh");
                             updatePlayerListWithReadyStatus();
                             String[] currentPlayersArray = playerListView.getItems().stream()
                                    .map(item -> item.replace(" ✓", ""))

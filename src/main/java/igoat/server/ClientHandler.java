@@ -63,6 +63,7 @@ public class ClientHandler implements Runnable {
     private Lobby currentLobby;
     private static int nextLobbyCode = 1000;
     private boolean isReady = false;
+    private boolean clientReady = false;
     
     private static DatagramSocket serverUpdateSocket;
     private static DatagramSocket udpListeningSocket;
@@ -70,7 +71,7 @@ public class ClientHandler implements Runnable {
     private static Thread udpListenerThread;
     
     private String nickname;
-    private Player player = new Player(80, 80, null, null);
+    private Player player;
 
     static {
         try {
@@ -239,6 +240,8 @@ public class ClientHandler implements Runnable {
                 return;
             }
 
+            sender.clientReady = true;
+
             // check correct spawn/teleport location
             if (!sender.getPlayer().getPositionWasSet()) {
                 if (x == sender.getPlayer().getX() && y == sender.getPlayer().getY()) {
@@ -343,7 +346,6 @@ public class ClientHandler implements Runnable {
     public ClientHandler(Socket clientSocket) {
         this.clientSocket = clientSocket;
         this.lastPongTime = System.currentTimeMillis();
-        this.getPlayer().getSpawnProtection().reset();
         this.nickname = generateUniqueNickname("player");
     }
 
@@ -636,8 +638,59 @@ public class ClientHandler implements Runnable {
         sendMessage("confirm:" + this.nickname);
         broadcast("chat:User " + this.nickname + " connected");
         broadcastGlobalPlayerList();
+
+        // check if player was in a game
+        for (Lobby lobby : lobbyList) {
+            for (Player player : lobby.getPlayerList()) {
+                if (nickname.equals(player.getNickname())) {
+                    if (lobby.getState() != LobbyState.IN_GAME) {
+                        return;
+                    }
+                    joinLobby(lobby);
+                    reconnect();
+                    return;
+                }
+            }
+        }
     }
 
+    /**
+     * Connects the user to an existing game.
+     */
+    private void reconnect() {
+        logger.info("Active game detected - reconnecting");
+        player = currentLobby.getPlayer(nickname);
+
+        if (player == null) {
+            logger.error("Could not reconnect");
+            leaveCurrentLobby();
+            return;
+        }
+        player.setPositionWasSet(false);
+        sendMessage("game_started:");
+
+        logger.info("waiting for client...");
+        while (!clientReady) {
+            try {
+                Thread.sleep(100);
+
+            } catch (InterruptedException e) {
+                logger.error("Error while reconnecting", e);
+            }
+        }
+
+        // send gamestate event log
+        for (String event : currentLobby.getGameState().getEventLog()) {
+            sendMessage(event);
+        }
+        // send player status
+        for (Player player : currentLobby.getPlayerList()) {
+            if (player.isCaught()) {
+                sendMessage("catch:" + player.getNickname());
+            }
+        }
+        logger.info("sent event log");
+    }
     /**
      * Processes a chat message.
      *
@@ -760,18 +813,8 @@ public class ClientHandler implements Runnable {
             return;
         }
 
-        leaveCurrentLobby();
-
-        currentLobby = lobbyToJoin;
-        currentLobby.addMember(this);
-
-        sendMessage("lobby:" + code);
-        currentLobby.broadcastChatToLobby(nickname + " has joined lobby " + code);
-
-        broadcastGetLobbiesToAll();
-        broadcastLobbyPlayerList();
+        joinLobby(lobbyToJoin);
     }
-
 
     private void handleNewLobby() {
         if (currentLobby != null) {
@@ -782,15 +825,18 @@ public class ClientHandler implements Runnable {
         int code = nextLobbyCode++;
         Lobby newLobby = new Lobby(code);
         lobbyList.add(newLobby);
+        newLobby.broadcastChatToLobby(nickname + " has created a new lobby (" + code + ")");
+        joinLobby(newLobby);
+    }
 
+    private void joinLobby(Lobby lobby) {
         leaveCurrentLobby();
 
-        currentLobby = newLobby;
+        currentLobby = lobby;
         currentLobby.addMember(this);
 
-        sendMessage("lobby:" + code);
-        logger.info("Created lobby {}", code);
-        currentLobby.broadcastChatToLobby(nickname + " has created a new lobby (" + code + ")");
+        sendMessage("lobby:" + lobby.getCode());
+        currentLobby.broadcastChatToLobby(nickname + " has joined lobby " + lobby.getCode());
 
         broadcastGetLobbiesToAll();
         broadcastLobbyPlayerList();
@@ -1027,8 +1073,9 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public void resetGameState() {
-        player = new Player(80, 80, nickname, currentLobby);
+    public void setPlayer(Player player) {
+        this.player = player;
+        logger.info("player set");
     }
 
     /**
@@ -1078,6 +1125,7 @@ public class ClientHandler implements Runnable {
         logger.info("Starting game in lobby {} (Initiated by creator: {})", currentLobby.getCode(), nickname);
 
         currentLobby.startGame();
+        player.getSpawnProtection().reset();
         broadcastGetLobbiesToAll();
 
         String gameStartedMessage = "game_started:";
