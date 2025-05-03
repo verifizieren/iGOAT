@@ -8,6 +8,7 @@ import igoat.client.GUI.Banner;
 import igoat.client.GUI.SoundButton;
 import java.time.LocalTime;
 
+import java.util.LinkedHashMap;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
@@ -92,7 +93,7 @@ public class Game extends Application {
     
     private Player player;
     private igoat.client.Map gameMap;
-    private Camera activeCamera;
+    private Camera camera;
     private ServerHandler serverHandler;
     private String playerName;
     private String lobbyCode;
@@ -102,7 +103,8 @@ public class Game extends Application {
     
     private boolean gameStarted = false;
     
-    private final Map<String, Player> otherPlayers = new HashMap<>();
+    private final LinkedHashMap<String, Player> otherPlayers = new LinkedHashMap<>();
+    private final HashMapCycler<String, Player> spectatingPlayer = new HashMapCycler<>(otherPlayers);
     private final Map<String, Role> pendingRoles = new ConcurrentHashMap<>();
     private boolean pressedE = false;
     private double mouseX;
@@ -110,6 +112,7 @@ public class Game extends Application {
     private double initialX = 80;
     private double initialY = 80;
     private boolean doorsOpen = false;
+    private boolean spectating = false;
 
 
     /**
@@ -194,7 +197,6 @@ public class Game extends Application {
             String confirmedNickname = serverHandler.getConfirmedNickname();
             if (confirmedNickname == null) {
                 logger.error("Cannot initialize - confirmed nickname is null");
-                return;
             }
         });
     }
@@ -308,44 +310,42 @@ public class Game extends Application {
             gamePane.getChildren().add(decor);
         }
 
-        player = new Player(gamePane, primaryStage.getWidth(), primaryStage.getHeight(), CAMERA_ZOOM,
-                initialX, initialY, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, Color.GRAY, confirmedNickname, true);
+        player = new Player(gamePane, initialX, initialY, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, confirmedNickname);
 
-        player.setSpectated(false);
-        activeCamera = player.getCamera();
+        camera = new Camera(gamePane, primaryStage.getWidth(), primaryStage.getHeight(), CAMERA_ZOOM, true);
         
         scene.widthProperty().addListener((obs, oldVal, newVal) -> {
-            activeCamera.updateViewport(newVal.doubleValue(), scene.getHeight());
+            camera.updateViewport(newVal.doubleValue(), scene.getHeight());
             windowWidth = newVal.doubleValue();
             updateVisuals();
         });
         
         scene.heightProperty().addListener((obs, oldVal, newVal) -> {
-            activeCamera.updateViewport(scene.getWidth(), newVal.doubleValue());
+            camera.updateViewport(scene.getWidth(), newVal.doubleValue());
             windowHeight = newVal.doubleValue();
             updateVisuals();
         });
         
         primaryStage.fullScreenProperty().addListener((obs, oldVal, newVal) -> {
             Platform.runLater(() -> {
-                activeCamera.updateViewport(scene.getWidth(), scene.getHeight());
+                camera.updateViewport(scene.getWidth(), scene.getHeight());
             });
         });
         
         activeKeys = new HashSet<>();
-        scene.setOnKeyPressed(event -> {
-            activeKeys.add(event.getCode());
-            if (event.getCode() == KeyCode.ESCAPE) {
-                stage.setFullScreen(false);
-            }
-        });
-        
-        scene.setOnKeyReleased(event -> {
-            activeKeys.remove(event.getCode());
-            if (event.getCode() == KeyCode.ESCAPE) {
-                stage.setFullScreen(false);
-            }
-        });
+//        scene.setOnKeyPressed(event -> {
+//            activeKeys.add(event.getCode());
+//            if (event.getCode() == KeyCode.ESCAPE) {
+//                stage.setFullScreen(false);
+//            }
+//        });
+//
+//        scene.setOnKeyReleased(event -> {
+//            activeKeys.remove(event.getCode());
+//            if (event.getCode() == KeyCode.ESCAPE) {
+//                stage.setFullScreen(false);
+//            }
+//        });
         
         gamePane.setFocusTraversable(true);
         gamePane.requestFocus();
@@ -535,6 +535,8 @@ public class Game extends Application {
                 Platform.runLater(() -> {
                     if (player != null && revivedPlayerName.equals(player.getUsername())) {
                         player.setDown(false);
+                        logger.info("exiting spectator mode");
+                        spectating = false;
                     } else {
                         Player other = otherPlayers.get(revivedPlayerName);
                         if (other != null) {
@@ -910,9 +912,7 @@ public class Game extends Application {
 
             } else {
                 logger.info("Player {} not found, creating new Player object.", playerName);
-                Color defaultColor = Color.ORANGE;
-                remotePlayer = new Player(gamePane, gamePane.getWidth(), gamePane.getHeight(), CAMERA_ZOOM,
-                        x, y, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, defaultColor, playerName, false);
+                remotePlayer = new Player(gamePane, x, y, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, playerName);
 
                 otherPlayers.put(playerName, remotePlayer);
                 logger.info("Added new player {} to otherPlayers map.", playerName);
@@ -950,8 +950,16 @@ public class Game extends Application {
      * - Updating visual elements for dynamic game objects
      */
     private void updateVisuals() {
-        double centerX = player.getX() + (PLAYER_WIDTH/2.0);
-        double centerY = player.getY() + (PLAYER_HEIGHT/2.0);
+        double centerX;
+        double centerY;
+
+        if (spectating && spectatingPlayer.getCurrentValue() != null) {
+            centerX = spectatingPlayer.getCurrentValue().getX() + (PLAYER_WIDTH / 2.0);
+            centerY = spectatingPlayer.getCurrentValue().getY() + (PLAYER_HEIGHT / 2.0);
+        } else {
+            centerX = player.getX() + (PLAYER_WIDTH / 2.0);
+            centerY = player.getY() + (PLAYER_HEIGHT / 2.0);
+        }
 
         for (Player otherPlayer : otherPlayers.values()) {
             Shape visualClip;
@@ -977,7 +985,7 @@ public class Game extends Application {
         }
 
         if (player.getRole() == Role.GUARD) {
-            activeCamera.updateCone(getMouseAngle());
+            camera.updateCone(getMouseAngle());
         }
     }
 
@@ -1133,8 +1141,13 @@ public class Game extends Application {
             lastPositionUpdate = currentTime;
         }
 
-        if (activeCamera != null) {
-            activeCamera.centerOn(player.getX() + (player.getWidth() / 2.0), player.getY() + (player.getHeight() / 2.0));
+        if (camera != null) {
+            if (spectating) {
+                Player spectating = spectatingPlayer.getCurrentValue();
+                camera.update(spectating.getX() + (spectating.getWidth() / 2.0), spectating.getY() + (spectating.getHeight() / 2.0));
+            } else {
+                camera.update(player.getX() + (player.getWidth() / 2.0), player.getY() + (player.getHeight() / 2.0));
+            }
         }
 
         updateVisuals();
@@ -1249,16 +1262,10 @@ public class Game extends Application {
     }
     
     /**
-     * Handles the game started event (defensive).
-     * Mainly ensures player is controllable.
+     * Handles the game started event.
      */
     private void handleGameStarted() {
         gameStarted = true;
-        Platform.runLater(() -> {
-            if(player != null) {
-                 player.setSpectated(false);
-            }
-        });
     }
 
     /**
@@ -1355,7 +1362,7 @@ public class Game extends Application {
         chatBox.getChildren().addAll(modeBox, chatScrollPane, chatInput);
         
         uiOverlay.getChildren().add(chatBox);
-        
+
         gameScene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER && !chatInput.isFocused()) { 
                 event.consume(); 
@@ -1375,6 +1382,20 @@ public class Game extends Application {
                 if (event.getCode() == KeyCode.ESCAPE) {
                     stage.setFullScreen(false);
                 }
+            }
+
+            // spectator mode
+            if (event.getCode() == KeyCode.TAB && player.isDown() && player.getRole() != Role.GUARD) {
+                if (spectating) {
+                    logger.info("switching perspective");
+                    spectatingPlayer.nextValue();
+                } else {
+                    logger.info("switch to spectator");
+                    spectating = true;
+                }
+            } else if (event.getCode() == KeyCode.ESCAPE && spectating) {
+                logger.info("exiting spectator mode");
+                spectating = false;
             }
         });
         

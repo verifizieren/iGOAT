@@ -32,7 +32,7 @@ public class MapTest extends Application {
         
         cameraX = map.getWidth() / 2.0;
         cameraY = map.getHeight() / 2.0;
-        camera.centerOn(cameraX, cameraY);
+        camera.update(cameraX, cameraY);
         
         scene.setOnKeyPressed(event -> {
             switch (event.getCode()) {
@@ -42,7 +42,7 @@ public class MapTest extends Application {
                 case D, RIGHT -> cameraX += MOVE_SPEED;
                 default -> { /* Do nothing */ }
             }
-            camera.centerOn(cameraX, cameraY);
+            camera.update(cameraX, cameraY);
         });
         
         scene.setOnMousePressed(event -> {
@@ -57,7 +57,7 @@ public class MapTest extends Application {
             cameraY -= deltaY;
             dragStartX = event.getSceneX();
             dragStartY = event.getSceneY();
-            camera.centerOn(cameraX, cameraY);
+            camera.update(cameraX, cameraY);
         });
 
         scene.widthProperty().addListener((obs, oldVal, newVal) -> 

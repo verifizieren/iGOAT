@@ -27,7 +27,6 @@ public class Player {
     private SpriteSheetAnimation animation;
     private ImageView idle;
     private final Text usernameLabel;
-    private final Camera camera;
     private boolean isBeingSpectated;
     private String username;
     private Role role = null;
@@ -41,19 +40,13 @@ public class Player {
      * Creates a new player with the specified properties.
      *
      * @param gamePane The JavaFX pane where the player will be rendered
-     * @param viewportWidth The width of the player's viewport
-     * @param viewportHeight The height of the player's viewport
-     * @param zoom The initial zoom level for the player's camera
      * @param x The initial X coordinate
      * @param y The initial Y coordinate
      * @param width The width of the player's visual representation
      * @param height The height of the player's visual representation
-     * @param color The color of the player's visual representation
      * @param username The player's username
-     * @param isLocalPlayer Whether this is the local player (true) or a remote player (false)
      */
-    public Player(Pane gamePane, double viewportWidth, double viewportHeight, double zoom,
-                 double x, double y, int width, int height, Color color, String username, boolean isLocalPlayer) {
+    public Player(Pane gamePane, double x, double y, int width, int height, String username) {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -72,18 +65,8 @@ public class Player {
         updateUsernamePosition();
         
         gamePane.getChildren().add(usernameLabel);
-        
-        if (isLocalPlayer) {
-            this.camera = new Camera(gamePane, viewportWidth, viewportHeight, zoom, true);
-        } else {
-            this.camera = null;
-        }
-        this.isBeingSpectated = false;
     }
 
-    /**
-     * Updates the player's position and camera.
-     */
     /**
      * Updates the player's position and visual representation.
      *
@@ -116,10 +99,6 @@ public class Player {
         this.idle.setX(x);
         this.idle.setY(y);
         updateUsernamePosition();
-        
-        if (isBeingSpectated && camera != null) {
-            updateCamera();
-        }
 
         // show animation when moving
         idle.setVisible(false);
@@ -137,9 +116,6 @@ public class Player {
     }
 
     /**
-     * Sets the player's username and updates the label.
-     */
-    /**
      * Sets the player's username and updates the username label.
      *
      * @param username The new username to set
@@ -152,9 +128,6 @@ public class Player {
 
     /**
      * Gets the player's username.
-     */
-    /**
-     * Gets the player's username.
      *
      * @return The player's current username
      */
@@ -163,58 +136,15 @@ public class Player {
     }
 
     /**
-     * Updates the camera to follow this player.
-     */
-    public void updateCamera() {
-        if (camera != null) {
-            camera.update(idle.getX(), idle.getY());
-        }
-    }
-
-    /**
-     * Sets whether this player is being spectated.
-     */
-    /**
-     * Sets whether this player is being spectated.
-     * Updates visual effects accordingly.
-     *
-     * @param spectated true if the player is being spectated, false otherwise
-     */
-    public void setSpectated(boolean spectated) {
-        this.isBeingSpectated = spectated;
-        if (spectated) {
-            updateCamera();
-        }
-    }
-
-    /**
-     * Gets the player's camera.
-     */
-    /**
-     * Gets the player's camera.
-     *
-     * @return The Camera object associated with this player
-     */
-    public Camera getCamera() {
-        return camera;
-    }
-
-    /**
-     * Gets the visual representation of the player.
-     */
-    /**
      * Gets the player's visual representation.
      *
-     * @return The Rectangle object representing the player in the game
+     * @return The Group object containing the elements that represent the player in the game
      */
     public Group getVisual() {
         return visual;
     }
 
-    /**
-     * Checks if this player collides with a wall.
-     * Uses exact dimensions for precise collision detection.
-     */
+
     /**
      * Tests if a potential position would collide with a wall.
      *
@@ -240,9 +170,6 @@ public class Player {
     }
 
     /**
-     * Gets the player's x-coordinate.
-     */
-    /**
      * Gets the player's X coordinate.
      *
      * @return The current X coordinate
@@ -251,9 +178,6 @@ public class Player {
         return x;
     }
 
-    /**
-     * Gets the player's y-coordinate.
-     */
     /**
      * Gets the player's Y coordinate.
      *
@@ -265,9 +189,6 @@ public class Player {
 
     /**
      * Gets the player's width.
-     */
-    /**
-     * Gets the player's width.
      *
      * @return The width of the player's visual representation
      */
@@ -277,9 +198,6 @@ public class Player {
 
     /**
      * Gets the player's height.
-     */
-    /**
-     * Gets the player's height.
      *
      * @return The height of the player's visual representation
      */
@@ -287,9 +205,6 @@ public class Player {
         return height;
     }
 
-    /**
-     * Gets the username label for this player.
-     */
     /**
      * Gets the player's username label.
      *

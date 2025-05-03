@@ -1,6 +1,5 @@
 package igoat.client;
 
-import igoat.client.GUI.MainMenuGUI;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.geometry.Rectangle2D;
@@ -29,7 +28,6 @@ public class SpriteSheetAnimation {
         this.imageView.setFitHeight(frameHeight);
         this.actualFrameWidth = image.getWidth() / columns;
         this.actualFrameHeight = image.getHeight();
-        logger.info("name {}, width {}, height {}", spriteSheetPath, actualFrameWidth, actualFrameHeight);
 
         this.frameCount = frameCount;
         this.columns = columns;
