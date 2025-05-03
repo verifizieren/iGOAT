@@ -1,5 +1,7 @@
 package igoat.client.GUI;
 
+import igoat.client.ScreenUtil;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
  * Singleton class for the manual
  */
 public class ManualWindow {
+    private BorderPane layout;
     private static final Logger logger = LoggerFactory.getLogger(ManualWindow.class);
     private static final ManualWindow instance = new ManualWindow();
 
@@ -44,7 +47,7 @@ public class ManualWindow {
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setTitle("Manual");
 
-        BorderPane layout = new BorderPane();
+        layout = new BorderPane();
         layout.setPadding(new Insets(20));
 
         SoundButton prevButton = new SoundButton("←");
@@ -78,7 +81,8 @@ public class ManualWindow {
     }
 
     public void open() {
-        stage.showAndWait();
+        ScreenUtil.moveStageToCursorScreen(stage, layout.getPrefWidth() > 0 ? layout.getPrefWidth() : 600, layout.getPrefHeight() > 0 ? layout.getPrefHeight() : 400);
+stage.showAndWait();
     }
 
     public void close() {
