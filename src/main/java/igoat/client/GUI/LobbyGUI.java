@@ -76,6 +76,7 @@ public class LobbyGUI {
     private Label chatModeLabel;
 
     private final SettingsWindow settings = SettingsWindow.getInstance();
+    private final ManualWindow manual = ManualWindow.getInstance();
     private final String style = getClass().getResource("/CSS/UI.css").toExternalForm();
 
     // Lobby and player list components
@@ -138,7 +139,15 @@ public class LobbyGUI {
         HBox topBar = new HBox(10, settingsButton);
         topBar.setAlignment(Pos.TOP_RIGHT);
 
-        HBox mainLayout = new HBox(20, leftPanel, rightPanel, topBar);
+        // Manual button
+        SoundButton manualButton = new SoundButton("");
+        manualButton.setGraphic(new ImageView(new Sprite("/sprites/igoat_idle.png", 32, 32)));
+        manualButton.setOnAction(event -> {manual.open();});
+        manualButton.setStyle("-fx-padding: 0px 0px;");
+        HBox bottomBar = new HBox(20, manualButton);
+        bottomBar.setAlignment(Pos.TOP_RIGHT);
+
+        HBox mainLayout = new HBox(20, leftPanel, rightPanel, topBar, bottomBar);
         mainLayout.setPadding(new Insets(20));
         mainLayout.setAlignment(Pos.CENTER);
 
@@ -693,6 +702,7 @@ public class LobbyGUI {
 
                             stage.hide();
                             settings.close();
+                            manual.close();
                             running = false; // Stop the message receiver thread
                         } catch (Exception ex) {
                             logger.error("Error starting game", ex);
