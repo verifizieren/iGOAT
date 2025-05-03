@@ -526,6 +526,9 @@ public class Game extends Application {
                         Player other = otherPlayers.get(caughtPlayerName);
                         if (other != null) {
                             other.setDown(true);
+                            if (other.getRole() == Role.IGOAT) {
+                                sound.igoatCatch.play(other.getX(), other.getY(), player.getX(), player.getY(), 300);
+                            }
                         }
                     }
                 });
@@ -1215,11 +1218,11 @@ public class Game extends Application {
 
         // display terminal activation banner
         terminalActivationBanner.showAnimation("Terminal " + id + " Activated!", 2.5f);
-        sound.terminal.play();
 
         for (Terminal terminal : gameMap.getTerminalList()) {
             if (terminal.getTerminalID() == id) {
                 terminal.activate();
+                sound.terminal.play(terminal.getX(), terminal.getY(), player.getX(), player.getY(), 300);
                 return;
             }
         }

@@ -48,6 +48,20 @@ public class Sound {
     }
 
     /**
+     * Plays the sound only if the target is within a certain distance of the source
+     * @param sourceX Sound location x-coordinate
+     * @param sourceY Sound location y-coordinate
+     * @param targetX Listener location x-coordinate
+     * @param targetY Listener location y-coordinate
+     * @param maxDistance The distance within which the sound can be heard
+     */
+    public void play(double sourceX, double sourceY, double targetX, double targetY, double maxDistance) {
+        if (Math.sqrt(Math.pow(sourceX - targetX, 2) + Math.pow(sourceY - targetY, 2)) <= maxDistance) {
+            play();
+        }
+    }
+
+    /**
      * Continuously plays the sound until it is stopped
      */
     public void loop() {
