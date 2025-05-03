@@ -266,13 +266,13 @@ public class Player {
                 gamePane.getChildren().add(visual);
             }
             case GUARD -> {
-                animation = new SpriteSheetAnimation("/sprites/guard.png",
-                    20, 32, 1, 1, 100);
+                animation = new SpriteSheetAnimation("/sprites/guard_animation-Sheet.png",
+                    20, 32, 6, 6, 120);
                 animation.getView().setX(this.x);
                 animation.getView().setY(this.y);
                 animation.getView().setVisible(false);
 
-                idle = new ImageView(new Sprite("/sprites/guard.png"));
+                idle = new ImageView(new Sprite("/sprites/guard_idle.png"));
                 idle.setX(this.x);
                 idle.setY(this.y);
                 idle.setFitWidth(20);
