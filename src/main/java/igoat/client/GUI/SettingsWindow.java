@@ -81,7 +81,7 @@ public class SettingsWindow {
         });
 
         // Layout
-        GridPane layout = new GridPane();
+        layout = new GridPane();
         layout.setPadding(new Insets(10));
         layout.setVgap(10);
         layout.setHgap(10);
