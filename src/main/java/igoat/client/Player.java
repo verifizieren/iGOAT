@@ -62,6 +62,8 @@ public class Player {
         this.usernameLabel = new Text(username);
         this.usernameLabel.setFont(Font.font("Jersey 10", 12));
         this.usernameLabel.setFill(Color.BLACK);
+        this.usernameLabel.setStroke(Color.WHITE);
+        this.usernameLabel.setStrokeWidth(0.2);
         updateUsernamePosition();
         
         gamePane.getChildren().add(usernameLabel);

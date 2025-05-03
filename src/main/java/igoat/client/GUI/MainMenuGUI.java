@@ -1,5 +1,7 @@
 package igoat.client.GUI;
 
+import igoat.client.ScreenUtil;
+
 import igoat.client.ServerHandler;
 import igoat.server.Server;
 import javafx.application.Application;
@@ -91,6 +93,8 @@ public class MainMenuGUI extends Application {
             dialogPane.getStylesheets().add(finalStyle);
             logger.info(finalStyle);
 
+            Stage portDialogStage = (Stage) portDialog.getDialogPane().getScene().getWindow();
+            ScreenUtil.moveStageToCursorScreen(portDialogStage, portDialogStage.getWidth() > 0 ? portDialogStage.getWidth() : 350, portDialogStage.getHeight() > 0 ? portDialogStage.getHeight() : 200);
             portDialog.showAndWait().ifPresent(serverPort -> {
                 serverThread = new Thread(() -> Server.startServer(Integer.parseInt(serverPort)));
                 serverThread.setDaemon(true);
@@ -109,6 +113,8 @@ public class MainMenuGUI extends Application {
             DialogPane joinDialogPane = ipDialog.getDialogPane();
             joinDialogPane.getStylesheets().add(finalStyle);
 
+            Stage ipDialogStage = (Stage) ipDialog.getDialogPane().getScene().getWindow();
+            ScreenUtil.moveStageToCursorScreen(ipDialogStage, ipDialogStage.getWidth() > 0 ? ipDialogStage.getWidth() : 350, ipDialogStage.getHeight() > 0 ? ipDialogStage.getHeight() : 200);
             ipDialog.showAndWait().ifPresent(serverIP -> {
                 TextInputDialog portDialog = new TextInputDialog("61000");
                 portDialog.setTitle("Join Server");
@@ -119,6 +125,8 @@ public class MainMenuGUI extends Application {
                 DialogPane portDialogPane = portDialog.getDialogPane();
                 portDialogPane.getStylesheets().add(finalStyle);
 
+                Stage joinPortDialogStage = (Stage) portDialog.getDialogPane().getScene().getWindow();
+                ScreenUtil.moveStageToCursorScreen(joinPortDialogStage, joinPortDialogStage.getWidth() > 0 ? joinPortDialogStage.getWidth() : 350, joinPortDialogStage.getHeight() > 0 ? joinPortDialogStage.getHeight() : 200);
                 portDialog.showAndWait().ifPresent(port -> {
                     String systemUsername = System.getProperty("user.name");
                     TextInputDialog nameDialog = new TextInputDialog(systemUsername);
@@ -130,7 +138,9 @@ public class MainMenuGUI extends Application {
                     DialogPane nameDialogPane = nameDialog.getDialogPane();
                     nameDialogPane.getStylesheets().add(finalStyle);
 
-                    nameDialog.showAndWait().ifPresent(name -> {
+Stage dialogStage = (Stage) nameDialog.getDialogPane().getScene().getWindow();
+ScreenUtil.moveStageToCursorScreen(dialogStage, dialogStage.getWidth() > 0 ? dialogStage.getWidth() : 350, dialogStage.getHeight() > 0 ? dialogStage.getHeight() : 200);
+nameDialog.showAndWait().ifPresent(name -> {
                         // sanitize string
                         name = name.replaceAll("[\\s=:]", "");
                         if (name.isEmpty()) {
@@ -157,6 +167,7 @@ public class MainMenuGUI extends Application {
             exitButton
         );
 
+        ScreenUtil.moveStageToCursorScreen(primaryStage, root.getPrefWidth() > 0 ? root.getPrefWidth() : 400, root.getPrefHeight() > 0 ? root.getPrefHeight() : 350);
         primaryStage.setScene(scene);
         primaryStage.show();
     }

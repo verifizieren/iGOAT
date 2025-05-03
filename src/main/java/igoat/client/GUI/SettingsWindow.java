@@ -1,5 +1,7 @@
 package igoat.client.GUI;
 
+import igoat.client.ScreenUtil;
+
 import igoat.client.SoundManager;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -25,6 +27,7 @@ public class SettingsWindow {
     private final Stage stage = new Stage();
     private final Slider volumeSlider;
     private ChoiceBox<String> windowModeChoice;
+    private GridPane layout;
 
     private Stage gameStage;
     private double volume = SoundManager.getInstance().getVolume();
@@ -102,6 +105,7 @@ public class SettingsWindow {
     public void open() {
         volumeSlider.setValue(volume * 100.0);
         windowModeChoice.setValue(fullscreen ? "Fullscreen" : "Windowed");
+        ScreenUtil.moveStageToCursorScreen(stage, layout.getPrefWidth() > 0 ? layout.getPrefWidth() : 300, layout.getPrefHeight() > 0 ? layout.getPrefHeight() : 200);
         stage.show();
     }
 

@@ -1,5 +1,7 @@
 package igoat.client.GUI;
 
+import igoat.client.ScreenUtil;
+
 import igoat.client.Sprite;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -155,6 +157,7 @@ public class LobbyGUI {
         scene.getStylesheets().add(style);
         scene.getStylesheets().add(getClass().getResource("/CSS/LobbyBackground.css").toExternalForm());
 
+        ScreenUtil.moveStageToCursorScreen(stage, mainLayout.getPrefWidth() > 0 ? mainLayout.getPrefWidth() : 750, mainLayout.getPrefHeight() > 0 ? mainLayout.getPrefHeight() : 600);
         stage.setTitle("Lobby Menu");
         stage.setScene(scene);
         stage.show();
@@ -361,6 +364,8 @@ public class LobbyGUI {
             DialogPane nameDialogPane = dialog.getDialogPane();
             nameDialogPane.getStylesheets().add(style);
 
+            Stage dialogStage = (Stage) dialog.getDialogPane().getScene().getWindow();
+            ScreenUtil.moveStageToCursorScreen(dialogStage, dialogStage.getWidth() > 0 ? dialogStage.getWidth() : 350, dialogStage.getHeight() > 0 ? dialogStage.getHeight() : 200);
             dialog.showAndWait().ifPresent(name -> {
                 // sanitize string
                 name = name.replaceAll("[\\s=:]", "");
@@ -1039,18 +1044,15 @@ public class LobbyGUI {
                 highscoreStage.setX(mouseEvent.getScreenX() + dragDelta.x);
                 highscoreStage.setY(mouseEvent.getScreenY() + dragDelta.y);
             });
-            
+
             Scene scene = new Scene(root, 700, 550);
             highscoreStage.setScene(scene);
-            
             scene.getStylesheets().add(getClass().getResource("/CSS/highscores.css").toExternalForm());
-            
+            ScreenUtil.moveStageToCursorScreen(highscoreStage, 700, 550);
             highscoreStage.show();
-            
             logger.info("Displayed enhanced highscores window");
         });
     }
-
     /**
      * Creates a tab for displaying highscores.
      * 
