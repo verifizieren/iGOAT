@@ -68,6 +68,15 @@ public class Player {
     }
 
     /**
+     * Stops the walking animation and switches to the idle frame
+     */
+    public void setIdle() {
+        animation.stop();
+        animation.getView().setVisible(false);
+        idle.setVisible(true);
+    }
+
+    /**
      * Updates the player's position and visual representation.
      *
      * @param newX The new X coordinate
@@ -76,9 +85,7 @@ public class Player {
     public void updatePosition(double newX, double newY) {
         // show idle sprite when not moving
         if (x == newX && y == newY) {
-            animation.stop();
-            animation.getView().setVisible(false);
-            idle.setVisible(true);
+            setIdle();
             return;
         }
 
@@ -90,7 +97,6 @@ public class Player {
             idle.setScaleX(-1);
             animation.getView().setScaleX(-1);
         }
-
 
         this.x = newX;
         this.y = newY;

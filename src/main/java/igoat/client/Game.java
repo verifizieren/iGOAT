@@ -313,6 +313,8 @@ public class Game extends Application {
         player = new Player(gamePane, initialX, initialY, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, confirmedNickname);
 
         camera = new Camera(gamePane, primaryStage.getWidth(), primaryStage.getHeight(), CAMERA_ZOOM, true);
+
+        spectatingPlayer.nextValue();
         
         scene.widthProperty().addListener((obs, oldVal, newVal) -> {
             camera.updateViewport(newVal.doubleValue(), scene.getHeight());
@@ -333,19 +335,6 @@ public class Game extends Application {
         });
         
         activeKeys = new HashSet<>();
-//        scene.setOnKeyPressed(event -> {
-//            activeKeys.add(event.getCode());
-//            if (event.getCode() == KeyCode.ESCAPE) {
-//                stage.setFullScreen(false);
-//            }
-//        });
-//
-//        scene.setOnKeyReleased(event -> {
-//            activeKeys.remove(event.getCode());
-//            if (event.getCode() == KeyCode.ESCAPE) {
-//                stage.setFullScreen(false);
-//            }
-//        });
         
         gamePane.setFocusTraversable(true);
         gamePane.requestFocus();
@@ -357,6 +346,10 @@ public class Game extends Application {
                 double deltaTime = (now - lastUpdate) / 1_000_000_000.0;
                 lastUpdate = now;
                 update(deltaTime);
+                if (serverHandler == null || !serverHandler.isConnected()) {
+                    logger.error("Lost connection to server");
+                    exit();
+                }
             }
         }.start();
         
@@ -548,6 +541,7 @@ public class Game extends Application {
                 String leftPlayer = message.substring("player_left:".length());
                 if (!leftPlayer.equals(this.playerName)) {
                     removeRemotePlayer(leftPlayer);
+                    logger.info("player has left");
                 }
             } else if (message.startsWith("terminal:")) {
                 String[] parts = message.split(":");
@@ -996,25 +990,12 @@ public class Game extends Application {
      */
 
     private void removeRemotePlayer(String remotePlayerName) {
-        String confirmedNickname = serverHandler.getConfirmedNickname();
-        if (confirmedNickname == null) {
-            logger.error("Cannot remove player - confirmed nickname is null");
-            return;
-        }
-        
-        if (remotePlayerName.equals(confirmedNickname)) {
+        if (remotePlayerName.equals(this.playerName)) {
             logger.info("Ignoring removal of ourselves");
             return;
         }
         
-        Player removedPlayer = otherPlayers.remove(remotePlayerName);
-        if (removedPlayer != null) {
-            Platform.runLater(() -> {
-                gamePane.getChildren().remove(removedPlayer.getVisual());
-                gamePane.getChildren().remove(removedPlayer.getUsernameLabel());
-            });
-            logger.info("Removed visual for player {}", remotePlayerName);
-        }
+        otherPlayers.get(remotePlayerName).setIdle();
     }
 
     /**
