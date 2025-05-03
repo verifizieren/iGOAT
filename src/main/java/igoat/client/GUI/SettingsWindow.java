@@ -31,7 +31,7 @@ public class SettingsWindow {
 
     private Stage gameStage;
     private double volume = SoundManager.getInstance().getVolume();
-    private boolean fullscreen = true;
+    private boolean fullscreen = false;
 
     private SettingsWindow() {
         // Volume Control

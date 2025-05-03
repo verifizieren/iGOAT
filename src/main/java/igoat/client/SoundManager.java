@@ -10,7 +10,7 @@ public class SoundManager {
     private static final Logger logger = LoggerFactory.getLogger(SoundManager.class);
 
     private static final SoundManager instance = new SoundManager();
-    private double volume = 0.2;
+    private double volume = 0.5;
 
     private SoundManager() {
         setVolume(volume);
@@ -25,6 +25,7 @@ public class SoundManager {
     public final Sound terminal = new Sound("/sounds/terminal.wav");
     public final Sound doors = new Sound("/sounds/door.wav");
     public final Sound igoatCatch = new Sound("/sounds/igoat_caught.wav");
+    public final Sound denied = new Sound("/sounds/denied.wav");
 
     /**
      * Stops all sound playback
@@ -35,12 +36,16 @@ public class SoundManager {
         terminal.stop();
         doors.stop();
         igoatCatch.stop();
+        denied.stop();
     }
 
     public double getVolume() {
         return volume;
     }
 
+    /**
+     * sets the volume for all sounds
+     */
     public void setVolume(double volume) {
         this.volume = volume;
         click.setVolume(volume);
@@ -48,5 +53,6 @@ public class SoundManager {
         terminal.setVolume(volume);
         doors.setVolume(volume);
         igoatCatch.setVolume(volume);
+        denied.setVolume(volume);
     }
 }

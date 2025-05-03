@@ -520,6 +520,8 @@ public class Game extends Application {
                         player.setDown(true);
                         if (player.getRole() == Role.IGOAT) {
                             sound.igoatCatch.play();
+                        } else if (player.getRole() == Role.GOAT) {
+                            sound.goat.play();
                         }
 
                     } else {
@@ -528,6 +530,8 @@ public class Game extends Application {
                             other.setDown(true);
                             if (other.getRole() == Role.IGOAT) {
                                 sound.igoatCatch.play(other.getX(), other.getY(), player.getX(), player.getY(), 300);
+                            } else if (player.getRole() == Role.GOAT) {
+                                sound.goat.play(other.getX(), other.getY(), player.getX(), player.getY(), 300);
                             }
                         }
                     }
@@ -540,12 +544,16 @@ public class Game extends Application {
                 Platform.runLater(() -> {
                     if (player != null && revivedPlayerName.equals(player.getUsername())) {
                         player.setDown(false);
+                        sound.goat.play();
                         logger.info("exiting spectator mode");
                         spectating = false;
                     } else {
                         Player other = otherPlayers.get(revivedPlayerName);
                         if (other != null) {
                             other.setDown(false);
+                            if (other.getRole() == Role.GOAT) {
+                                sound.goat.play(other.getX(), other.getY(), player.getX(), player.getY(), 300);
+                            }
                         }
                     }
                 });
@@ -1059,6 +1067,7 @@ public class Game extends Application {
                         break;
                     case Role.GOAT:
                         pressRevive();
+                        sound.goat.play();
                 }
             }
         }
@@ -1213,6 +1222,7 @@ public class Game extends Application {
         if (id == -1) {
             noActivationBanner.showAnimation("Can't activate Terminal", 1.5);
             noActivationBanner.shake();
+            sound.denied.play();
             return;
         }
 
