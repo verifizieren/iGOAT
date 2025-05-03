@@ -5,12 +5,14 @@ import static java.lang.Math.sqrt;
 
 import igoat.Timer;
 import igoat.client.GUI.Banner;
+import igoat.client.GUI.SettingsWindow;
 import igoat.client.GUI.SoundButton;
 import java.time.LocalTime;
 
 import java.util.LinkedHashMap;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.FontWeight;
 import java.util.Comparator;
@@ -213,6 +215,11 @@ public class Game extends Application {
     public void start(Stage primaryStage) {
         stage = primaryStage;
         stage.setOnCloseRequest(event -> exit());
+        stage.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
+
+        SettingsWindow settings = SettingsWindow.getInstance();
+        stage.setFullScreen(settings.getFullscreen());
+        settings.setGameStage(stage);
 
         if (serverHandler == null || playerName == null || lobbyCode == null) {
             showError("Initialization Error", "Game cannot start without server connection details.");
@@ -354,8 +361,7 @@ public class Game extends Application {
             }
         };
         mainLoop.start();
-
-
+        camera.updateViewport(stage.getWidth(), stage.getHeight());
         initializeChatUI();
         timer.reset(0);
         time = "0:0";
@@ -1364,7 +1370,7 @@ public class Game extends Application {
             if (!chatInput.isFocused()) {
                 activeKeys.add(event.getCode());
                 if (event.getCode() == KeyCode.ESCAPE) {
-                    stage.setFullScreen(false);
+                    SettingsWindow.getInstance().open();
                 }
             }
 
@@ -1382,13 +1388,10 @@ public class Game extends Application {
                 spectating = false;
             }
         });
-        
+
         gameScene.setOnKeyReleased(event -> {
             if (!chatInput.isFocused()) {
                 activeKeys.remove(event.getCode());
-                if (event.getCode() == KeyCode.ESCAPE) {
-                    stage.setFullScreen(false);
-                }
             }
         });
         

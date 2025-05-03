@@ -675,7 +675,7 @@ public class ClientHandler implements Runnable {
                 Thread.sleep(100);
 
             } catch (InterruptedException e) {
-                logger.error("Error while reconnecting", e);
+                logger.error("Error", e);
             }
         }
 

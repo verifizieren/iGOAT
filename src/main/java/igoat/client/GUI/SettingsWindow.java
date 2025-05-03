@@ -26,10 +26,13 @@ public class SettingsWindow {
     private final Slider volumeSlider;
     private ChoiceBox<String> windowModeChoice;
 
+    private Stage gameStage;
     private double volume = SoundManager.getInstance().getVolume();
+    private boolean fullscreen = true;
 
     private SettingsWindow() {
-        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initModality(Modality.NONE);
+        stage.setAlwaysOnTop(true);
         stage.setTitle("Settings");
         stage.setMinWidth(300);
         stage.setMinHeight(200);
@@ -62,6 +65,11 @@ public class SettingsWindow {
         applyButton.setOnAction(e -> {
             volume = volumeSlider.getValue() / 100.0;
             SoundManager.getInstance().setVolume(volume);
+
+            fullscreen = windowModeChoice.getValue().equals("Fullscreen");
+            if (gameStage != null) {
+                gameStage.setFullScreen(fullscreen);
+            }
             stage.close();
         });
 
@@ -93,6 +101,7 @@ public class SettingsWindow {
 
     public void open() {
         volumeSlider.setValue(volume * 100.0);
+        windowModeChoice.setValue(fullscreen ? "Fullscreen" : "Windowed");
         stage.show();
     }
 
@@ -100,5 +109,13 @@ public class SettingsWindow {
         SoundManager.getInstance().setVolume(volume);
         stage.close();
         stage.hide();
+    }
+
+    public void setGameStage(Stage stage) {
+        gameStage = stage;
+    }
+
+    public boolean getFullscreen() {
+        return fullscreen;
     }
 }
