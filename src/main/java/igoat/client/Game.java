@@ -115,6 +115,7 @@ public class Game extends Application {
     private double initialY = 80;
     private boolean doorsOpen = false;
     private boolean spectating = false;
+    private boolean initializedViewport = false;
 
 
     /**
@@ -218,7 +219,7 @@ public class Game extends Application {
         stage.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
 
         SettingsWindow settings = SettingsWindow.getInstance();
-        stage.setFullScreen(settings.getFullscreen());
+        stage.setFullScreen(false);
         settings.setGameStage(stage);
 
         if (serverHandler == null || playerName == null || lobbyCode == null) {
@@ -361,7 +362,6 @@ public class Game extends Application {
             }
         };
         mainLoop.start();
-        camera.updateViewport(stage.getWidth(), stage.getHeight());
         initializeChatUI();
         timer.reset(0);
         time = "0:0";
@@ -910,14 +910,6 @@ public class Game extends Application {
                 logger.info("Player {} already exists in map, updating position and ensuring visuals.", playerName);
                 remotePlayer.updatePosition(x, y);
 
-//                if (!gamePane.getChildren().contains(remotePlayer.getVisual())) {
-//                    gamePane.getChildren().add(remotePlayer.getVisual());
-//                    logger.info("Added missing visual representation for {}", playerName);
-//                }
-//                if (!gamePane.getChildren().contains(remotePlayer.getUsernameLabel())) {
-//                    gamePane.getChildren().add(remotePlayer.getUsernameLabel());
-//                     logger.info("Added missing username label for {}", playerName);
-//                }
                 Role pendingRole = pendingRoles.remove(playerName);
                 if (pendingRole != null) {
                     remotePlayer.setRole(pendingRole);
@@ -1031,6 +1023,12 @@ public class Game extends Application {
      */
     private void update(double deltaTime) {
         if (player == null || !gameStarted) return;
+
+        if (!initializedViewport) {
+            stage.setFullScreen(SettingsWindow.getInstance().getFullscreen());
+            camera.updateViewport(stage.getWidth(), stage.getHeight());
+            initializedViewport = true;
+        }
 
         double currentX = player.getX();
         double currentY = player.getY();
