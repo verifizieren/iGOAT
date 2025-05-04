@@ -1039,21 +1039,23 @@ public class Game extends Application {
         
         // Only process movement if player is not down
         if (!player.isDown()) {
-            if (activeKeys.contains(KeyCode.W) || activeKeys.contains(KeyCode.UP)) {
+            SettingsWindow settings = SettingsWindow.getInstance();
+            
+            if (activeKeys.contains(settings.getKeyBinding("moveUp")) || activeKeys.contains(KeyCode.UP)) {
                 direction = direction.add(0, -1);
             }
-            if (activeKeys.contains(KeyCode.S) || activeKeys.contains(KeyCode.DOWN)) {
+            if (activeKeys.contains(settings.getKeyBinding("moveDown")) || activeKeys.contains(KeyCode.DOWN)) {
                 direction = direction.add(0, 1);
             }
-            if (activeKeys.contains(KeyCode.A) || activeKeys.contains(KeyCode.LEFT)) {
+            if (activeKeys.contains(settings.getKeyBinding("moveLeft")) || activeKeys.contains(KeyCode.LEFT)) {
                 direction = direction.add(-1, 0);
             }
-            if (activeKeys.contains(KeyCode.D) || activeKeys.contains(KeyCode.RIGHT)) {
+            if (activeKeys.contains(settings.getKeyBinding("moveRight")) || activeKeys.contains(KeyCode.RIGHT)) {
                 direction = direction.add(1, 0);
             }
         }
         
-        if (activeKeys.contains(KeyCode.E)) {
+        if (activeKeys.contains(SettingsWindow.getInstance().getKeyBinding("interact"))) {
             if (!pressedE) {
                 pressedE = true;
                 switch (player.getRole()){
@@ -1365,9 +1367,9 @@ public class Game extends Application {
         uiOverlay.getChildren().add(chatBox);
 
         gameScene.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ENTER && !chatInput.isFocused()) { 
+            if (event.getCode() == SettingsWindow.getInstance().getKeyBinding("chat") && !chatInput.isFocused()) { 
                 event.consume(); 
-                
+            
                 chatFadeOutTransition.stop(); 
                 chatBox.setOpacity(1.0);      
                 chatBox.setVisible(true);     
@@ -1380,7 +1382,7 @@ public class Game extends Application {
             
             if (!chatInput.isFocused()) {
                 activeKeys.add(event.getCode());
-                if (event.getCode() == KeyCode.ESCAPE) {
+                if (event.getCode() == SettingsWindow.getInstance().getKeyBinding("settings")) {
                     SettingsWindow.getInstance().open(stage);
                 }
             }
