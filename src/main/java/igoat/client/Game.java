@@ -1135,7 +1135,7 @@ public class Game extends Application {
 
         player.updatePosition(newX, newY);
 
-        boolean positionChanged = Math.abs(newX - currentX) > 0.01 || Math.abs(newY - currentY) > 0.01;
+        boolean positionChanged = Math.abs(newX - currentX) > 1 || Math.abs(newY - currentY) > 1;
 
         long currentTime = System.currentTimeMillis();
         if (positionChanged || (currentTime - lastPositionUpdate > POSITION_UPDATE_INTERVAL)) {
