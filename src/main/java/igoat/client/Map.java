@@ -176,8 +176,8 @@ public class Map {
      * adds the doors to the map
      */
     private void createDoor() {
-       addDoor(0, 500, 20, DOOR_WIDTH);
-       addDoor(1480, 500, 20, DOOR_WIDTH);
+       addDoor(0, 500, 20, DOOR_WIDTH, "/sprites/door.png");
+       addDoor(1480, 500, 20, DOOR_WIDTH, "/sprites/door.png");
     }
 
     /**
@@ -230,10 +230,14 @@ public class Map {
     /**
      * Add two exits to the map
      */
-    private void addDoor(int x, int y, int width, int height) {
+    private void addDoor(int x, int y, int width, int height, String imagePath) {
         if (!noVisuals) {
             Rectangle doorVisual = new Rectangle(x, y, width, height);
-            doorVisual.setFill(Color.LIMEGREEN);
+
+            Image doorImage = new Image(imagePath);
+            ImagePattern imagePattern = new ImagePattern(doorImage, x, y, 42, 60,false);
+            doorVisual.setFill(imagePattern);
+
             visualWalls.add(doorVisual);
             doorVisuals.add(doorVisual);
         }
@@ -268,7 +272,7 @@ public class Map {
 
         if (!noVisuals) {
             for (Rectangle doorVisual : doorVisuals) {
-                doorVisual.setFill(Color.LIMEGREEN.deriveColor(0, 1, 1, 0.5));
+                doorVisual.setFill(Color.LIMEGREEN.deriveColor(0, 1, 1, 0));
                 visualWalls.remove(doorVisual);
             }
             logger.info("Doors opened and collision removed.");
