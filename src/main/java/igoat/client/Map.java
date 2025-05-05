@@ -184,10 +184,10 @@ public class Map {
      * add the windows to the map
      */
     private void createWindow() {
-        addWindow(130, 150, 20, 40);
-        addWindow(200, 1150, 20, 40);
-        addWindow(900, 220, 20, 40);
-        addWindow(600, 780,20, 40);
+        addWindow(130, 150, 20, 40, "/sprites/window.png");
+        addWindow(200, 1150, 20, 40, "/sprites/window.png");
+        addWindow(900, 220, 20, 40, "/sprites/window.png");
+        addWindow(600, 780,20, 40, "/sprites/window.png");
     }
 
 
@@ -251,10 +251,14 @@ public class Map {
      * Add windows to the map
      */
 
-    private void addWindow(int x, int y, int width, int height) {
+    private void addWindow(int x, int y, int width, int height, String imagePath) {
         if (!noVisuals) {
             Rectangle windowVisual = new Rectangle(x, y, width, height);
-            windowVisual.setFill(Color.SKYBLUE);
+
+            Image windowImage = new Image(imagePath);
+            ImagePattern imagePattern = new ImagePattern(windowImage, x, y, 42, 60,false);
+            windowVisual.setFill(imagePattern);
+
             visualWalls.add(windowVisual);
             windowVisuals.add(windowVisual);
         }
