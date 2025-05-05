@@ -481,7 +481,7 @@ public class ClientHandler implements Runnable {
                     handleRevive(params.trim());
                     break;
                 case "station":
-                    handleStation();
+                    handleStation(params.trim());
                     break;
                 case "username":
                     handleUsername(new String[]{params.trim()});
@@ -532,7 +532,7 @@ public class ClientHandler implements Runnable {
      * Performs checks for whether the player has the correct role and if they're in range and then
      * revives a caught iGOAT
      */
-    private void handleStation() {
+    private void handleStation(String params) {
         // role check
         if (player.getRole() != Role.GOAT) {
             return;
@@ -563,8 +563,10 @@ public class ClientHandler implements Runnable {
         for (ClientHandler client : currentLobby.getMembers()) {
             if (client.getPlayer().getRole() == Role.IGOAT && client.getPlayer().isCaught()) {
                 client.getPlayer().revive();
-                client.getPlayer().teleport(tx, ty + 40);
+                client.getPlayer().teleport(tx + 20, ty + 40);
                 currentLobby.broadcastToLobby("revive:" + client.getNickname());
+                int stationId = Integer.parseInt(params);
+                currentLobby.broadcastToLobby("activateStation:" + stationId);
                 currentLobby.getStationCooldown().start();
                 return;
             }

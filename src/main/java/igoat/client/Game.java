@@ -568,6 +568,11 @@ public class Game extends Application {
                 if (parts.length == 2) {
                     activateTerminal(Integer.parseInt(parts[1]));
                 }
+            } else if (message.startsWith("activateStation:")) {
+                String[] parts = message.split(":");
+                if (parts.length == 2) {
+                    activateStation(Integer.parseInt(parts[1]));
+                }
             } else if (message.startsWith("role:")) {
                 String[] parts = message.split(":");
                 if (parts.length == 3) {
@@ -1192,8 +1197,22 @@ public class Game extends Application {
         }
 
         // revive at igoat station
-        if (sqrt(pow(50 - x, 2) + pow(120 - y, 2)) < 40.0 || sqrt(pow(640 - x, 2) + pow(1450 - y, 2)) < 40.0) {
-            serverHandler.sendMessage("station:");
+        for (IgoatStation station : gameMap.getStationList()) {
+            double tx = station.getX() + (station.getWidth() / 2.0);
+            double ty = station.getY() + (station.getHeight() / 2.0);
+            if (sqrt(pow(tx - x, 2) + pow(ty - y, 2)) < 60.0) {
+                serverHandler.sendMessage("station:" + station.getStationID());
+                return;
+            }
+        }
+    }
+
+    private void activateStation(int id) {
+        for (IgoatStation station : gameMap.getStationList()) {
+            if (station.getStationID() == id) {
+                station.activate(station.getX(), station.getY());
+                return;
+            }
         }
     }
 

@@ -37,6 +37,7 @@ public class Map {
     private List<Rectangle> visualWalls;
     private List<Rectangle> doorVisuals;
     private List<Rectangle> windowVisuals;
+    private List<IgoatStation> IgoatStationList;
 
     /**
      * Creates a new Map with the layout from the design.
@@ -51,6 +52,7 @@ public class Map {
         doorCollisions = new ArrayList<>();
         windowCollisions = new ArrayList<>();
         decorItems = new ArrayList<>();
+        IgoatStationList = new ArrayList<>();
 
         if (!noVisuals) {
             visualWalls = new ArrayList<>();
@@ -62,6 +64,7 @@ public class Map {
         createDoor();
         createWindow();
         createDecor();
+        createIgoatStation();
 
 
     }
@@ -190,6 +193,11 @@ public class Map {
         addWindow(600, 780,20, 40, "/sprites/window.png");
     }
 
+    private void createIgoatStation() {
+        addIgoatStation(20,130,42,64, 1,"/sprites/igoat_station.png");
+        addIgoatStation(600,1418,42,64, 2, "/sprites/igoat_station.png");
+    }
+
 
 
     /**
@@ -222,6 +230,20 @@ public class Map {
             terminal.setFill(new ImagePattern(image));
         }
         terminalList.add(terminal);
+
+        Wall collisionWall = new Wall(x, y, width, height);
+        collisionWalls.add(collisionWall);
+    }
+
+    private void addIgoatStation(int x, int y, int width, int height, int id, String imagePath) {
+        IgoatStation station = new IgoatStation(x, y, width, height, id);
+        if (!noVisuals) {
+            Image igoatStationImage = new Image(Objects.requireNonNull(getClass().getResource(imagePath)).toExternalForm());
+            ImagePattern imagePattern = new ImagePattern(igoatStationImage, x, y, 64, 64,false);
+            station.setFill(imagePattern);
+
+            IgoatStationList.add(station);
+        }
 
         Wall collisionWall = new Wall(x, y, width, height);
         collisionWalls.add(collisionWall);
@@ -297,6 +319,7 @@ public class Map {
     public List<Rectangle> getVisualWalls() {
         List<Rectangle> allElements = new ArrayList<>(visualWalls);
         allElements.addAll(terminalList);
+        allElements.addAll(IgoatStationList);
         return allElements;
     }
     
@@ -339,6 +362,7 @@ public class Map {
         visualWalls.clear();
         collisionWalls.clear();
         terminalList.clear();
+        IgoatStationList.clear();
     }
     
     /**
@@ -371,5 +395,7 @@ public class Map {
     public List<ImageView> getDecorItems() {
         return decorItems;
     }
+
+    public List<IgoatStation> getStationList() { return IgoatStationList; }
 
 }

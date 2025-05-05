@@ -1274,13 +1274,6 @@ public class SceneDecoration {
             10, 10, 47, 44
         ));
 
-        decorList.add(new Decoration(
-            Objects.requireNonNull(Sprite.class.getResource("/sprites/igoat_station.png")).toExternalForm(),
-            600, 1418, 64, 64,
-            true,
-            0, 0, 42, 64
-        ));
-
         // Left Room Decoration 5
         decorList.add(new Decoration(
             Objects.requireNonNull(Sprite.class.getResource("/sprites/whiteboard_with_stuff.png")).toExternalForm(),
@@ -1513,7 +1506,7 @@ public class SceneDecoration {
             Objects.requireNonNull(Sprite.class.getResource("/sprites/table_dirty_updown.png")).toExternalForm(),
             20, 58, 64, 64,
             true,
-            0, 0, 32, 44
+            0, 0, 42, 44
         ));
 
         decorList.add(new Decoration(
@@ -1542,13 +1535,6 @@ public class SceneDecoration {
             10, 30, 64, 64,
             true,
             10, 10, 47, 44
-        ));
-
-        decorList.add(new Decoration(
-            Objects.requireNonNull(Sprite.class.getResource("/sprites/igoat_station.png")).toExternalForm(),
-            20, 90, 64, 64,
-            true,
-            0, 0, 42, 64
         ));
 
         // Decoration 6
