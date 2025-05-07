@@ -1240,35 +1240,35 @@ public class SceneDecoration {
         ));
 
         decorList.add(new Decoration(
-            Objects.requireNonNull(Sprite.class.getResource("/sprites/igoat_idle.png")).toExternalForm(),
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/igoat_prop.png")).toExternalForm(),
             510, 1370, 64, 64,
             true,
             10, 10, 47, 44
         ));
 
         decorList.add(new Decoration(
-            Objects.requireNonNull(Sprite.class.getResource("/sprites/igoat_idle.png")).toExternalForm(),
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/igoat_prop.png")).toExternalForm(),
             510, 1400, 64, 64,
             true,
             10, 10, 47, 44
         ));
 
         decorList.add(new Decoration(
-            Objects.requireNonNull(Sprite.class.getResource("/sprites/igoat_idle.png")).toExternalForm(),
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/igoat_prop.png")).toExternalForm(),
             510, 1430, 64, 64,
             true,
             10, 10, 47, 44
         ));
 
         decorList.add(new Decoration(
-            Objects.requireNonNull(Sprite.class.getResource("/sprites/igoat_idle.png")).toExternalForm(),
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/igoat_prop.png")).toExternalForm(),
             510, 1460, 64, 64,
             true,
             10, 10, 47, 44
         ));
 
         decorList.add(new Decoration(
-            Objects.requireNonNull(Sprite.class.getResource("/sprites/igoat_idle.png")).toExternalForm(),
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/igoat_prop.png")).toExternalForm(),
             510, 1490, 64, 64,
             true,
             10, 10, 47, 44
@@ -1510,28 +1510,28 @@ public class SceneDecoration {
         ));
 
         decorList.add(new Decoration(
-            Objects.requireNonNull(Sprite.class.getResource("/sprites/igoat_idle.png")).toExternalForm(),
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/igoat_prop.png")).toExternalForm(),
             10, -30, 64, 64,
             true,
             10, 10, 47, 44
         ));
 
         decorList.add(new Decoration(
-            Objects.requireNonNull(Sprite.class.getResource("/sprites/igoat_idle.png")).toExternalForm(),
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/igoat_prop.png")).toExternalForm(),
             10, -10, 64, 64,
             true,
             10, 10, 47, 44
         ));
 
         decorList.add(new Decoration(
-            Objects.requireNonNull(Sprite.class.getResource("/sprites/igoat_idle.png")).toExternalForm(),
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/igoat_prop.png")).toExternalForm(),
             10, 10, 64, 64,
             true,
             10, 10, 47, 44
         ));
 
         decorList.add(new Decoration(
-            Objects.requireNonNull(Sprite.class.getResource("/sprites/igoat_idle.png")).toExternalForm(),
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/igoat_prop.png")).toExternalForm(),
             10, 30, 64, 64,
             true,
             10, 10, 47, 44

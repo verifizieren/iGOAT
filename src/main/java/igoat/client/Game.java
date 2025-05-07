@@ -1027,6 +1027,9 @@ public class Game extends Application {
      * @param deltaTime time elapsed since last update in seconds
      */
     private void update(double deltaTime) {
+        // prevent huge jumps when lagging
+        deltaTime = Math.min(deltaTime, 0.5);
+
         if (player == null || !gameStarted) return;
 
         if (!initializedViewport) {

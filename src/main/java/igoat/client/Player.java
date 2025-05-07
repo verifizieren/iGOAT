@@ -26,6 +26,7 @@ public class Player {
     private Group visual;
     private SpriteSheetAnimation animation;
     private ImageView idle;
+    private ImageView down;
     private final Text usernameLabel;
     private boolean isBeingSpectated;
     private String username;
@@ -57,6 +58,7 @@ public class Player {
 
         this.animation = new SpriteSheetAnimation("/sprites/invisible_placeholder.png", 1, 1, 1, 1, 1);
         this.idle = new ImageView();
+        this.down = null;
         this.visual = new Group();
         
         this.usernameLabel = new Text(username);
@@ -75,7 +77,12 @@ public class Player {
     public void setIdle() {
         animation.stop();
         animation.getView().setVisible(false);
-        idle.setVisible(true);
+        if (isDown && down != null) {
+            down.setVisible(true);
+        } else {
+            idle.setVisible(true);
+        }
+
     }
 
     /**
@@ -106,6 +113,10 @@ public class Player {
         this.animation.getView().setY(y);
         this.idle.setX(x);
         this.idle.setY(y);
+        if (down != null) {
+            down.setX(x);
+            down.setY(y);
+        }
         updateUsernamePosition();
 
         // show animation when moving
@@ -262,7 +273,14 @@ public class Player {
                 idle.setFitHeight(32);
                 idle.setVisible(true);
 
-                visual = new Group(animation.getView(), idle);
+                down = new ImageView(new Sprite("/sprites/igoat_down.png"));
+                down.setX(this.x);
+                down.setY(this.y);
+                down.setFitWidth(32);
+                down.setFitHeight(32);
+                down.setVisible(false);
+
+                visual = new Group(animation.getView(), idle, down);
                 gamePane.getChildren().add(visual);
             }
             case GUARD -> {
@@ -304,6 +322,10 @@ public class Player {
      * @param down true to mark the player as down, false otherwise
      */
     public void setDown(boolean down) {
+        if (this.down != null) {
+            idle.setVisible(!down);
+            this.down.setVisible(down);
+        }
         this.isDown = down;
     }
 } 

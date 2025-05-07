@@ -236,8 +236,7 @@ public class ServerHandler {
                 pingTimer = System.currentTimeMillis();
                 continue;
             } else if (msg.startsWith(NICKNAME_CONFIRM_PREFIX)) {
-                String newNickname= msg.substring(NICKNAME_CONFIRM_PREFIX.length());
-                this.confirmedNickname = newNickname;
+                this.confirmedNickname = msg.substring(NICKNAME_CONFIRM_PREFIX.length());
                 sendUdpRegistrationPacket();
                 messageBuffer.add(msg);
             } else if (!msg.isEmpty()) {
