@@ -619,7 +619,7 @@ public class ClientHandler implements Runnable {
         }
 
         // sanitize string
-        String requestedNickname = params[0].replaceAll("\\s", "");
+        String requestedNickname = params[0].replaceAll("[\\s=:,]", "");
 
         if (requestedNickname.isEmpty()) {
             sendError("invalid nickname");
@@ -748,7 +748,7 @@ public class ClientHandler implements Runnable {
 
         String oldNickname = this.nickname;
         // sanitize string
-        String requestedNickname = params[0].replaceAll("[\\s=:]", "");
+        String requestedNickname = params[0].replaceAll("[\\s=:,]", "");
         if (requestedNickname.isEmpty()) {
             sendError("invalid username");
             return;

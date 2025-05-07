@@ -369,7 +369,7 @@ public class LobbyGUI {
             ScreenUtil.moveStageToCursorScreen(dialogStage, dialogStage.getWidth() > 0 ? dialogStage.getWidth() : 350, dialogStage.getHeight() > 0 ? dialogStage.getHeight() : 200);
             dialog.showAndWait().ifPresent(name -> {
                 // sanitize string
-                name = name.replaceAll("[\\s=:]", "");
+                name = name.replaceAll("[\\s=:,]", "");
                 if (!name.isBlank()) {
                     serverHandler.sendMessage("username:" + name);
                     // Username will be updated when server confirms the change

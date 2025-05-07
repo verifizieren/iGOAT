@@ -325,6 +325,7 @@ public class Game extends Application {
         camera = new Camera(gamePane, primaryStage.getWidth(), primaryStage.getHeight(), CAMERA_ZOOM, true);
 
         spectatingPlayer.nextValue();
+        spectatingPlayer.nextValue();
         
         scene.widthProperty().addListener((obs, oldVal, newVal) -> {
             camera.updateViewport(newVal.doubleValue(), scene.getHeight());

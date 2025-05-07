@@ -66,7 +66,7 @@ public class Main {
                         int port = Integer.parseInt(hostPort[1]);
                         String username = args.length > 2 ? args[2] : System.getProperty("user.name");
                         // sanitize string
-                        username = username.replaceAll("[\\s=:]", "");
+                        username = username.replaceAll("[\\s=:,]", "");
                         if (username.isEmpty()) {
                             logger.error("invalid username");
                             System.exit(1);

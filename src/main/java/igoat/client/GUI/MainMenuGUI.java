@@ -145,7 +145,7 @@ Stage dialogStage = (Stage) nameDialog.getDialogPane().getScene().getWindow();
 ScreenUtil.moveStageToCursorScreen(dialogStage, dialogStage.getWidth() > 0 ? dialogStage.getWidth() : 350, dialogStage.getHeight() > 0 ? dialogStage.getHeight() : 200);
 nameDialog.showAndWait().ifPresent(name -> {
                         // sanitize string
-                        name = name.replaceAll("[\\s=:]", "");
+                        name = name.replaceAll("[\\s=:,]", "");
                         if (name.isEmpty()) {
                             showAlert(Alert.AlertType.ERROR, "Username cannot be empty");
                             return;
