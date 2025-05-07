@@ -128,6 +128,7 @@ public class LobbyGUI {
      */
     public void show(Stage primaryStage) {
         stage = primaryStage;
+        stage.getIcons().add(MainMenuGUI.icon);
         stage.setOnCloseRequest(event -> exit());
 
         VBox leftPanel = setupLeftPanel();

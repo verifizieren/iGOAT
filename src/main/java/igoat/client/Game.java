@@ -5,6 +5,7 @@ import static java.lang.Math.sqrt;
 
 import igoat.Timer;
 import igoat.client.GUI.Banner;
+import igoat.client.GUI.MainMenuGUI;
 import igoat.client.GUI.SettingsWindow;
 import igoat.client.GUI.SoundButton;
 import java.time.LocalTime;
@@ -215,6 +216,7 @@ public class Game extends Application {
     @Override
     public void start(Stage primaryStage) {
         stage = primaryStage;
+        stage.getIcons().add(MainMenuGUI.icon);
         stage.setOnCloseRequest(event -> exit());
         stage.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
 

@@ -3,6 +3,7 @@ package igoat.client.GUI;
 import igoat.client.ScreenUtil;
 
 import igoat.client.ServerHandler;
+import igoat.client.Sprite;
 import igoat.server.Server;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -29,6 +30,7 @@ import javafx.scene.image.ImageView;
 public class MainMenuGUI extends Application {
     /** Logger for this class */
     private static final Logger logger = LoggerFactory.getLogger(MainMenuGUI.class);
+    public static final Sprite icon = new Sprite("/sprites/igoat_icon.png");
 
     private ServerHandler handler;
     private String username;
@@ -44,6 +46,7 @@ public class MainMenuGUI extends Application {
     @Override
     public void start(Stage primaryStage) {
         stage = primaryStage;
+        stage.getIcons().add(icon);
         primaryStage.setTitle("iGOAT");
         primaryStage.setOnCloseRequest(event -> exit());
 
