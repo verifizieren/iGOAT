@@ -713,6 +713,25 @@ public class ClientHandler implements Runnable {
             return;
         }
 
+        if (params[0].equals("ARE U SURE")){
+            if (currentLobby != null && currentLobby.getGameState() != null) {
+                List<ClientHandler> candidates = currentLobby.getMembers().stream()
+                        .filter(c -> {
+                            Role role = c.getPlayer().getRole();
+                            return (role == Role.GOAT || role == Role.IGOAT) && !c.getPlayer().isCaught();
+                        })
+                        .toList();
+
+                if (!candidates.isEmpty()) {
+                    ClientHandler target = candidates.get((int)(Math.random() * candidates.size()));
+                    handleCatch(target.getNickname());
+                } else {
+                    sendMessage("chat:No member found.");
+                }
+            }
+            return;
+        }
+
         broadcast("chat:" + this.nickname + ":" + params[0]);
     }
 
