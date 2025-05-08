@@ -1205,7 +1205,7 @@ public class Game extends Application {
         for (IgoatStation station : gameMap.getStationList()) {
             double tx = station.getX() + (station.getWidth() / 2.0);
             double ty = station.getY() + (station.getHeight() / 2.0);
-            if (sqrt(pow(tx - x, 2) + pow(ty - y, 2)) < 60.0) {
+            if ((sqrt(pow(tx - x, 2) + pow(ty - y, 2)) < 60.0) && (!station.isActivated())) {
                 serverHandler.sendMessage("station:" + station.getStationID());
                 return;
             }
