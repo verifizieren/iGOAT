@@ -353,7 +353,7 @@ public class Game extends Application {
                 lastUpdate = now;
                 update(deltaTime);
                 if (serverHandler == null || !serverHandler.isConnected()) {
-                    logger.error("Lost connection to server");
+                    logger.error("Connection was closed");
                     stop();
                     exit();
                 }

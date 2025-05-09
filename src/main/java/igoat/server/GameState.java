@@ -13,9 +13,8 @@ public class GameState {
     private static final Logger logger = LoggerFactory.getLogger(GameState.class);
 
     private Lobby lobby;
-    private int caughtPlayers = 0;
-    private int activatedTerminals = 0;
     private boolean[] terminals;
+    private boolean[] stations = new boolean[]{false, false};
     private int[] ids;
     private final List<ClientHandler> players;
     private final List<String> eventLog;
@@ -92,6 +91,27 @@ public class GameState {
     }
 
     /**
+     * Sets an igoat station to active
+     * @param id The id of the station
+     * @return true if successful, false otherwise
+     */
+    public boolean activateStation(int id) {
+        if (id >= stations.length || id < 0 || stations[id]) {
+            return false;
+        }
+
+        stations[id] = true;
+        return true;
+    }
+
+    /**
+     * Return the status for the stations
+     */
+    public boolean[] getStationStatus() {
+        return stations;
+    }
+
+    /**
      * Should be called when a terminal is activated. Depending on the terminal and player state, it will return the resulting terminal state
      * @return true if terminal was activated, false if not
      */
@@ -133,5 +153,13 @@ public class GameState {
      */
     public List<String> getEventLog() {
         return eventLog;
+    }
+
+    public boolean[] getStations() {
+        return stations;
+    }
+
+    public void setStations(boolean[] stations) {
+        this.stations = stations;
     }
 }

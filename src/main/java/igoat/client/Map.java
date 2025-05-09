@@ -194,8 +194,8 @@ public class Map {
     }
 
     private void createIgoatStation() {
-        addIgoatStation(20,130,42,64, 1,"/sprites/igoat_station.png");
-        addIgoatStation(600,1418,42,64, 2, "/sprites/igoat_station.png");
+        addIgoatStation(20,130,42,64, 0,"/sprites/igoat_station.png");
+        addIgoatStation(600,1418,42,64, 1, "/sprites/igoat_station.png");
     }
 
 

@@ -555,12 +555,13 @@ public class ClientHandler implements Runnable {
             return;
         }
 
+        int stationId = Integer.parseInt(params);
+
         for (ClientHandler client : currentLobby.getMembers()) {
-            if (client.getPlayer().getRole() == Role.IGOAT && client.getPlayer().isCaught()) {
+            if (client.getPlayer().getRole() == Role.IGOAT && client.getPlayer().isCaught() && currentLobby.getGameState().activateStation(stationId)) {
                 client.getPlayer().revive();
                 client.getPlayer().teleport(tx + 20, ty + 40);
                 currentLobby.broadcastToLobby("revive:" + client.getNickname());
-                int stationId = Integer.parseInt(params);
                 currentLobby.broadcastToLobby("activateStation:" + stationId);
                 currentLobby.getStationCooldown().start();
                 return;
@@ -686,6 +687,14 @@ public class ClientHandler implements Runnable {
                 sendMessage("catch:" + player.getNickname());
             }
         }
+        // send station status
+        boolean[] stations = currentLobby.getGameState().getStations();
+        for (int i = 0; i < stations.length; i++) {
+            if (stations[i]) {
+                sendMessage("activateStation:" + i);
+            }
+        }
+
         logger.info("sent event log");
     }
     /**
