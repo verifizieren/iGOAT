@@ -3,6 +3,8 @@ package igoat.client.GUI;
 import igoat.client.ScreenUtil;
 import igoat.client.SoundManager;
 import java.util.LinkedHashMap;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -45,14 +47,14 @@ public class SettingsWindow {
     private double volume = SoundManager.getInstance().getVolume();
     private boolean fullscreen = false;
     
-    private final Map<String, KeyCode> keyBindings;
-    private final Map<String, String> controllerBindings;
+    private final SortedMap<String, KeyCode> keyBindings;
+    private final SortedMap<String, String> controllerBindings;
     
-    private static final Map<String, KeyCode> DEFAULT_KEY_BINDINGS;
-    private static final Map<String, String> DEFAULT_CONTROLLER_BINDINGS;
+    private static final SortedMap<String, KeyCode> DEFAULT_KEY_BINDINGS;
+    private static final SortedMap<String, String> DEFAULT_CONTROLLER_BINDINGS;
     
     static {
-        DEFAULT_KEY_BINDINGS = new LinkedHashMap<>();
+        DEFAULT_KEY_BINDINGS = new TreeMap<>();
         DEFAULT_KEY_BINDINGS.put("moveUp", KeyCode.W);
         DEFAULT_KEY_BINDINGS.put("moveDown", KeyCode.S);
         DEFAULT_KEY_BINDINGS.put("moveLeft", KeyCode.A);
@@ -63,7 +65,7 @@ public class SettingsWindow {
         DEFAULT_KEY_BINDINGS.put("cycleSpectator", KeyCode.TAB);
         DEFAULT_KEY_BINDINGS.put("exitSpectator", KeyCode.SPACE);
         
-        DEFAULT_CONTROLLER_BINDINGS = new LinkedHashMap<>();
+        DEFAULT_CONTROLLER_BINDINGS = new TreeMap<>();
         DEFAULT_CONTROLLER_BINDINGS.put("moveUp", "DPad Up");
         DEFAULT_CONTROLLER_BINDINGS.put("moveDown", "DPad Down");
         DEFAULT_CONTROLLER_BINDINGS.put("moveLeft", "DPad Left");
@@ -74,10 +76,10 @@ public class SettingsWindow {
     }
 
     private SettingsWindow() {
-        keyBindings = new HashMap<>();
+        keyBindings = new TreeMap<>();
         keyBindings.putAll(DEFAULT_KEY_BINDINGS);
         
-        controllerBindings = new HashMap<>();
+        controllerBindings = new TreeMap<>();
         controllerBindings.putAll(DEFAULT_CONTROLLER_BINDINGS);
         
         volumeSlider = new Slider(0, 100, SoundManager.getInstance().getVolume() * 100.0);
