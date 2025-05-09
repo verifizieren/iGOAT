@@ -590,7 +590,7 @@ public class LobbyGUI {
                     break;
                 case "lobby":
                     if (content.equals("0")) {
-                        appendToMessageArea("Info: Du hast die Lobby verlassen.");
+                        appendToMessageArea("Info: You have left the lobby.");
                         if (!isGlobalChat) {
                             Platform.runLater(() -> playerListView.getItems().clear());
                         } else {

@@ -1160,7 +1160,7 @@ public class ClientHandler implements Runnable {
      */
     private void handleStartGame() {
         if (currentLobby == null) {
-            sendError("Du bist in keiner Lobby");
+            sendError("You are not in a Lobby");
             return;
         }
 
