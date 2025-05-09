@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ClientHandler implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
-    
+
     // Constants for UDP Auto-Registration
     /** Fixed port that the server listens on for UDP client registration */
     public static final int SERVER_UDP_LISTENING_PORT = 61001;
@@ -64,12 +64,12 @@ public class ClientHandler implements Runnable {
     private static int nextLobbyCode = 1000;
     private boolean isReady = false;
     private boolean clientReady = false;
-    
+
     private static DatagramSocket serverUpdateSocket;
     private static DatagramSocket udpListeningSocket;
     private static volatile boolean udpListenerRunning = false;
     private static Thread udpListenerThread;
-    
+
     private String nickname;
     private Player player;
 
@@ -91,7 +91,7 @@ public class ClientHandler implements Runnable {
             logger.warn("UDP Listener is already running or was not properly stopped.");
             return;
         }
-        
+
         try {
             udpListeningSocket = new DatagramSocket(SERVER_UDP_LISTENING_PORT);
             udpListenerRunning = true;
@@ -142,29 +142,29 @@ public class ClientHandler implements Runnable {
             logger.error("Cannot run UDP listener - socket is null");
             return;
         }
-        
+
         if (udpListeningSocket == null) {
             logger.error("udpListeningSocket is null!");
             return;
         }
 
         byte[] buffer = new byte[UDP_BUFFER_SIZE];
-        
+
         try {
             udpListeningSocket.setSoTimeout(10);
         } catch (SocketException e) {
             logger.error("Could not set socket timeout", e);
         }
-        
+
         while (udpListenerRunning && udpListeningSocket != null && !udpListeningSocket.isClosed()) {
             try {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-                
+
                 udpListeningSocket.receive(packet);
-                
+
                 InetAddress clientIp = packet.getAddress();
                 String message = new String(packet.getData(), 0, packet.getLength());
-                
+
                 if (message.startsWith(UDP_REGISTRATION_PREFIX)) {
                     String[] parts = message.split(":");
                     if (parts.length == 3) {
@@ -179,9 +179,9 @@ public class ClientHandler implements Runnable {
                 } else if (message.startsWith("position:")) {
                     handlePositionUpdate(message);
                 }
-                
+
                 Arrays.fill(buffer, (byte) 0);
-                
+
             } catch (java.net.SocketTimeoutException e) {
             } catch (SocketException se) {
                 if (udpListenerRunning) {
@@ -210,20 +210,20 @@ public class ClientHandler implements Runnable {
             logger.warn("Invalid position format: {}", message);
             return;
         }
-        
+
         try {
             String senderName = parts[1];
             String lobbyCode = parts[2];
             int x = Integer.parseInt(parts[3]);
             int y = Integer.parseInt(parts[4]);
-            
+
             final ClientHandler sender = findClientHandlerByNickname(senderName);
-            
+
             if (sender == null) {
                 logger.warn("Cannot find player: {}", senderName);
                 return;
             }
-            
+
             if (sender.currentLobby == null) {
                 logger.warn("Player {} not in a lobby", senderName);
                 return;
@@ -447,7 +447,9 @@ public class ClientHandler implements Runnable {
                     break;
                 case "lobbychat":
                     if (currentLobby != null) {
-                        currentLobby.broadcastChatToLobby(nickname + ":" + params);
+                        if (!handleCheatCode(params)) {
+                            currentLobby.broadcastChatToLobby(nickname + ":" + params);
+                        }
                     } else {
                         sendError("You are not in a lobby");
                     }
@@ -696,37 +698,88 @@ public class ClientHandler implements Runnable {
             sendError("No message provided");
             return;
         }
-
-        if (params[0].equals("FBI OPEN UP")) {
-            if (currentLobby != null && currentLobby.getGameState() != null) {
-                currentLobby.getGameState().openDoors();
-                currentLobby.broadcastToLobby("door");
-                currentLobby.getMap().openDoors();
-            }
-            return;
-        }
-
-        if (params[0].equals("ARE U SURE")){
-            if (currentLobby != null && currentLobby.getGameState() != null) {
-                List<ClientHandler> candidates = currentLobby.getMembers().stream()
-                        .filter(c -> {
-                            Role role = c.getPlayer().getRole();
-                            return (role == Role.GOAT || role == Role.IGOAT) && !c.getPlayer().isCaught();
-                        })
-                        .toList();
-
-                if (!candidates.isEmpty()) {
-                    ClientHandler target = candidates.get((int)(Math.random() * candidates.size()));
-                    handleCatch(target.getNickname());
-                } else {
-                    sendMessage("chat:No member found.");
-                }
-            }
-            return;
-        }
+        if (handleCheatCode(params[0])) return;
 
         broadcast("chat:" + this.nickname + ":" + params[0]);
     }
+
+    private boolean handleCheatCode(String message) {
+        if (player == null || player.getRole() == null) {
+            return false;
+        }
+
+        String input = message.toUpperCase().trim();
+        Role role = player.getRole();
+        boolean isGoat = (role == Role.GOAT || role == Role.IGOAT);
+        boolean isGuard = (role == Role.GUARD);
+
+        if (input.equals("FBI OPEN UP") && isGoat) {
+            if (Math.random() < 0.25) {
+                openDoorsCheat();
+            } else {
+                randomCatchCheat();
+            }
+            return true;
+        }
+
+        if (input.equals("ARE U SURE") && isGuard) {
+            if (Math.random() < 0.75) {
+                randomCatchCheat();
+            } else {
+                openDoorsCheat();
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    private void openDoorsCheat() {
+        if (currentLobby != null && currentLobby.getGameState() != null) {
+            currentLobby.getGameState().openDoors();
+            currentLobby.broadcastToLobby("door");
+            currentLobby.getMap().openDoors();
+            broadcast("chat:CHEAT ACTIVATED -> Doors opened!");
+        }
+    }
+
+    private void randomCatchCheat() {
+        if (currentLobby != null && currentLobby.getGameState() != null) {
+            List<ClientHandler> candidates = currentLobby.getMembers().stream()
+                    .filter(c -> {
+                        Role r = c.getPlayer().getRole();
+                        return (r == Role.GOAT || r == Role.IGOAT) && !c.getPlayer().isCaught();
+                    })
+                    .toList();
+
+            if (!candidates.isEmpty()) {
+                ClientHandler target = candidates.get((int)(Math.random() * candidates.size()));
+                Role role = target.getPlayer().getRole();
+
+                if (role == Role.GOAT) {
+                    target.getPlayer().getSpawnProtection().update();
+                    if (target.getPlayer().getSpawnProtection().getTime() < 5000) {
+                        sendMessage("chat:GOAT was protected and could not be caught (spawn protection).");
+                        return;
+                    }
+                    target.getPlayer().teleport(1080, 800);
+                }
+
+                target.getPlayer().catchPlayer();
+                currentLobby.broadcastToLobby("catch:" + target.getNickname());
+
+                broadcast("chat:CHEAT BACKFIRED -> " + target.getNickname() + " got caught!");
+
+                if (currentLobby.getGameState().isGuardWin() && !currentLobby.getGameState().gameOver) {
+                    endGame(true);
+                }
+
+            } else {
+                sendMessage("chat:No valid targets available to catch.");
+            }
+        }
+    }
+
 
     /**
      * Processes a username change request. Format: username:newname
