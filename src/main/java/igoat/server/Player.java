@@ -13,15 +13,16 @@ public class Player {
 
     private double x;
     private double y;
+    private double width = 32;
+    private double height = 32;
     private Role role;
     private final String nickname;
-
     private boolean isCaught = false;
+
     private boolean positionWasSet = false;
-
     private final Timer spawnProtection = new Timer();
-    private final Lobby lobby;
 
+    private final Lobby lobby;
     public Player(double x, double y, String nickname, Lobby lobby) {
         this.x = x;
         this.y = y;
@@ -39,6 +40,14 @@ public class Player {
         this.y = y;
         positionWasSet = false;
         lobby.broadcastUpdateToLobby("player_position:" + nickname + ":" + (int)x + ":" + (int)y, null);
+    }
+
+    public double getWidth() {
+        return width;
+    }
+
+    public double getHeight() {
+        return height;
     }
 
     public String getNickname() {
@@ -79,6 +88,9 @@ public class Player {
 
     public void setRole(Role role) {
         this.role = role;
+        if (role == Role.GUARD) {
+            width = 20;
+        }
     }
 
     public void catchPlayer() {

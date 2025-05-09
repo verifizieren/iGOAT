@@ -21,7 +21,7 @@ public class Player {
 
     private double x;
     private double y;
-    private final int width;
+    private int width;
     private final int height;
     private Group visual;
     private SpriteSheetAnimation animation;
@@ -43,15 +43,13 @@ public class Player {
      * @param gamePane The JavaFX pane where the player will be rendered
      * @param x The initial X coordinate
      * @param y The initial Y coordinate
-     * @param width The width of the player's visual representation
-     * @param height The height of the player's visual representation
      * @param username The player's username
      */
-    public Player(Pane gamePane, double x, double y, int width, int height, String username) {
+    public Player(Pane gamePane, double x, double y, String username) {
         this.x = x;
         this.y = y;
-        this.width = width;
-        this.height = height;
+        this.width = 32;
+        this.height = 32;
         this.username = username;
 
         this.gamePane = gamePane;
@@ -296,6 +294,8 @@ public class Player {
                 idle.setFitWidth(20);
                 idle.setFitHeight(32);
                 idle.setVisible(true);
+
+                width = 20;
 
                 visual = new Group(animation.getView(), idle);
                 gamePane.getChildren().add(visual);

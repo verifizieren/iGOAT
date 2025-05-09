@@ -255,7 +255,7 @@ public class ClientHandler implements Runnable {
 
             // if there is a collision, we return the current coordinates
             if (sender.currentLobby.getMap() != null &&
-                    checkCollision(x, y, 32, 32, sender.currentLobby.getMap(), sender.getPlayer()
+                    checkCollision(x, y, sender.getPlayer().getWidth(), sender.getPlayer().getHeight(), sender.currentLobby.getMap(), sender.getPlayer()
                         .getRole() == Role.GOAT)) {
                 x = (int)sender.getPlayer().getX();
                 y = (int)sender.getPlayer().getY();

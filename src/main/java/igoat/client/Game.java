@@ -77,8 +77,6 @@ import javafx.util.Duration;
 public class Game extends Application {
     private static final Logger logger = LoggerFactory.getLogger(Game.class);
 
-    private static final double PLAYER_WIDTH = 32;
-    private static final double PLAYER_HEIGHT = 32;
     private static final double MOVEMENT_SPEED = 200;
     private static final double CAMERA_ZOOM = 3; // Default is 3
     private final String style = getClass().getResource("/CSS/UI.css").toExternalForm();
@@ -320,7 +318,7 @@ public class Game extends Application {
             gamePane.getChildren().add(decor);
         }
 
-        player = new Player(gamePane, initialX, initialY, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, confirmedNickname);
+        player = new Player(gamePane, initialX, initialY, confirmedNickname);
 
         camera = new Camera(gamePane, primaryStage.getWidth(), primaryStage.getHeight(), CAMERA_ZOOM, true);
         
@@ -921,7 +919,7 @@ public class Game extends Application {
 
             } else {
                 logger.info("Player {} not found, creating new Player object.", playerName);
-                remotePlayer = new Player(gamePane, x, y, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, playerName);
+                remotePlayer = new Player(gamePane, x, y, playerName);
 
                 otherPlayers.put(playerName, remotePlayer);
                 logger.info("Added new player {} to otherPlayers map.", playerName);
@@ -963,11 +961,11 @@ public class Game extends Application {
         double centerY;
 
         if (spectating && spectatingPlayer.getCurrentValue() != null) {
-            centerX = spectatingPlayer.getCurrentValue().getX() + (PLAYER_WIDTH / 2.0);
-            centerY = spectatingPlayer.getCurrentValue().getY() + (PLAYER_HEIGHT / 2.0);
+            centerX = spectatingPlayer.getCurrentValue().getX() + (spectatingPlayer.getCurrentValue().getWidth() / 2.0);
+            centerY = spectatingPlayer.getCurrentValue().getY() + (spectatingPlayer.getCurrentValue().getHeight() / 2.0);
         } else {
-            centerX = player.getX() + (PLAYER_WIDTH / 2.0);
-            centerY = player.getY() + (PLAYER_HEIGHT / 2.0);
+            centerX = player.getX() + (player.getWidth() / 2.0);
+            centerY = player.getY() + (player.getHeight() / 2.0);
         }
 
         for (Player otherPlayer : otherPlayers.values()) {
