@@ -52,6 +52,10 @@ public class SettingsWindow {
     
     private static final SortedMap<String, KeyCode> DEFAULT_KEY_BINDINGS;
     private static final SortedMap<String, String> DEFAULT_CONTROLLER_BINDINGS;
+
+    public static String lastIP;
+    public static int lastPort;
+    public static String lastUsername;
     
     static {
         DEFAULT_KEY_BINDINGS = new TreeMap<>();

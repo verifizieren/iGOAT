@@ -102,12 +102,13 @@ public class MainMenuGUI extends Application {
                 serverThread = new Thread(() -> Server.startServer(Integer.parseInt(serverPort)));
                 serverThread.setDaemon(true);
                 serverThread.start();
+                SettingsWindow.lastPort = Integer.parseInt(serverPort);
             });
         });
 
         SoundButton joinServerButton = new SoundButton("Join Server");
         joinServerButton.setOnAction(e -> {
-            TextInputDialog ipDialog = new TextInputDialog("localhost");
+            TextInputDialog ipDialog = new TextInputDialog(SettingsWindow.lastIP == null? "localhost" : SettingsWindow.lastIP);
             ipDialog.setTitle("Join Server");
             ipDialog.setHeaderText(null);
             ipDialog.setContentText("Enter server IP:");
@@ -119,7 +120,7 @@ public class MainMenuGUI extends Application {
             Stage ipDialogStage = (Stage) ipDialog.getDialogPane().getScene().getWindow();
             ScreenUtil.moveStageToCursorScreen(ipDialogStage, ipDialogStage.getWidth() > 0 ? ipDialogStage.getWidth() : 350, ipDialogStage.getHeight() > 0 ? ipDialogStage.getHeight() : 200);
             ipDialog.showAndWait().ifPresent(serverIP -> {
-                TextInputDialog portDialog = new TextInputDialog("61000");
+                TextInputDialog portDialog = new TextInputDialog(SettingsWindow.lastPort == 0? "61000" : String.valueOf(SettingsWindow.lastPort));
                 portDialog.setTitle("Join Server");
                 portDialog.setHeaderText(null);
                 portDialog.setContentText("Enter server port:");
@@ -131,7 +132,7 @@ public class MainMenuGUI extends Application {
                 Stage joinPortDialogStage = (Stage) portDialog.getDialogPane().getScene().getWindow();
                 ScreenUtil.moveStageToCursorScreen(joinPortDialogStage, joinPortDialogStage.getWidth() > 0 ? joinPortDialogStage.getWidth() : 350, joinPortDialogStage.getHeight() > 0 ? joinPortDialogStage.getHeight() : 200);
                 portDialog.showAndWait().ifPresent(port -> {
-                    String systemUsername = System.getProperty("user.name");
+                    String systemUsername = SettingsWindow.lastUsername == null? System.getProperty("user.name") : SettingsWindow.lastUsername;
                     TextInputDialog nameDialog = new TextInputDialog(systemUsername);
                     nameDialog.setTitle("Join Server");
                     nameDialog.setHeaderText(null);
@@ -153,6 +154,8 @@ nameDialog.showAndWait().ifPresent(name -> {
 
                         username = name;
                         join(serverIP, Integer.parseInt(port), username);
+                        SettingsWindow.lastPort = Integer.parseInt(port);
+                        SettingsWindow.lastIP = serverIP;
                     });
                 });
             });

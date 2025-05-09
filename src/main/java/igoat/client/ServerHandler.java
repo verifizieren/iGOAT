@@ -1,5 +1,6 @@
 package igoat.client;
 
+import igoat.client.GUI.SettingsWindow;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -227,7 +228,6 @@ public class ServerHandler {
                 }
             } catch (IOException e) {
                 logger.error("Error reading from server", e);
-                connected = false;
                 break;
             }
 
@@ -237,6 +237,7 @@ public class ServerHandler {
                 continue;
             } else if (msg.startsWith(NICKNAME_CONFIRM_PREFIX)) {
                 this.confirmedNickname = msg.substring(NICKNAME_CONFIRM_PREFIX.length());
+                SettingsWindow.lastUsername = confirmedNickname;
                 sendUdpRegistrationPacket();
                 messageBuffer.add(msg);
             } else if (!msg.isEmpty()) {
