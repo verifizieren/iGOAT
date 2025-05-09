@@ -1,6 +1,5 @@
 package igoat.client;
 import java.util.*;
-import java.util.Map;
 
 /**
  * Helper class to cycle through the player hashmap in a consistent order

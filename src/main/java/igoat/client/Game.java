@@ -81,7 +81,8 @@ public class Game extends Application {
     private static final double PLAYER_HEIGHT = 32;
     private static final double MOVEMENT_SPEED = 200;
     private static final double CAMERA_ZOOM = 3; // Default is 3
-    
+    private final String style = getClass().getResource("/CSS/UI.css").toExternalForm();
+
     private Pane gamePane;
     private Pane uiOverlay;
     private Stage stage;
@@ -771,6 +772,7 @@ public class Game extends Application {
             layout.setAlignment(Pos.CENTER);
             layout.setStyle("-fx-background-color: #dff0d8; -fx-padding: 20;");
             Scene scene = new Scene(layout);
+            scene.getStylesheets().add(style);
             stage.setScene(scene);
             stage.sizeToScene();
             stage.show();
@@ -1303,8 +1305,6 @@ public class Game extends Application {
             return;
         }
 
-        String style = getClass().getResource("/CSS/UI.css").toExternalForm();
-        
         chatBox = new VBox(5);
         chatBox.getStylesheets().add(style);
         chatBox.setPadding(new Insets(5));
