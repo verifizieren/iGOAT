@@ -38,6 +38,7 @@ public class Lobby {
     private final Map map = new Map(true);
     private final Timer timer = new Timer();
     private final Cooldown stationCooldown = new Cooldown(10000);
+    private final List<ClientHandler> spectators = new ArrayList<>();
 
     /**
      * Represents the different states a lobby can be in: - OPEN: Lobby is accepting new players -
@@ -300,6 +301,21 @@ public class Lobby {
     }
 
     /**
+     * Broadcasts a TCP message to all players and spectators in the lobby.
+     * Used for reliable communication like chat messages and game state updates.
+     *
+     * @param message The message to broadcast to all lobby members and spectators
+     */
+    public void broadcastToAll(String message) {
+        for (ClientHandler member : members) {
+            member.sendMessage(message);
+        }
+        for (ClientHandler spectator : spectators) {
+            spectator.sendMessage(message);
+        }
+    }
+
+    /**
      * Broadcasts a TCP message to all players in the lobby. Used for reliable communication like
      * chat messages and game state updates.
      *
@@ -315,6 +331,9 @@ public class Lobby {
         for (ClientHandler member : members) {
             member.sendMessage(message);
         }
+        for (ClientHandler spectator : spectators) {
+            spectator.sendMessage(message);
+        }
     }
 
     /**
@@ -329,12 +348,29 @@ public class Lobby {
             if (excludeMember != null && member == excludeMember) {
                 continue;
             }
-
             member.sendUpdate(message);
+        }
+        for (ClientHandler spectator : spectators) {
+            if (excludeMember != null && spectator == excludeMember) {
+                continue;
+            }
+            spectator.sendUpdate(message);
         }
     }
 
     public Cooldown getStationCooldown() {
         return stationCooldown;
+    }
+
+    public void addSpectator(ClientHandler client) {
+        spectators.add(client);
+    }
+
+    public void removeSpectator(ClientHandler client) {
+        spectators.remove(client);
+    }
+
+    public List<ClientHandler> getSpectators() {
+        return spectators;
     }
 }

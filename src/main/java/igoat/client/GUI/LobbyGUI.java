@@ -53,6 +53,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.beans.property.SimpleStringProperty;
+import igoat.client.GameSpectator;
 
 /**
  * Represents the GUI for the game lobby where players can chat and join games.
@@ -584,6 +585,64 @@ public class LobbyGUI {
             switch (type) {
                 case "error":
                     appendToMessageArea("Error: " + content);
+                    if (content.trim().startsWith("Lobby ") && content.trim().endsWith("is full")) {
+                        String[] parts = content.trim().split(" ");
+                        if (parts.length >= 2) {
+                            String code = parts[1];
+                            serverHandler.sendMessage("spectate:" + code);
+                            Platform.runLater(() -> {
+                                try {
+                                    GameSpectator spectator = new GameSpectator(this);
+                                    spectator.initialize(serverHandler, code);
+                                    Stage spectatorStage = new Stage();
+                                    spectator.start(spectatorStage);
+                                    stage.hide();
+                                    settings.close();
+                                    manual.close();
+                                    running = false;
+                                } catch (Exception ex) {
+                                    logger.error("Error starting spectator mode", ex);
+                                    appendToMessageArea("Error starting spectator mode: " + ex.getMessage());
+                                    stage.show();
+                                }
+                            });
+                        }
+                    }
+                    if (content.trim().equals("Game is already in progress")) {
+                        logger.info("Received 'Game is already in progress'. currentLobbyCode: {}", currentLobbyCode);
+                        String codeToSpectate = currentLobbyCode;
+                        if (codeToSpectate == null) {
+                            String selected = lobbyListView.getSelectionModel().getSelectedItem();
+                            if (selected != null && !selected.isEmpty()) {
+                                codeToSpectate = selected.split(" ")[0];
+                                logger.info("Extracted code from selected lobby: {}", codeToSpectate);
+                            }
+                        }
+                        if (codeToSpectate != null) {
+                            String spectateMsg = "spectate:" + codeToSpectate;
+                            logger.info("Sending spectate message: {}", spectateMsg);
+                            serverHandler.sendMessage(spectateMsg);
+                        } else {
+                            logger.warn("No lobby code available to spectate.");
+                        }
+                        final String finalCodeToSpectate = codeToSpectate;
+                        Platform.runLater(() -> {
+                            try {
+                                GameSpectator spectator = new GameSpectator(this);
+                                spectator.initialize(serverHandler, finalCodeToSpectate);
+                                Stage spectatorStage = new Stage();
+                                spectator.start(spectatorStage);
+                                stage.hide();
+                                settings.close();
+                                manual.close();
+                                running = false;
+                            } catch (Exception ex) {
+                                logger.error("Error starting spectator mode", ex);
+                                appendToMessageArea("Error starting spectator mode: " + ex.getMessage());
+                                stage.show();
+                            }
+                        });
+                    }
                     break;
                 case "confirm":
                     appendToMessageArea("Info: " + content);

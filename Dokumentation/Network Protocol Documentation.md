@@ -61,6 +61,10 @@ The following list contains the TCP commands used in the protocol.
 | Server | door                         | Broadcasts that the door have been opened.                                                                         | door                                   | TCP      |
 | Server | gameover:[result]            | Message that the game is over. Result is a boolean that is true if the guard wins and false if the goat wins.      | gameover:true                          | TCP      |
 | Server | player_left:[player]         | Broadcasts that a player has left the lobby/game.                                                                  | player_left:alice                      | TCP      |
+| Client | spectate:[lobbyCode]            | Request to join a lobby as a spectator. If the lobby is in progress or full, the server adds the client as a spectator. | spectate:1234 | TCP |
+| Server | (no explicit response, but sends game state and chat updates as for players) | Server adds client to the lobby's spectator list and sends all relevant game state and chat updates. |  | TCP |
+| Client | leaveSpectate:[lobbyCode]       | Request to leave spectator mode for a specific lobby. Server removes the client from the spectator list and clears their lobby state. | leaveSpectate:1234 | TCP |
+| Server | lobby:0                         | Confirms the client has left spectator mode and is no longer in any lobby. | lobby:0 | TCP |
 
 ### UDP Commands
 ---

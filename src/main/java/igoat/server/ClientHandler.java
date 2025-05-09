@@ -73,6 +73,8 @@ public class ClientHandler implements Runnable {
     private String nickname;
     private Player player;
 
+    private boolean isSpectator = false;
+
     static {
         try {
             serverUpdateSocket = new DatagramSocket();
@@ -373,6 +375,15 @@ public class ClientHandler implements Runnable {
                 else if (message.equals("exit")) {
                     running = false;
                     break;
+                }
+
+                if (message.startsWith("spectate:")) {
+                    handleSpectate(message.split(":"));
+                    continue;
+                }
+                if (message.startsWith("leaveSpectate:")) {
+                    handleLeaveSpectate(message.split(":"));
+                    continue;
                 }
 
                 handleCommand(message);
@@ -703,6 +714,10 @@ public class ClientHandler implements Runnable {
      * @param params Array of parameters, where params[0] is the message
      */
     private void handleChat(String[] params) {
+        if (isSpectator) {
+            sendError("Spectators cannot chat");
+            return;
+        }
         if (params.length < 1 || params[0].isEmpty()) {
             sendError("No message provided");
             return;
@@ -878,14 +893,14 @@ public class ClientHandler implements Runnable {
             return;
         }
 
-        if (lobbyToJoin.isFull()) {
-            sendError("Lobby " + code + " is full");
-            sendMessage("lobby:0");
+        if (lobbyToJoin.getState() == LobbyState.IN_GAME || lobbyToJoin.getState() == LobbyState.FINISHED) {
+            sendError("Game is already in progress");
             return;
         }
 
-        if (lobbyToJoin.getState() == LobbyState.IN_GAME || lobbyToJoin.getState() == LobbyState.FINISHED) {
-            sendError("Game is already in progress");
+        if (lobbyToJoin.isFull()) {
+            sendError("Lobby " + code + " is full");
+            sendMessage("lobby:0");
             return;
         }
 
@@ -981,25 +996,32 @@ public class ClientHandler implements Runnable {
         }
         if (sb.length() > 0) sb.setLength(sb.length() - 1);
 
-        sendMessage("getlobbyplayers:" + sb);
+        String update = "getlobbyplayers:" + sb;
+        for (ClientHandler member : currentLobby.getMembers()) {
+            member.sendMessage(update);
+        }
+        for (ClientHandler spectator : currentLobby.getSpectators()) {
+            spectator.sendMessage(update);
+        }
     }
 
     private void handleReady(boolean status) {
+        if (isSpectator) {
+            sendError("Spectators cannot ready up");
+            return;
+        }
         if (currentLobby == null) {
             sendError("Not in a lobby");
             setReady(false);
             return;
         }
-
         this.setReady(status);
-
         if (currentLobby.getState() == LobbyState.FINISHED) {
             currentLobby.resetState();
             broadcastGetLobbiesToAll();
         }
-
         String statusMessage = "ready_status:" + this.nickname + "," + this.isReady;
-        currentLobby.broadcastToLobby(statusMessage);
+        currentLobby.broadcastToAll(statusMessage);
         appendToLobbyChat("Player " + nickname + (isReady ? " is ready." : " is no longer ready."), false);
     }
 
@@ -1205,7 +1227,7 @@ public class ClientHandler implements Runnable {
         broadcastGetLobbiesToAll();
 
         String gameStartedMessage = "game_started:";
-        currentLobby.broadcastToLobby(gameStartedMessage);
+        currentLobby.broadcastToAll(gameStartedMessage);
         currentLobby.setRoles();
     }
 
@@ -1283,7 +1305,7 @@ public class ClientHandler implements Runnable {
             currentLobby.getGameState().gameOver = true;
             currentLobby.endGame();
             broadcastGetLobbiesToAll();
-            currentLobby.broadcastToLobby("gameover:" + result);
+            currentLobby.broadcastToAll("gameover:" + result);
             long gameTime = currentLobby.getTimer().getTime();
             double[] endTime = Timer.convertToMinSec(gameTime);
             logger.info("Game time: {} ms", gameTime);
@@ -1358,18 +1380,18 @@ public class ClientHandler implements Runnable {
 
             if (currentLobby.getGameState().isDoorOpen()) {
                 currentLobby.broadcastChatToLobby("Exits have been opened!");
-                currentLobby.broadcastToLobby("door");
+                currentLobby.broadcastToAll("door");
                 currentLobby.getMap().openDoors();
                 logger.info("Exits have been opened!");
             }
 
             if (activated) {
-                currentLobby.broadcastToLobby("terminal:" + terminalId);
+                currentLobby.broadcastToAll("terminal:" + terminalId);
                 for (ClientHandler player : currentLobby.getMembers()) {
                     if (player.getPlayer().getRole() == Role.GOAT && player.getPlayer().isCaught()) {
                         player.getPlayer().revive();
                         player.getPlayer().teleport(920, 230);
-                        currentLobby.broadcastToLobby("revive:" + player.getNickname());
+                        currentLobby.broadcastToAll("revive:" + player.getNickname());
                         player.getPlayer().getSpawnProtection().reset();
                     }
                 }
@@ -1385,6 +1407,10 @@ public class ClientHandler implements Runnable {
      * Processes a whisper message to a specific client. Format: whisper:recipient,message
      */
     private void handleWhisper(String[] params) {
+        if (isSpectator) {
+            sendError("Spectators cannot chat");
+            return;
+        }
         if (params.length < 2) {
             sendError("Empty whisper message");
             return;
@@ -1493,7 +1519,7 @@ public class ClientHandler implements Runnable {
         }
 
         target.getPlayer().catchPlayer();
-        currentLobby.broadcastToLobby("catch:" + targetName);
+        currentLobby.broadcastToAll("catch:" + targetName);
 
         if (currentLobby.getGameState().isGuardWin() && !currentLobby.getGameState().gameOver) {
             logger.info("guard won, ending game");
@@ -1524,7 +1550,7 @@ public class ClientHandler implements Runnable {
             return;
         }
         target.getPlayer().revive();
-        currentLobby.broadcastToLobby("revive:" + targetName);
+        currentLobby.broadcastToAll("revive:" + targetName);
     }
 
     public Player getPlayer() {
@@ -1559,5 +1585,79 @@ public class ClientHandler implements Runnable {
             sb.setLength(sb.length() - 1);
         }
         sendMessage("roles:" + sb.toString());
+    }
+
+    private void handleSpectate(String[] params) {
+        if (params.length < 2) {
+            sendError("No lobby code received for spectate");
+            sendMessage("lobby:0");
+            return;
+        }
+        int code;
+        try {
+            code = Integer.parseInt(params[1]);
+        } catch (NumberFormatException e) {
+            sendError("Invalid lobby code for spectate");
+            sendMessage("lobby:0");
+            return;
+        }
+        Lobby lobbyToSpectate = null;
+        for (Lobby lobby : lobbyList) {
+            if (lobby.getCode() == code) {
+                lobbyToSpectate = lobby;
+                break;
+            }
+        }
+        if (lobbyToSpectate == null) {
+            sendError("Couldn't find lobby " + code);
+            sendMessage("lobby:0");
+            return;
+        }
+        this.isSpectator = true;
+        this.currentLobby = lobbyToSpectate;
+        lobbyToSpectate.addSpectator(this);
+        lobbyToSpectate.broadcastToAll("chat:System: A spectator has joined the lobby.");
+        if (lobbyToSpectate.getGameState() != null) {
+            for (String event : lobbyToSpectate.getGameState().getEventLog()) {
+                sendMessage(event);
+            }
+            for (Player player : lobbyToSpectate.getPlayerList()) {
+                if (player.isCaught()) {
+                    sendMessage("catch:" + player.getNickname());
+                }
+            }
+            boolean[] stations = lobbyToSpectate.getGameState().getStations();
+            for (int i = 0; i < stations.length; i++) {
+                if (stations[i]) {
+                    sendMessage("activateStation:" + i);
+                }
+            }
+        }
+    }
+
+    private void handleLeaveSpectate(String[] params) {
+        if (!isSpectator || currentLobby == null) {
+            sendError("Not spectating a lobby");
+            return;
+        }
+        if (params.length < 2) {
+            sendError("No lobby code received for leaveSpectate");
+            return;
+        }
+        int code;
+        try {
+            code = Integer.parseInt(params[1]);
+        } catch (NumberFormatException e) {
+            sendError("Invalid lobby code for leaveSpectate");
+            return;
+        }
+        if (currentLobby.getCode() != code) {
+            sendError("Lobby code mismatch for leaveSpectate");
+            return;
+        }
+        currentLobby.removeSpectator(this);
+        this.currentLobby = null;
+        this.isSpectator = false;
+        sendMessage("lobby:0");
     }
 }
