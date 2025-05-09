@@ -991,6 +991,12 @@ public class Game extends Application {
             terminal.setClip(clip);
         }
 
+        for (IgoatStation station : gameMap.getStationList()) {
+            Shape clip = player.getRole() == Role.GUARD ? Camera.getCone(centerX, centerY, 100, getMouseAngle(), false, true)
+                : new Circle(centerX, centerY, 100);
+            station.setClip(clip);
+        }
+
         if (player.getRole() == Role.GUARD) {
             camera.updateCone(getMouseAngle());
         }
