@@ -177,10 +177,16 @@ public class Lobby {
     private void startTimerThread() {
         while (state != LobbyState.FINISHED) {
             timer.update();
-
+            broadcastToAll("timer:" + code + ":" + timer.getTime());
             if (timer.getTime() >= GAME_OVER_TIME) {
                 members.getFirst().endGame(true);
                 logger.info("Time limit reached - game over");
+                break;
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 break;
             }
         }

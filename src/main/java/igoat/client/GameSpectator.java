@@ -466,6 +466,26 @@ public class GameSpectator extends Application {
      * @param message The message from the server
      */
     private void processServerMessage(String message) {
+        if (message.startsWith("timer:")) {
+            String[] parts = message.split(":");
+            if (parts.length == 3) {
+                String code = parts[1];
+                String msStr = parts[2];
+                if (lobbyCode != null && lobbyCode.equals(code)) {
+                    try {
+                        long ms = Long.parseLong(msStr);
+                        Platform.runLater(() -> {
+                            timer.reset(ms);
+                            time = timer.toString();
+                            timeText.setText(time);
+                        });
+                    } catch (NumberFormatException e) {
+                        logger.error("Invalid timer value: {}", msStr);
+                    }
+                }
+            }
+            return;
+        }
         if (message.startsWith("getlobbyplayers:")) {
             String playersData = message.substring("getlobbyplayers:".length());
             if (!playersData.isEmpty()) {

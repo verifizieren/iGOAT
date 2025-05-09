@@ -65,6 +65,7 @@ The following list contains the TCP commands used in the protocol.
 | Server | (no explicit response, but sends game state and chat updates as for players) | Server adds client to the lobby's spectator list and sends all relevant game state and chat updates. |  | TCP |
 | Client | leaveSpectate:[lobbyCode]       | Request to leave spectator mode for a specific lobby. Server removes the client from the spectator list and clears their lobby state. | leaveSpectate:1234 | TCP |
 | Server | lobby:0                         | Confirms the client has left spectator mode and is no longer in any lobby. | lobby:0 | TCP |
+| Server | timer:[lobbyCode]:[milliseconds] | Broadcasts the current game timer value (in milliseconds) for a specific lobby to all clients in that lobby every second. | timer:1234:45678 | TCP |
 
 ### UDP Commands
 ---

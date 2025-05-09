@@ -443,6 +443,27 @@ public class Game extends Application {
      * @param message the message received from the server
      */
     private void processServerMessage(String message) {
+        if (message.startsWith("timer:")) {
+            String[] parts = message.split(":");
+            if (parts.length == 3) {
+                String code = parts[1];
+                String msStr = parts[2];
+                if (lobbyCode != null && lobbyCode.equals(code)) {
+                    try {
+                        long ms = Long.parseLong(msStr);
+                        Platform.runLater(() -> {
+                            timer.reset(ms);
+                            time = timer.toString();
+                            timeText.setText(time);
+                        });
+                    } catch (NumberFormatException e) {
+                        logger.error("Invalid timer value: {}", msStr);
+                    }
+                }
+            }
+            return;
+        }
+
         BiFunction<String, String, String[]> parseSenderAndContent = (prefix, msg) -> {
             String data = msg.substring(prefix.length()); 
 
@@ -692,6 +713,27 @@ public class Game extends Application {
             }
         }
         addChatMessage(sender, null, content, mode);
+
+        if (message.startsWith("timer:")) {
+            String[] parts = message.split(":");
+            if (parts.length == 3) {
+                String code = parts[1];
+                String msStr = parts[2];
+                if (lobbyCode != null && lobbyCode.equals(code)) {
+                    try {
+                        long ms = Long.parseLong(msStr);
+                        Platform.runLater(() -> {
+                            timer.reset(ms);
+                            time = timer.toString();
+                            timeText.setText(time);
+                        });
+                    } catch (NumberFormatException e) {
+                        logger.error("Invalid timer value: {}", msStr);
+                    }
+                }
+            }
+            return;
+        }
     }
 
     /**
