@@ -1,0 +1,1 @@
+There are a total of eight terminals in the lab. In each round, three random terminals must be activated by the iGoat to open the exit for the goat. If the goat gets caught by the guard, a random terminal must be activated. Each terminal can only be activated once per round.

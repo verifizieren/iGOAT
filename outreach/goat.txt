@@ -1,0 +1,1 @@
+The goat must escape the lab within a limited time while hiding from the guard. To help it hide more effectively, the goat has a unique ability to jump through windows. If an iGoat gets caught, the goat can rescue it by pressing the action button either at the spot where it was caught or at the iGoat loading station.
