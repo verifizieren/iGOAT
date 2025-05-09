@@ -34,10 +34,12 @@ public class ManualWindow {
 
     private final List<CharacterInfo> characters = List.of(
             new CharacterInfo("Goat", "/sprites/goat_idle.png", "/manual/goat.txt"),
-            new CharacterInfo("Guard", "/sprites/guard.png", "/manual/guard.txt"),
+            new CharacterInfo("Guard", "/sprites/guard_idle.png", "/manual/guard.txt"),
             new CharacterInfo("iGOAT", "/sprites/igoat_idle.png", "/manual/igoat.txt"),
             new CharacterInfo("Terminal", "/sprites/terminal.png", "/manual/terminal.txt"),
-            new CharacterInfo("iGOAT-Station", "/sprites/igoat_station.png", "/manual/igoat_station.txt")
+            new CharacterInfo("iGOAT-Station", "/sprites/igoat_station.png", "/manual/igoat_station.txt"),
+            new CharacterInfo("Exit", "/sprites/door.png", "/manual/exit.txt"),
+            new CharacterInfo("Window", "/sprites/window.png", "/manual/window.txt")
     );
 
     private int currentIndex = 0;
@@ -46,6 +48,7 @@ public class ManualWindow {
     private ManualWindow() {
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setTitle("Manual");
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("/sprites/igoat_icon.png")));
 
         layout = new BorderPane();
         layout.setPadding(new Insets(20));
@@ -67,13 +70,14 @@ public class ManualWindow {
         Scene scene = new Scene(layout, 600, 400);
         try {
             scene.getStylesheets().add(getClass().getResource("/CSS/UI.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("/CSS/LobbyBackground.css").toExternalForm());   // Background
         } catch (Exception e) {
             logger.warn("Stylesheet couldn't load.", e);
         }
 
         stage.setScene(scene);
 
-        showCharacter(0); // Erste Figur anzeigen
+        showCharacter(0);
     }
 
     public static ManualWindow getInstance() {
@@ -90,7 +94,11 @@ stage.showAndWait();
     }
 
     private void showCharacter(int index) {
-        if (index < 0 || index >= characters.size()) return;
+        if (index < 0) {
+            index = characters.size() - 1;
+        } else if (index >= characters.size()) {
+            index = 0;
+        }
         currentIndex = index;
 
         CharacterInfo info = characters.get(index);
@@ -107,11 +115,11 @@ stage.showAndWait();
         image.setPreserveRatio(true);
 
         Label name = new Label(info.name);
-        name.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+        name.setStyle("-fx-font-size: 25px; -fx-font-weight: bold;");
 
         Label description = new Label(info.loadDescription());
         description.setWrapText(true);
-        description.setStyle("-fx-font-size: 14px;");
+        description.setStyle("-fx-font-size: 20px;");
 
         characterBox.getChildren().setAll(name, image, description);
     }
@@ -133,7 +141,7 @@ stage.showAndWait();
                  BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
                 return reader.lines().collect(Collectors.joining("\n"));
             } catch (Exception e) {
-                return "Beschreibung konnte nicht geladen werden.";
+                return "Description could not be loaded.";
             }
         }
     }
