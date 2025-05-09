@@ -87,4 +87,9 @@
 * Später arbeitete die Gruppe außerdem die ToDos für den letzten Meilenstein aus.
 * ToDo: Jonas: iGOAT-Station implementieren, Multiple-Client-Tests, Sounds hinzufügen, Fullscreen- und Spectator-Mode hinzufügen. Marvin: Manual updaten und eine Spielerklärung im Spiel selbst implementieren, QA-Dokumentation erweitern und Cheat-Codes einbauen. Max: Username-Visibility, Custom-Windowbar, Controller-Support sowie Key-Bindings und Unit-Tests fertigstellen. Nicolas: iGOAT-Station und Guard-Animationen hinzufügen, Bug-Tracker anlegen und ein Intro erstellen.
 * Das nächste Treffen wurde für den Dienstag, den 06.05.2025 festgelegt.
+## <p align = "center"> 06.05.2025
+* Die Gruppe testete die erledigten Punkte, um zu überprüfen, ob diese in Ordnung sind oder ob noch Anpassungen notwendig sind.
+* Die meisten erledigten Punkte waren in Ordnung und funktionierten wie gewünscht.
+* ToDo: Jedes Mitglied muss noch seine vorherigen ToDos fertigstellen, und die Gruppe sollte allgemein versuchen, alle Aufgaben für den letzten Meilenstein zu erledigen und das Spiel fertigzustellen.
+* Das nächste Treffen wurde für Samstag, den 10.05.2025, festgelegt.
 
