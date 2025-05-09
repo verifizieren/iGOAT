@@ -77,7 +77,6 @@ public class GameSpectator extends Application {
     private HBox spectatorInfoBar;
     private VBox playerListBox;
     private VBox playerInfoBox;
-    private javafx.scene.text.TextFlow spectatorChatFlow;
 
     private static class InterpolatedPosition {
         double lastX, lastY, targetX, targetY;
@@ -551,68 +550,6 @@ public class GameSpectator extends Application {
             if (parts.length == 2) {
                 endGame(parts[1].equals("true"));
             }
-        } else if (message.startsWith("chat:") || message.startsWith("lobbychat:") || message.startsWith("teamchat:")) {
-            Platform.runLater(() -> appendSpectatorChat(message));
-        }
-    }
-
-    /**
-     * Appends a chat message to the spectator chat overlay.
-     * @param message The chat message (with prefix and sender)
-     */
-    private void appendSpectatorChat(String message) {
-        String prefix;
-        String sender;
-        String content;
-        Color prefixColor;
-        if (message.startsWith("lobbychat:")) {
-            prefix = "[LOBBY] ";
-            prefixColor = Color.LIGHTGREEN;
-            String[] parts = message.substring("lobbychat:".length()).split(":", 2);
-            if (parts.length == 2) {
-                sender = parts[0];
-                content = parts[1];
-            } else {
-                sender = "?";
-                content = message.substring("lobbychat:".length());
-            }
-        } else if (message.startsWith("teamchat:")) {
-            prefix = "[TEAM] ";
-            prefixColor = Color.MAGENTA;
-            String[] parts = message.substring("teamchat:".length()).split(":", 2);
-            if (parts.length == 2) {
-                sender = parts[0];
-                content = parts[1];
-            } else {
-                sender = "?";
-                content = message.substring("teamchat:".length());
-            }
-        } else if (message.startsWith("chat:")) {
-            prefix = "[GLOBAL] ";
-            prefixColor = Color.ORANGE;
-            String[] parts = message.substring("chat:".length()).split(":", 2);
-            if (parts.length == 2) {
-                sender = parts[0];
-                content = parts[1];
-            } else {
-                sender = "?";
-                content = message.substring("chat:".length());
-            }
-        } else {
-            return;
-        }
-        javafx.scene.text.Text prefixText = new javafx.scene.text.Text(prefix);
-        prefixText.setFill(prefixColor);
-        prefixText.setFont(Font.font("Jersey 10", 13));
-        javafx.scene.text.Text senderText = new javafx.scene.text.Text(sender + ": ");
-        senderText.setFill(Color.LIGHTBLUE);
-        senderText.setFont(Font.font("Jersey 10", 13));
-        javafx.scene.text.Text contentText = new javafx.scene.text.Text(content + "\n");
-        contentText.setFill(Color.WHITE);
-        contentText.setFont(Font.font("Jersey 10", 13));
-        spectatorChatFlow.getChildren().addAll(prefixText, senderText, contentText);
-        if (spectatorChatFlow.getParent() instanceof javafx.scene.control.ScrollPane sp) {
-            sp.setVvalue(1.0);
         }
     }
 
