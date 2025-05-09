@@ -905,6 +905,11 @@ public class ClientHandler implements Runnable {
         }
 
         joinLobby(lobbyToJoin);
+        // Send ready status of all lobby members to the joining client
+        for (ClientHandler member : lobbyToJoin.getMembers()) {
+            String readyStatusMsg = "ready_status:" + member.getNickname() + "," + member.isReady();
+            sendMessage(readyStatusMsg);
+        }
     }
 
     private void handleNewLobby() {
