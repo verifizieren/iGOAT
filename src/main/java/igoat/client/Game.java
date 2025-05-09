@@ -117,6 +117,16 @@ public class Game extends Application {
     private boolean spectating = false;
     private boolean initializedViewport = false;
 
+    private static class InterpolatedPosition {
+        double lastX, lastY, targetX, targetY;
+        long lastUpdateTime, targetTime;
+        InterpolatedPosition(double x, double y) {
+            lastX = targetX = x;
+            lastY = targetY = y;
+            lastUpdateTime = targetTime = System.currentTimeMillis();
+        }
+    }
+    private final Map<String, InterpolatedPosition> playerPositions = new ConcurrentHashMap<>();
 
     /**
      * Enum for defining the chat modes available in the game.
@@ -919,14 +929,16 @@ public class Game extends Application {
      * @param y The new y-coordinate
      */
     private void updateRemotePlayerPosition(String playerName, int x, int y) {
-        //logger.info("Attempting to update player {} to position ({}, {})", playerName, x, y);
-        
         if (otherPlayers.containsKey(playerName)) {
             Player remotePlayer = otherPlayers.get(playerName);
-            Platform.runLater(() -> {
-                remotePlayer.updatePosition(x, y);
-                //logger.info("Updated existing player {} to position ({}, {})", playerName, x, y);
-            });
+            // Interpolate movement
+            InterpolatedPosition interp = playerPositions.computeIfAbsent(playerName, k -> new InterpolatedPosition(x, y));
+            interp.lastX = remotePlayer.getX();
+            interp.lastY = remotePlayer.getY();
+            interp.targetX = x;
+            interp.targetY = y;
+            interp.lastUpdateTime = System.currentTimeMillis();
+            interp.targetTime = interp.lastUpdateTime + 100; // 100ms to reach target
         } else {
             logger.info("Player {} not found visually, creating at ({}, {})", playerName, x, y);
             createVisualForRemotePlayer(playerName, x, y);
@@ -1010,10 +1022,21 @@ public class Game extends Application {
             centerY = player.getY() + (player.getHeight() / 2.0);
         }
 
+        long now = System.currentTimeMillis();
+        for (Map.Entry<String, Player> entry : otherPlayers.entrySet()) {
+            String name = entry.getKey();
+            Player p = entry.getValue();
+            InterpolatedPosition interp = playerPositions.get(name);
+            if (interp != null) {
+                double t = Math.min(1.0, (now - interp.lastUpdateTime) / (double)(interp.targetTime - interp.lastUpdateTime));
+                double ix = interp.lastX + (interp.targetX - interp.lastX) * t;
+                double iy = interp.lastY + (interp.targetY - interp.lastY) * t;
+                p.updatePosition(ix, iy);
+            }
+        }
         for (Player otherPlayer : otherPlayers.values()) {
             Shape visualClip;
             Shape labelClip;
-
             if (player.getRole() == Role.GUARD) {
                 visualClip = Camera.getCone(centerX, centerY, 100, getMouseAngle(), false, true);
                 labelClip = Camera.getCone(centerX, centerY, 100, getMouseAngle(), false, true);
@@ -1022,7 +1045,6 @@ public class Game extends Application {
                 visualClip = new Circle(centerX, centerY, 100);
                 labelClip = new Circle(centerX, centerY, 100);
             }
-            
             otherPlayer.getVisual().setClip(visualClip);
             otherPlayer.getUsernameLabel().setClip(labelClip);
         }
