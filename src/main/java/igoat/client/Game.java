@@ -323,9 +323,6 @@ public class Game extends Application {
         player = new Player(gamePane, initialX, initialY, (int)PLAYER_WIDTH, (int)PLAYER_HEIGHT, confirmedNickname);
 
         camera = new Camera(gamePane, primaryStage.getWidth(), primaryStage.getHeight(), CAMERA_ZOOM, true);
-
-        spectatingPlayer.nextValue();
-        spectatingPlayer.nextValue();
         
         scene.widthProperty().addListener((obs, oldVal, newVal) -> {
             camera.updateViewport(newVal.doubleValue(), scene.getHeight());
@@ -1029,7 +1026,7 @@ public class Game extends Application {
      */
     private void update(double deltaTime) {
         // prevent huge jumps when lagging
-        deltaTime = Math.min(deltaTime, 0.5);
+        deltaTime = Math.min(deltaTime, 0.4);
 
         if (player == null || !gameStarted) return;
 
@@ -1409,16 +1406,21 @@ public class Game extends Application {
             }
 
             // spectator mode
-            if (event.getCode() == KeyCode.TAB && player.isDown() && player.getRole() != Role.GUARD) {
+            if (activeKeys.contains(SettingsWindow.getInstance().getKeyBinding("cycleSpectator"))
+                && player.isDown() && player.getRole() != Role.GUARD && !otherPlayers.isEmpty()) {
                 if (spectating) {
                     logger.info("switching perspective");
-                    spectatingPlayer.nextValue();
+                    do {
+                        spectatingPlayer.nextValue();
+                    } while (spectatingPlayer.getCurrentValue() == null);
                 } else {
                     logger.info("switch to spectator");
                     spectating = true;
+                    while(spectatingPlayer.getCurrentValue() == null) {
+                        spectatingPlayer.nextValue();
+                    }
                 }
-            } else if (event.getCode() == KeyCode.ESCAPE && spectating) {
-                logger.info("exiting spectator mode");
+            } else if (activeKeys.contains(SettingsWindow.getInstance().getKeyBinding("exitSpectator")) && spectating) {
                 spectating = false;
             }
         });

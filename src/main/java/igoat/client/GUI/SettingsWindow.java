@@ -2,6 +2,7 @@ package igoat.client.GUI;
 
 import igoat.client.ScreenUtil;
 import igoat.client.SoundManager;
+import java.util.LinkedHashMap;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -51,7 +52,7 @@ public class SettingsWindow {
     private static final Map<String, String> DEFAULT_CONTROLLER_BINDINGS;
     
     static {
-        DEFAULT_KEY_BINDINGS = new HashMap<>();
+        DEFAULT_KEY_BINDINGS = new LinkedHashMap<>();
         DEFAULT_KEY_BINDINGS.put("moveUp", KeyCode.W);
         DEFAULT_KEY_BINDINGS.put("moveDown", KeyCode.S);
         DEFAULT_KEY_BINDINGS.put("moveLeft", KeyCode.A);
@@ -59,8 +60,10 @@ public class SettingsWindow {
         DEFAULT_KEY_BINDINGS.put("interact", KeyCode.E);
         DEFAULT_KEY_BINDINGS.put("chat", KeyCode.ENTER);
         DEFAULT_KEY_BINDINGS.put("settings", KeyCode.ESCAPE);
+        DEFAULT_KEY_BINDINGS.put("cycleSpectator", KeyCode.TAB);
+        DEFAULT_KEY_BINDINGS.put("exitSpectator", KeyCode.SPACE);
         
-        DEFAULT_CONTROLLER_BINDINGS = new HashMap<>();
+        DEFAULT_CONTROLLER_BINDINGS = new LinkedHashMap<>();
         DEFAULT_CONTROLLER_BINDINGS.put("moveUp", "DPad Up");
         DEFAULT_CONTROLLER_BINDINGS.put("moveDown", "DPad Down");
         DEFAULT_CONTROLLER_BINDINGS.put("moveLeft", "DPad Left");
