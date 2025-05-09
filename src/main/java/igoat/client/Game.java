@@ -122,13 +122,12 @@ public class Game extends Application {
     /**
      * Enum for defining the chat modes available in the game.
      * This enum provides a way to manage different chat modes within the game. It includes three modes:
-     * GLOBAL, LOBBY, and TEAM. Each mode has a display name associated with it, which is used to identify
+     * GLOBAL and LOBBY. Each mode has a display name associated with it, which is used to identify
      * the mode in the game's user interface.
      */
     private enum ChatMode {
         GLOBAL("Global"),
-        LOBBY("Lobby"),
-        TEAM("Team");
+        LOBBY("Lobby");
 
         private final String displayName;
 
@@ -484,9 +483,6 @@ public class Game extends Application {
         if (message.startsWith("lobbychat:")) {
             mode = ChatMode.LOBBY;
             prefixString = "lobbychat:";
-        } else if (message.startsWith("teamchat:")) {
-            mode = ChatMode.TEAM;
-            prefixString = "teamchat:";
         } else if (message.startsWith("chat:")) {
             mode = ChatMode.GLOBAL;
             prefixString = "chat:";
@@ -1462,7 +1458,7 @@ public class Game extends Application {
      * @param sender The sender of the message ("You" for sent whispers).
      * @param recipient The recipient of the message ("Target" for sent whispers, null otherwise).
      * @param message The message content.
-     * @param mode The chat mode (GLOBAL, LOBBY, TEAM) or null for whispers.
+     * @param mode The chat mode (GLOBAL, LOBBY) or null for whispers.
      */
     private void addChatMessage(String sender, String recipient, String message, ChatMode mode) {
         final String timeString = String.format("[%02d:%02d] ", 
@@ -1479,10 +1475,6 @@ public class Game extends Application {
                 case LOBBY -> {
                     prefixDisplay = "[LOBBY] ";
                     yield Color.GREEN;
-                }
-                case TEAM -> {
-                    prefixDisplay = "[TEAM] ";
-                    yield Color.BLUE;
                 }
                 default -> {
                     prefixDisplay = "[GLOBAL] ";
@@ -1576,7 +1568,6 @@ public class Game extends Application {
 
                     String prefix = switch (currentChatMode) {
                         case LOBBY -> "lobbychat:";
-                        case TEAM -> "teamchat:";
                         default -> "chat:";
                     };
                     String messageToSend = prefix + messageWithMarker;
@@ -1592,7 +1583,6 @@ public class Game extends Application {
         } else {
             String prefix = switch (currentChatMode) {
                 case LOBBY -> "lobbychat:";
-                case TEAM -> "teamchat:";
                 default -> "chat:";
             };
             String chatMessage = prefix + text;
@@ -1603,7 +1593,7 @@ public class Game extends Application {
     }
 
     /**
-     * Cycles through the available chat modes (GLOBAL -> LOBBY -> TEAM)
+     * Cycles through the available chat modes (GLOBAL -> LOBBY)
      */
     private void cycleChatMode() {
         currentChatMode = ChatMode.values()[(currentChatMode.ordinal() + 1) % ChatMode.values().length];

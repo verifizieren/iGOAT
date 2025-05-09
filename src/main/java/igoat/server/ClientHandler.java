@@ -452,13 +452,6 @@ public class ClientHandler implements Runnable {
                         sendError("You are not in a lobby");
                     }
                     break;
-                case "teamchat": // WORK IN PROGRESS
-                    if (currentLobby != null) {
-                        broadcast(nickname + ":" + params);
-                    } else {
-                        sendError("You are not in a lobby");
-                    }
-                    break;
                 case "getplayers":
                     handleGetPlayers();
                     break;
