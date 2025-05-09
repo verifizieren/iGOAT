@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 
 /**
- * Singleton class for the manual
+ * Singleton window for displaying the game manual, including character info and navigation.
  */
 public class ManualWindow {
     private BorderPane layout;
@@ -80,15 +80,25 @@ public class ManualWindow {
         showCharacter(0);
     }
 
+    /**
+     * Returns the singleton instance of ManualWindow.
+     * @return ManualWindow instance
+     */
     public static ManualWindow getInstance() {
         return instance;
     }
 
+    /**
+     * Opens the manual window and blocks until it is closed.
+     */
     public void open() {
         ScreenUtil.moveStageToCursorScreen(stage, layout.getPrefWidth() > 0 ? layout.getPrefWidth() : 600, layout.getPrefHeight() > 0 ? layout.getPrefHeight() : 400);
 stage.showAndWait();
     }
 
+    /**
+     * Closes the manual window.
+     */
     public void close() {
         stage.close();
     }
