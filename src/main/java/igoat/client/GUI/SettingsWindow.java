@@ -62,12 +62,14 @@ public class SettingsWindow {
     private boolean useController = true;
     
     private String selectedController = null;
-    private ChoiceBox<String> controllerSelector; 
+    private ChoiceBox<String> controllerSelector = new ChoiceBox<>();
 
     public static final Map<String, Locale> AVAILABLE_LANGUAGES = Map.of(
         "English", Locale.ENGLISH,
         "Deutsch", Locale.GERMAN
     );
+
+    private boolean isControllerSupportAvailable = false;
 
     static {
         DEFAULT_KEY_BINDINGS = new TreeMap<>();
@@ -263,8 +265,17 @@ public class SettingsWindow {
         pane.setVgap(10);
         pane.setHgap(10);
 
+        try {
+            Controller[] controllers = ControllerEnvironment.getDefaultEnvironment().getControllers();
+            isControllerSupportAvailable = true;
+        } catch (UnsatisfiedLinkError | Exception e) {
+            logger.warn("Controller support not available: " + e.getMessage());
+            isControllerSupportAvailable = false;
+        }
+
         CheckBox useControllerCheckbox = new CheckBox(lang.get("settings.useController"));
-        useControllerCheckbox.setSelected(useController);
+        useControllerCheckbox.setSelected(useController && isControllerSupportAvailable);
+        useControllerCheckbox.setDisable(!isControllerSupportAvailable);
         useControllerCheckbox.setOnAction(e -> {
             useController = useControllerCheckbox.isSelected();
             saveSettings();
@@ -272,13 +283,20 @@ public class SettingsWindow {
         pane.add(useControllerCheckbox, 0, 0, 2, 1);
 
         Label controllerLabel = new Label(lang.get("settings.selectController"));
-        ComboBox<String> controllerSelector = new ComboBox<>();
+        controllerSelector = new ChoiceBox<>();
         controllerSelector.getItems().add("None");
+        controllerSelector.setDisable(!isControllerSupportAvailable);
         
-        Controller[] controllers = ControllerEnvironment.getDefaultEnvironment().getControllers();
-        for (Controller c : controllers) {
-            if (c.getType() == Controller.Type.GAMEPAD) {
-                controllerSelector.getItems().add(c.getName());
+        if (isControllerSupportAvailable) {
+            try {
+                Controller[] controllers = ControllerEnvironment.getDefaultEnvironment().getControllers();
+                for (Controller c : controllers) {
+                    if (c.getType() == Controller.Type.GAMEPAD) {
+                        controllerSelector.getItems().add(c.getName());
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("Failed to enumerate controllers", e);
             }
         }
         
@@ -293,12 +311,20 @@ public class SettingsWindow {
         pane.add(controllerLabel, 0, 1);
         pane.add(controllerSelector, 1, 1);
 
-        Label instructionsLabel = new Label(
-            "Controls:\n" +
-            "A or X Button - Interact\n" +
-            "Left Stick/D-Pad - Movement\n" +
-            "Right Stick - Flashlight Control (Guard only)"
-        );
+        String instructionsText;
+        if (isControllerSupportAvailable) {
+            instructionsText = "Controls:\n" +
+                "A or X Button - Interact\n" +
+                "Left Stick/D-Pad - Movement\n" +
+                "Right Stick - Flashlight Control (Guard only)";
+        } else {
+            instructionsText = "Controller support is not available.\n" +
+                "This might be because the required native libraries\n" +
+                "(jinput-dx8_64.dll, jinput-raw_64.dll) are missing.\n" +
+                "Please check the game documentation for installation instructions.";
+        }
+
+        Label instructionsLabel = new Label(instructionsText);
         instructionsLabel.setStyle("-fx-font-family: monospace;");
         pane.add(instructionsLabel, 0, 2, 2, 1);
 
@@ -481,16 +507,26 @@ public class SettingsWindow {
         this.useController = useController;
     }
 
+    /**
+     * Updates the available controllers list
+     */
     private void updateAvailableControllers() {
+        if (!isControllerSupportAvailable || controllerSelector == null) return;
+
         controllerSelector.getItems().clear();
-        Controller[] controllers = ControllerEnvironment.getDefaultEnvironment().getControllers();
-        for (Controller controller : controllers) {
-            if (controller.getType() == Controller.Type.GAMEPAD || 
-                controller.getType() == Controller.Type.STICK) {
-                controllerSelector.getItems().add(controller.getName());
-            }
-        }
         controllerSelector.getItems().add("None");
+        
+        try {
+            Controller[] controllers = ControllerEnvironment.getDefaultEnvironment().getControllers();
+            for (Controller controller : controllers) {
+                if (controller.getType() == Controller.Type.GAMEPAD || 
+                    controller.getType() == Controller.Type.STICK) {
+                    controllerSelector.getItems().add(controller.getName());
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Failed to update controller list", e);
+        }
         
         if (selectedController == null || !controllerSelector.getItems().contains(selectedController)) {
             controllerSelector.setValue("None");

@@ -31,12 +31,9 @@ java {
 repositories {
     mavenCentral()
     maven { url = 'https://jitpack.io' }
-    maven {
-        url = uri("https://repo.maven.apache.org/maven2")
-    }
-    maven {
-        url = uri("https://repo1.maven.org/maven2")
-    }
+    maven { url = uri("https://repo.maven.apache.org/maven2") }
+    maven { url = uri("https://repo1.maven.org/maven2") }
+    maven { url = uri("https://artifactory.cronapp.io/public-release/") }  // Repository with JInput natives
 }
 
 dependencies {
@@ -66,11 +63,51 @@ test {
     useJUnitPlatform()
 }
 
+task extractNatives {
+    doLast {
+        def nativesDir = file("${buildDir}/natives")
+        nativesDir.mkdirs()
+        
+        configurations.runtimeClasspath.each { file ->
+            if (file.name.contains('natives')) {
+                copy {
+                    from zipTree(file)
+                    into nativesDir
+                    include "*.dll"
+                    include "*.so"
+                    include "*.jnilib"
+                    include "*.dylib"
+                }
+            }
+        }
+    }
+}
+
+tasks.withType(JavaExec) {
+    dependsOn extractNatives
+    systemProperty "java.library.path", file("${buildDir}/natives").absolutePath
+    systemProperty "net.java.games.input.librarypath", file("${buildDir}/natives").absolutePath
+}
+
+run {
+    dependsOn extractNatives
+    doFirst {
+        systemProperty "java.library.path", file("${buildDir}/natives").absolutePath
+        systemProperty "net.java.games.input.librarypath", file("${buildDir}/natives").absolutePath
+    }
+}
+
 jar {
+    dependsOn extractNatives
     manifest {
         attributes(
             'Main-Class': 'igoat.Main',
-            'Class-Path': configurations.runtimeClasspath.collect { it.name }.join(' ')
+            'Class-Path': configurations.runtimeClasspath.collect { it.name }.join(' '),
+            'Specification-Title': 'iGOAT',
+            'Specification-Version': version,
+            'Implementation-Title': 'iGOAT',
+            'Implementation-Version': version,
+            'Implementation-Vendor': 'iGOAT Team'
         )
     }
     
@@ -79,24 +116,31 @@ jar {
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
-}
-/*
-tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs << "-Xlint:unchecked"
-}*/
-
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
+    
+    into('natives') {
+        from "${buildDir}/natives"
+    }
 }
 
 // Create a task to build a fat/uber jar with all dependencies
 task fatJar(type: Jar) {
+    dependsOn extractNatives
     manifest {
-        attributes 'Main-Class': 'igoat.Main'
+        attributes(
+            'Main-Class': 'igoat.Main',
+            'Specification-Title': 'iGOAT',
+            'Specification-Version': version,
+            'Implementation-Title': 'iGOAT',
+            'Implementation-Version': version,
+            'Implementation-Vendor': 'iGOAT Team'
+        )
     }
     archiveClassifier = 'fat'
     from { 
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    into('natives') {
+        from "${buildDir}/natives"
     }
     with jar
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -124,27 +168,6 @@ task 'build-cs108' {
     }
 }
 
-task copyNatives(type: Copy) {
-    from zipTree(configurations.runtimeClasspath.find { it.name.contains('jinput-2.0.10-natives-all.jar') })
-    into 'build/libs/natives'
-    doFirst {
-        file('build/libs/natives').mkdirs()
-    }
-    def osName = System.properties['os.name'].toLowerCase()
-    if (osName.contains('mac')) {
-        include '**/*osx*'
-    } else if (osName.contains('linux')) {
-        include '**/*linux*'
-    } else if (osName.contains('win')) {
-        include '**/*raw*'
-    }
-}
-
-jar.dependsOn copyNatives
-
-run {
-    dependsOn copyNatives
-    doFirst {
-        systemProperty 'java.library.path', file('build/libs/natives').absolutePath
-    }
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
 }
