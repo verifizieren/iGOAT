@@ -1,9 +1,19 @@
 package igoat;
 
 import igoat.client.GUI.MainMenuGUI;
+import igoat.client.GUI.SettingsWindow;
 import igoat.client.LanguageManager;
 import igoat.server.Server;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Locale;
+import java.util.Properties;
 import javafx.application.Application;
 import javafx.application.Platform;
 import org.slf4j.Logger;
@@ -16,6 +26,7 @@ import javafx.stage.Stage;
  */
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
+    private static final String CONFIG_FILENAME = "igoat_settings.properties";
 
     /**
      * Main entry point that processes command-line arguments and launches appropriate mode.
@@ -29,7 +40,7 @@ public class Main {
      *            - ["client", host, port]
      */
     public static void main(String[] args) {
-        LanguageManager.init("lang.text", Locale.ENGLISH);
+        LanguageManager.init("lang.text", retrieveLanguageSetting());
 
         if (args.length == 0) {
             try {
@@ -105,5 +116,49 @@ public class Main {
                     System.exit(1);
             }
         }
+    }
+
+    /**
+     * Retrieves the language setting from the settings file. Default is English
+     */
+    private static Locale retrieveLanguageSetting() {
+        Properties props = new Properties();
+
+        Path configPath = Paths.get(System.getProperty("user.dir"), CONFIG_FILENAME);
+        Locale locale = null;
+
+        if (Files.exists(configPath)) {
+            try (InputStream in = new FileInputStream(configPath.toFile())) {
+                props.load(in);
+                String language = props.getProperty("language", "");
+                locale = SettingsWindow.AVAILABLE_LANGUAGES.get(language);
+            } catch (IOException e) {
+                logger.error("Error opening settings file", e);
+            }
+        }
+
+        if (locale == null) {
+            locale = Locale.ENGLISH;
+            props = new Properties();
+            try {
+                Files.createDirectories(configPath.getParent());
+
+                if (Files.exists(configPath)) {
+                    try (InputStream in = new FileInputStream(configPath.toFile())) {
+                        props.load(in);
+                    }
+                }
+
+                props.setProperty("language", "English");
+
+                try (OutputStream out = new FileOutputStream(configPath.toFile())) {
+                    props.store(out, null);
+                }
+
+            } catch (IOException e) {
+                logger.error("Failed to add language to settings", e);
+            }
+        }
+        return locale;
     }
 }

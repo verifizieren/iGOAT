@@ -2,6 +2,7 @@ package igoat.client.GUI;
 
 import igoat.client.LanguageManager;
 import igoat.client.SoundManager;
+import java.util.Locale;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import javafx.geometry.Insets;
@@ -28,7 +29,7 @@ import java.util.Properties;
  */
 public class SettingsWindow {
     private static final Logger logger = LoggerFactory.getLogger(SettingsWindow.class);
-    private static final LanguageManager lang = LanguageManager.getInstance();
+    private final LanguageManager lang = LanguageManager.getInstance();
 
     private static SettingsWindow instance;
     private static final String CONFIG_FILENAME = "igoat_settings.properties";
@@ -39,6 +40,7 @@ public class SettingsWindow {
     private final Popup popup = new Popup();
     private Slider volumeSlider;
     private ChoiceBox<String> windowModeChoice;
+    private ChoiceBox<String> languageChoice = new ChoiceBox<>();
     private TabPane tabPane;
     private GridPane generalSettingsPane;
 
@@ -54,6 +56,11 @@ public class SettingsWindow {
 
     public static String lastIP;
     public static int lastPort;
+
+    public static final Map<String, Locale> AVAILABLE_LANGUAGES = Map.of(
+        "English", Locale.ENGLISH,
+        "Deutsch", Locale.GERMAN
+    );
     
     static {
         DEFAULT_KEY_BINDINGS = new TreeMap<>();
@@ -170,11 +177,17 @@ public class SettingsWindow {
         windowModeChoice = new ChoiceBox<>();
         windowModeChoice.getItems().addAll(lang.get("settings.windowed"), lang.get("settings.fullscreen"));
         windowModeChoice.setValue(fullscreen ? lang.get("settings.fullscreen") : lang.get("settings.windowed"));
-        
+
+        // Language
+        Label languageLabel = new Label(lang.get("settings.language") + ":");
+        languageChoice.getItems().addAll(AVAILABLE_LANGUAGES.keySet());
+
         pane.add(volumeLabel, 0, 0);
         pane.add(volumeSlider, 1, 0);
         pane.add(windowModeLabel, 0, 1);
         pane.add(windowModeChoice, 1, 1);
+        pane.add(languageLabel, 0, 2);
+        pane.add(languageChoice, 1, 2);
         
         return pane;
     }
@@ -328,6 +341,8 @@ public class SettingsWindow {
                 
                 volume = Double.parseDouble(props.getProperty("volume", String.valueOf(volume)));
                 fullscreen = Boolean.parseBoolean(props.getProperty("fullscreen", String.valueOf(fullscreen)));
+                String language = props.getProperty("language", String.valueOf(languageChoice.getValue()));
+                languageChoice.setValue(language == null ? "English" : language);
                 
                 for (String action : DEFAULT_KEY_BINDINGS.keySet()) {
                     String keyName = props.getProperty("key." + action);
@@ -366,6 +381,7 @@ public class SettingsWindow {
         
         props.setProperty("volume", String.valueOf(volume));
         props.setProperty("fullscreen", String.valueOf(fullscreen));
+        props.setProperty("language", languageChoice.getValue() == null ? "English" : languageChoice.getValue());
         
         for (Map.Entry<String, KeyCode> entry : keyBindings.entrySet()) {
             props.setProperty("key." + entry.getKey(), entry.getValue().name());
@@ -392,7 +408,7 @@ public class SettingsWindow {
     /**
      * Gets the path to the config file
      */
-    private Path getConfigFilePath() {
+    public static Path getConfigFilePath() {
         return Paths.get(System.getProperty("user.dir"), CONFIG_FILENAME);
     }
     
