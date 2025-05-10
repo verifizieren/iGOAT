@@ -745,6 +745,11 @@ public class ClientHandler implements Runnable {
         boolean isGuard = (role == Role.GUARD);
 
         if (input.equals("FBI OPEN UP") && isGoat) {
+            if (currentLobby != null && currentLobby.isCheatLocked()) {
+                sendMessage("chat:Cheats are disabled. Doors have already been opened!");
+                return true;
+            }
+
             if (Math.random() < 0.25) {
                 openDoorsCheat();
             } else {
@@ -754,6 +759,11 @@ public class ClientHandler implements Runnable {
         }
 
         if (input.equals("ARE U SURE") && isGuard) {
+            if (currentLobby != null && currentLobby.isCheatLocked()) {
+                sendMessage("chat:Cheats are disabled. Doors have already been opened!");
+                return true;
+            }
+
             if (Math.random() < 0.75) {
                 randomCatchCheat();
             } else {
@@ -770,7 +780,14 @@ public class ClientHandler implements Runnable {
             currentLobby.getGameState().openDoors();
             currentLobby.broadcastToLobby("door");
             currentLobby.getMap().openDoors();
+<<<<<<< Updated upstream
             broadcast("chat:" + lang.get("server.doorsCheat"));
+=======
+            broadcast("chat:CHEAT ACTIVATED -> Doors opened!");
+
+            currentLobby.lockCheats();
+            currentLobby.broadcastChatToLobby("CHEATS LOCKED: No further cheat attempts allowed.");
+>>>>>>> Stashed changes
         }
     }
 

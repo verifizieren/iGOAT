@@ -65,6 +65,15 @@ public class Lobby {
     }
 
     private LobbyState state = LobbyState.OPEN;
+    private boolean cheatLocked = false;
+
+    public boolean isCheatLocked() {
+        return cheatLocked;
+    }
+
+    public void lockCheats() {
+        this.cheatLocked = true;
+    }
     private GameState gameState;
 
     /**
@@ -267,6 +276,7 @@ public class Lobby {
 
     public void startGame() {
         // new gamestate
+        cheatLocked = false;
         gameState = new GameState(map.getTerminalList().size(), generateRandomTerminalIDs(), members);
         for (ClientHandler client : members) {
             Player player = new Player(200, 80, client.getNickname(), this);
