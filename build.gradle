@@ -77,8 +77,29 @@ task extractNatives {
                     include "*.so"
                     include "*.jnilib"
                     include "*.dylib"
+                    
+                    rename { String fileName ->
+                        if (fileName.contains('osx')) {
+                            if (fileName.contains('libjinput')) {
+                                'libjinput-osx.dylib'
+                            } else if (fileName.contains('libosx')) {
+                                'libosx-prk.dylib'
+                            } else {
+                                fileName
+                            }
+                        } else {
+                            fileName
+                        }
+                    }
+                    
+                    fileMode = 0755
                 }
             }
+        }
+        
+        println "Extracted native libraries to: ${nativesDir.absolutePath}"
+        nativesDir.listFiles().each { file ->
+            println " - ${file.name} (${file.canExecute() ? 'executable' : 'not executable'})"
         }
     }
 }
@@ -87,6 +108,8 @@ tasks.withType(JavaExec) {
     dependsOn extractNatives
     systemProperty "java.library.path", file("${buildDir}/natives").absolutePath
     systemProperty "net.java.games.input.librarypath", file("${buildDir}/natives").absolutePath
+    
+    environment "DYLD_LIBRARY_PATH", file("${buildDir}/natives").absolutePath
 }
 
 run {
@@ -94,6 +117,7 @@ run {
     doFirst {
         systemProperty "java.library.path", file("${buildDir}/natives").absolutePath
         systemProperty "net.java.games.input.librarypath", file("${buildDir}/natives").absolutePath
+        environment "DYLD_LIBRARY_PATH", file("${buildDir}/natives").absolutePath
     }
 }
 
