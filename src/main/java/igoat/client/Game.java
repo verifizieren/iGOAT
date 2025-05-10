@@ -62,6 +62,9 @@ import javafx.scene.text.TextFlow;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import igoat.client.GameControllerInput;
+import net.java.games.input.Controller;
+import net.java.games.input.ControllerEnvironment;
 
 /**
  * Main game class that handles the core game logic, rendering, and networking.
@@ -128,6 +131,8 @@ public class Game extends Application {
         }
     }
     private final Map<String, InterpolatedPosition> playerPositions = new ConcurrentHashMap<>();
+
+    private GameControllerInput controllerInput;
 
     /**
      * Enum for defining the chat modes available in the game.
@@ -212,6 +217,27 @@ public class Game extends Application {
                 logger.error("Cannot initialize - confirmed nickname is null");
             }
         });
+
+        controllerInput = new GameControllerInput(selectController());
+    }
+
+    /**
+     * Selects the appropriate controller for input.
+     * 
+     * @return The selected controller, or null if no matching controller is found
+     */ 
+    private Controller selectController() {
+        ControllerEnvironment env = ControllerEnvironment.getDefaultEnvironment();
+        Controller[] controllers = env.getControllers();
+        for (Controller c : controllers) {
+            String name = c.getName().toLowerCase();  
+            if (name.contains("controller") || name.contains("dualshock")) {
+                System.out.println("Auto-selected controller: " + c.getName());
+                return c;  
+            }
+        }
+        System.out.println("No matching controller found, using default or none");
+        return null;  
     }
 
     /**
@@ -1005,6 +1031,38 @@ public class Game extends Application {
     }
 
     /**
+     * Calculates the angle of the right stick on the controller
+     * @return angle in radians, or null if stick is in deadzone
+     */
+    private Double getControllerRightStickAngle() {
+        if (controllerInput == null) return null;
+        
+        float rx = controllerInput.getRightStickX();
+        float ry = controllerInput.getRightStickY();
+        
+        double magnitude = Math.sqrt(rx * rx + ry * ry);
+        if (magnitude < 0.15) { 
+            return null;
+        }
+        
+        return Math.atan2(ry, rx);
+    }
+
+    /**
+     * Calculates the angle for vision/flashlight direction
+     * Uses controller right stick if available and outside deadzone,
+     * otherwise falls back to mouse position
+     * @return angle in radians
+     */
+    private double getVisionAngle() {
+        Double controllerAngle = getControllerRightStickAngle();
+        if (controllerAngle != null) {
+            return controllerAngle;
+        }
+        return getMouseAngle();
+    }
+
+    /**
      * Updates the visual elements of the game based on the local player's position.
      * This includes:
      * - Updating the fog of war effect around other players
@@ -1039,8 +1097,8 @@ public class Game extends Application {
             Shape visualClip;
             Shape labelClip;
             if (player.getRole() == Role.GUARD) {
-                visualClip = Camera.getCone(centerX, centerY, 100, getMouseAngle(), false, true);
-                labelClip = Camera.getCone(centerX, centerY, 100, getMouseAngle(), false, true);
+                visualClip = Camera.getCone(centerX, centerY, 100, getVisionAngle(), false, true);
+                labelClip = Camera.getCone(centerX, centerY, 100, getVisionAngle(), false, true);
             }
             else {
                 visualClip = new Circle(centerX, centerY, 100);
@@ -1051,19 +1109,19 @@ public class Game extends Application {
         }
 
         for (Terminal terminal : gameMap.getTerminalList()) {
-            Shape clip = player.getRole() == Role.GUARD ? Camera.getCone(centerX, centerY, 100, getMouseAngle(), false, true)
+            Shape clip = player.getRole() == Role.GUARD ? Camera.getCone(centerX, centerY, 100, getVisionAngle(), false, true)
                 : new Circle(centerX, centerY, 100);
             terminal.setClip(clip);
         }
 
         for (IgoatStation station : gameMap.getStationList()) {
-            Shape clip = player.getRole() == Role.GUARD ? Camera.getCone(centerX, centerY, 100, getMouseAngle(), false, true)
+            Shape clip = player.getRole() == Role.GUARD ? Camera.getCone(centerX, centerY, 100, getVisionAngle(), false, true)
                 : new Circle(centerX, centerY, 100);
             station.setClip(clip);
         }
 
         if (player.getRole() == Role.GUARD) {
-            camera.updateCone(getMouseAngle());
+            camera.updateCone(getVisionAngle());
         }
     }
 
@@ -1130,10 +1188,16 @@ public class Game extends Application {
             }
         }
         
-        if (activeKeys.contains(SettingsWindow.getInstance().getKeyBinding("interact"))) {
+        boolean keyboardInteract = activeKeys.contains(SettingsWindow.getInstance().getKeyBinding("interact"));
+        boolean controllerInteract = false;
+        if (controllerInput != null) {
+            controllerInteract = controllerInput.isButtonPressed("3");
+        }
+
+        if (keyboardInteract || controllerInteract) {
             if (!pressedE) {
                 pressedE = true;
-                switch (player.getRole()){
+                switch (player.getRole()) {
                     case Role.GUARD:
                         pressCatch();
                         break;
@@ -1145,13 +1209,28 @@ public class Game extends Application {
                         sound.goat.play();
                 }
             }
-        }
-        else {
+        } else {
             pressedE = false;
         }
 
         double slow_factor = player.getRole() == Role.GUARD ? 1 : 0.75;
 
+        Point2D controllerDirection = new Point2D(0, 0);
+        if (controllerInput != null) {
+            controllerInput.update(); 
+            SettingsWindow settings = SettingsWindow.getInstance();
+            String moveUpBinding = settings.getControllerBinding("moveUp");
+            String moveDownBinding = settings.getControllerBinding("moveDown");
+            String moveLeftBinding = settings.getControllerBinding("moveLeft");
+            String moveRightBinding = settings.getControllerBinding("moveRight");
+            
+            if (moveUpBinding != null && isControllerButtonPressed(moveUpBinding)) controllerDirection = controllerDirection.add(0, -1);
+            if (moveDownBinding != null && isControllerButtonPressed(moveDownBinding)) controllerDirection = controllerDirection.add(0, 1);
+            if (moveLeftBinding != null && isControllerButtonPressed(moveLeftBinding)) controllerDirection = controllerDirection.add(-1, 0);
+            if (moveRightBinding != null && isControllerButtonPressed(moveRightBinding)) controllerDirection = controllerDirection.add(1, 0);
+        }
+        
+        direction = direction.add(controllerDirection);
         if (!direction.equals(Point2D.ZERO)) {
             direction = direction.normalize();
             direction = direction.multiply(MOVEMENT_SPEED * deltaTime * slow_factor);
@@ -1671,6 +1750,19 @@ public class Game extends Application {
         String modeName = currentChatMode.getDisplayName();
         chatInput.setPromptText(modeName + lang.get("game.chatPrompt"));
         chatModeIndicator.setText(modeName);
+    }
+
+    /**
+     * Checks if a controller button is pressed based on the provided binding string.
+     *
+     * @param binding The controller binding string to check.
+     * @return True if the button is pressed, false otherwise.
+     */
+    private boolean isControllerButtonPressed(String binding) {
+        if (controllerInput != null) {
+            return controllerInput.isButtonPressed(binding);  
+        }
+        return false;  
     }
 
     /**

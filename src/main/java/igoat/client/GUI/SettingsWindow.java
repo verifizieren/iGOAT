@@ -16,6 +16,8 @@ import javafx.stage.Popup;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.java.games.input.Controller;
+import net.java.games.input.ControllerEnvironment;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -56,12 +58,17 @@ public class SettingsWindow {
 
     public static String lastIP;
     public static int lastPort;
+    
+    private boolean useController = true;
+    
+    private String selectedController = null;
+    private ChoiceBox<String> controllerSelector; 
 
     public static final Map<String, Locale> AVAILABLE_LANGUAGES = Map.of(
         "English", Locale.ENGLISH,
         "Deutsch", Locale.GERMAN
     );
-    
+
     static {
         DEFAULT_KEY_BINDINGS = new TreeMap<>();
         DEFAULT_KEY_BINDINGS.put("moveUp", KeyCode.W);
@@ -255,54 +262,46 @@ public class SettingsWindow {
         pane.setPadding(new Insets(10));
         pane.setVgap(10);
         pane.setHgap(10);
+
+        CheckBox useControllerCheckbox = new CheckBox(lang.get("settings.useController"));
+        useControllerCheckbox.setSelected(useController);
+        useControllerCheckbox.setOnAction(e -> {
+            useController = useControllerCheckbox.isSelected();
+            saveSettings();
+        });
+        pane.add(useControllerCheckbox, 0, 0, 2, 1);
+
+        Label controllerLabel = new Label(lang.get("settings.selectController"));
+        ComboBox<String> controllerSelector = new ComboBox<>();
+        controllerSelector.getItems().add("None");
         
-        Label actionHeader = new Label(lang.get("settings.action"));
-        Label buttonHeader = new Label(lang.get("settings.controllerButton"));
-        pane.add(actionHeader, 0, 0);
-        pane.add(buttonHeader, 1, 0);
-        
-        int row = 1;
-        for (Map.Entry<String, String> entry : controllerBindings.entrySet()) {
-            String action = entry.getKey();
-            String button = entry.getValue();
-            
-            String displayAction = formatActionName(action);
-            
-            Label actionLabel = new Label(displayAction);
-            ChoiceBox<String> buttonChoice = new ChoiceBox<>();
-            
-            buttonChoice.getItems().addAll(
-                "DPad Up", "DPad Down", "DPad Left", "DPad Right",
-                "Button A", "Button B", "Button X", "Button Y",
-                "Left Bumper", "Right Bumper", "Left Trigger", "Right Trigger",
-                "Left Stick", "Right Stick", "Start", "Select"
-            );
-            buttonChoice.setValue(button);
-            
-            buttonChoice.setOnAction(e -> {
-                controllerBindings.put(action, buttonChoice.getValue());
-            });
-            
-            pane.add(actionLabel, 0, row);
-            pane.add(buttonChoice, 1, row);
-            row++;
+        Controller[] controllers = ControllerEnvironment.getDefaultEnvironment().getControllers();
+        for (Controller c : controllers) {
+            if (c.getType() == Controller.Type.GAMEPAD) {
+                controllerSelector.getItems().add(c.getName());
+            }
         }
         
-        Button resetButton = new SoundButton("Reset to Defaults");
-        resetButton.setOnAction(e -> {
-            controllerBindings.clear();
-            controllerBindings.putAll(DEFAULT_CONTROLLER_BINDINGS);
-            tabPane.getSelectionModel().select(0); 
-            tabPane.getSelectionModel().select(2); 
+        controllerSelector.setValue(selectedController != null ? selectedController : "None");
+        
+        controllerSelector.setOnAction(e -> {
+            String selected = controllerSelector.getValue();
+            selectedController = "None".equals(selected) ? null : selected;
+            saveSettings();
         });
         
-        pane.add(resetButton, 0, row, 2, 1);
-        GridPane.setHalignment(resetButton, javafx.geometry.HPos.CENTER);
-        
-        Label noteLabel = new Label("Note: Controller support will be implemented in a future update.");
-        noteLabel.setStyle("-fx-font-style: italic;");
-        pane.add(noteLabel, 0, row + 1, 2, 1);
-        
+        pane.add(controllerLabel, 0, 1);
+        pane.add(controllerSelector, 1, 1);
+
+        Label instructionsLabel = new Label(
+            "Controls:\n" +
+            "A or X Button - Interact\n" +
+            "Left Stick/D-Pad - Movement\n" +
+            "Right Stick - Flashlight Control (Guard only)"
+        );
+        instructionsLabel.setStyle("-fx-font-family: monospace;");
+        pane.add(instructionsLabel, 0, 2, 2, 1);
+
         return pane;
     }
     
@@ -332,44 +331,47 @@ public class SettingsWindow {
      * Loads settings from the properties file
      */
     private void loadSettings() {
-        Properties props = new Properties();
-        Path configPath = getConfigFilePath();
+        Properties properties = new Properties();
         
-        if (Files.exists(configPath)) {
-            try (InputStream in = new FileInputStream(configPath.toFile())) {
-                props.load(in);
+        if (Files.exists(Paths.get(CONFIG_FILENAME))) {
+            try {
+                properties.load(new FileInputStream(CONFIG_FILENAME));
                 
-                volume = Double.parseDouble(props.getProperty("volume", String.valueOf(volume)));
-                fullscreen = Boolean.parseBoolean(props.getProperty("fullscreen", String.valueOf(fullscreen)));
-                String language = props.getProperty("language", String.valueOf(languageChoice.getValue()));
+                useController = Boolean.parseBoolean(properties.getProperty("useController", "true"));
+                selectedController = properties.getProperty("selectedController");
+                String language = properties.getProperty("language", String.valueOf(languageChoice.getValue()));
                 languageChoice.setValue(language == null ? "English" : language);
                 
-                for (String action : DEFAULT_KEY_BINDINGS.keySet()) {
-                    String keyName = props.getProperty("key." + action);
-                    if (keyName != null) {
+                keyBindings.clear();
+                for (String key : DEFAULT_KEY_BINDINGS.keySet()) {
+                    String value = properties.getProperty("key." + key);
+                    if (value != null) {
                         try {
-                            KeyCode keyCode = KeyCode.valueOf(keyName);
-                            keyBindings.put(action, keyCode);
+                            keyBindings.put(key, KeyCode.valueOf(value));
                         } catch (IllegalArgumentException e) {
-                            logger.warn("Invalid key code in settings: " + keyName);
+                            keyBindings.put(key, DEFAULT_KEY_BINDINGS.get(key));
                         }
+                    } else {
+                        keyBindings.put(key, DEFAULT_KEY_BINDINGS.get(key));
                     }
                 }
                 
-                for (String action : DEFAULT_CONTROLLER_BINDINGS.keySet()) {
-                    String buttonName = props.getProperty("controller." + action);
-                    if (buttonName != null) {
-                        controllerBindings.put(action, buttonName);
-                    }
+                controllerBindings.clear();
+                for (String key : DEFAULT_CONTROLLER_BINDINGS.keySet()) {
+                    String value = properties.getProperty("controller." + key);
+                    controllerBindings.put(key, value != null ? value : DEFAULT_CONTROLLER_BINDINGS.get(key));
                 }
                 
-                logger.info("Settings loaded from " + configPath);
+                volume = Double.parseDouble(properties.getProperty("volume", String.valueOf(volume)));
+                fullscreen = Boolean.parseBoolean(properties.getProperty("fullscreen", String.valueOf(fullscreen)));
+                
+                logger.info("Settings loaded from " + CONFIG_FILENAME);
             } catch (IOException e) {
                 logger.error("Failed to load settings", e);
+                resetToDefaults();
             }
         } else {
-            logger.info("No settings file found, using defaults");
-            saveSettings(); 
+            resetToDefaults();
         }
     }
     
@@ -381,20 +383,22 @@ public class SettingsWindow {
         
         props.setProperty("volume", String.valueOf(volume));
         props.setProperty("fullscreen", String.valueOf(fullscreen));
+        props.setProperty("useController", String.valueOf(useController));
+        
+        if (selectedController != null && !selectedController.equals("None")) {
+            props.setProperty("selectedController", selectedController);
+        }
         props.setProperty("language", languageChoice.getValue() == null ? "English" : languageChoice.getValue());
         
         for (Map.Entry<String, KeyCode> entry : keyBindings.entrySet()) {
             props.setProperty("key." + entry.getKey(), entry.getValue().name());
         }
         
-        for (Map.Entry<String, String> entry : controllerBindings.entrySet()) {
-            props.setProperty("controller." + entry.getKey(), entry.getValue());
-        }
-        
         Path configPath = getConfigFilePath();
-        
         try {
-            Files.createDirectories(configPath.getParent());
+            if (configPath.getParent() != null) {
+                Files.createDirectories(configPath.getParent());
+            }
             
             try (OutputStream out = new FileOutputStream(configPath.toFile())) {
                 props.store(out, "iGoat Game Settings");
@@ -409,7 +413,8 @@ public class SettingsWindow {
      * Gets the path to the config file
      */
     public static Path getConfigFilePath() {
-        return Paths.get(System.getProperty("user.dir"), CONFIG_FILENAME);
+        String userDir = System.getProperty("user.dir");
+        return Paths.get(userDir, CONFIG_FILENAME);
     }
     
     /**
@@ -466,5 +471,53 @@ public class SettingsWindow {
      */
     public boolean getFullscreen() {
         return fullscreen;
+    }
+
+    public boolean getUseController() {
+        return useController;
+    }
+
+    public void setUseController(boolean useController) {
+        this.useController = useController;
+    }
+
+    private void updateAvailableControllers() {
+        controllerSelector.getItems().clear();
+        Controller[] controllers = ControllerEnvironment.getDefaultEnvironment().getControllers();
+        for (Controller controller : controllers) {
+            if (controller.getType() == Controller.Type.GAMEPAD || 
+                controller.getType() == Controller.Type.STICK) {
+                controllerSelector.getItems().add(controller.getName());
+            }
+        }
+        controllerSelector.getItems().add("None");
+        
+        if (selectedController == null || !controllerSelector.getItems().contains(selectedController)) {
+            controllerSelector.setValue("None");
+        }
+    }
+
+    public String getSelectedController() {
+        return selectedController;
+    }
+
+    public void setSelectedController(String controller) {
+        this.selectedController = controller;
+        if (controllerSelector != null) {
+            controllerSelector.setValue(controller);
+        }
+        saveSettings();
+    }
+
+    private void resetToDefaults() {
+        keyBindings.clear();
+        keyBindings.putAll(DEFAULT_KEY_BINDINGS);
+        controllerBindings.clear();
+        controllerBindings.putAll(DEFAULT_CONTROLLER_BINDINGS);
+        useController = true;
+        selectedController = null;
+        volume = SoundManager.getInstance().getVolume();
+        fullscreen = false;
+        saveSettings();
     }
 }
