@@ -5,6 +5,7 @@ import static java.lang.Math.sqrt;
 
 import igoat.Role;
 import igoat.Timer;
+import igoat.client.LanguageManager;
 import igoat.client.Map;
 import igoat.client.Wall;
 import igoat.server.Lobby.LobbyState;
@@ -39,6 +40,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ClientHandler implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
+    private static final LanguageManager lang = LanguageManager.getInstance();
 
     // Constants for UDP Auto-Registration
     /** Fixed port that the server listens on for UDP client registration */
@@ -434,7 +436,7 @@ public class ClientHandler implements Runnable {
         try {
             int colonIndex = message.indexOf(':');
             if (colonIndex == -1) {
-                sendError("Invalid command format - missing colon");
+                sendError(lang.get("server.formatError"));
                 return;
             }
             String command = message.substring(0, colonIndex).toLowerCase();
@@ -462,7 +464,7 @@ public class ClientHandler implements Runnable {
                             currentLobby.broadcastChatToLobby(nickname + ":" + params);
                         }
                     } else {
-                        sendError("You are not in a lobby");
+                        sendError(lang.get("server.noLobby"));
                     }
                     break;
                 case "getplayers":
@@ -499,7 +501,7 @@ public class ClientHandler implements Runnable {
                         String whisperMessage = params.substring(commaIndex + 1);
                         handleWhisper(new String[]{recipient, whisperMessage});
                     } else {
-                        sendError("Invalid whisper message. Use: whisper:recipient,message");
+                        sendError(lang.get("server.whisperError"));
                     }
                     break;
                 case "udp_bcast":
@@ -529,7 +531,7 @@ public class ClientHandler implements Runnable {
                     sendError("Unknown command: " + command);
             }
         } catch (Exception e) {
-            sendError("Error when processing command: " + e.getMessage());
+            sendError(lang.get("server.commError") +": " + e.getMessage());
             logger.error("Error when processing command {} : {}", message, e);
         }
     }
@@ -621,7 +623,7 @@ public class ClientHandler implements Runnable {
      */
     void handleConnect(String[] params) {
         if (params.length < 1) {
-            sendError("no nickname provided");
+            sendError(lang.get("server.noName"));
             return;
         }
 
@@ -629,7 +631,7 @@ public class ClientHandler implements Runnable {
         String requestedNickname = params[0].replaceAll("[\\s=:,]", "");
 
         if (requestedNickname.isEmpty()) {
-            sendError("invalid nickname");
+            sendError(lang.get("server.noName"));
             return;
         }
 
@@ -640,12 +642,11 @@ public class ClientHandler implements Runnable {
 
         if (!requestedNickname.equals(this.nickname)) {
             sendMessage(
-                "chat:Your nickname was already chosen. New nickname: "
-                    + this.nickname);
+                "chat:" + lang.get("server.nicknameChosen") + this.nickname);
         }
 
         sendMessage("confirm:" + this.nickname);
-        broadcast("chat:User " + this.nickname + " connected");
+        broadcast("chat:" + String.format(lang.get("server.connected"), this.nickname));
         broadcastGlobalPlayerList();
 
         // check if player was in a game
@@ -715,11 +716,11 @@ public class ClientHandler implements Runnable {
      */
     private void handleChat(String[] params) {
         if (isSpectator) {
-            sendError("Spectators cannot chat");
+            sendError(lang.get("server.noSpectator"));
             return;
         }
         if (params.length < 1 || params[0].isEmpty()) {
-            sendError("No message provided");
+            sendError(lang.get("server.noMSG"));
             return;
         }
         if (handleCheatCode(params[0])) return;
@@ -763,7 +764,7 @@ public class ClientHandler implements Runnable {
             currentLobby.getGameState().openDoors();
             currentLobby.broadcastToLobby("door");
             currentLobby.getMap().openDoors();
-            broadcast("chat:CHEAT ACTIVATED -> Doors opened!");
+            broadcast("chat:" + lang.get("server.doorsCheat"));
         }
     }
 
@@ -783,7 +784,7 @@ public class ClientHandler implements Runnable {
                 if (role == Role.GOAT) {
                     target.getPlayer().getSpawnProtection().update();
                     if (target.getPlayer().getSpawnProtection().getTime() < 5000) {
-                        sendMessage("chat:GOAT was protected and could not be caught (spawn protection).");
+                        sendMessage("chat:" + lang.get("server.spawnProt"));
                         return;
                     }
                     target.getPlayer().teleport(1080, 800);
@@ -792,18 +793,14 @@ public class ClientHandler implements Runnable {
                 target.getPlayer().catchPlayer();
                 currentLobby.broadcastToLobby("catch:" + target.getNickname());
 
-                broadcast("chat:CHEAT BACKFIRED -> " + target.getNickname() + " got caught!");
+                broadcast("chat:" + String.format(lang.get("server.doorsCheatFail"), target.getNickname()));
 
                 if (currentLobby.getGameState().isGuardWin() && !currentLobby.getGameState().gameOver) {
                     endGame(true);
                 }
-
-            } else {
-                sendMessage("chat:No valid targets available to catch.");
             }
         }
     }
-
 
     /**
      * Processes a username change request. Format: username:newname
@@ -830,18 +827,14 @@ public class ClientHandler implements Runnable {
 
         if (!requestedNickname.equals(newNickname)) {
             sendMessage(
-                    "chat:Dein gewünschter Nickname war bereits vergeben. Neuer Nickname: "
+                    "chat:" + lang.get("server.nicknameChosen")
                             + newNickname);
         }
 
         this.nickname = newNickname;
         sendMessage("confirm:" + this.nickname);
         broadcast(
-                "chat:User "
-                        + oldNickname
-                        + " hat seinen/ihren Username zu "
-                        + this.nickname
-                        + " geändert");
+                "chat:" + String.format(lang.get("server.nameChange"), oldNickname, newNickname));
         logger.info("User nickname changed");
         broadcastGlobalPlayerList();
         if (currentLobby != null) broadcastLobbyPlayerList();
@@ -854,7 +847,7 @@ public class ClientHandler implements Runnable {
      */
     private void handleLobby(String[] params) {
         if (params.length < 1) {
-            sendError("No lobby code received");
+            sendError(lang.get("server.codeError"));
             sendMessage("lobby:0");
             return;
         }
@@ -863,13 +856,13 @@ public class ClientHandler implements Runnable {
         try{
             code = Integer.parseInt(params[0]);
         } catch(NumberFormatException e){
-            sendError("Invalid lobby code");
+            sendError(lang.get("server.codeError"));
             sendMessage("lobby:0");
             return;
         }
 
         if (currentLobby != null && code != 0) {
-            sendError("Already in a lobby");
+            sendError(lang.get("server.inLobbyError"));
             return;
         }
 
@@ -888,18 +881,18 @@ public class ClientHandler implements Runnable {
         }
 
         if (lobbyToJoin == null) {
-            sendError("Couldn't find lobby " + code);
+            sendError(lang.get("server.codeError"));
             sendMessage("lobby:0");
             return;
         }
 
         if (lobbyToJoin.getState() == LobbyState.IN_GAME || lobbyToJoin.getState() == LobbyState.FINISHED) {
-            sendError("Game is already in progress");
+            sendError(lang.get("server.inProgressError"));
             return;
         }
 
         if (lobbyToJoin.isFull()) {
-            sendError("Lobby " + code + " is full");
+            sendError(String.format(lang.get("server.fullLobby"), code));
             sendMessage("lobby:0");
             return;
         }
@@ -913,14 +906,14 @@ public class ClientHandler implements Runnable {
 
     private void handleNewLobby() {
         if (currentLobby != null) {
-            sendError("Already in a lobby");
+            sendError(lang.get("server.inLobbyError"));
             return;
         }
 
         int code = nextLobbyCode++;
         Lobby newLobby = new Lobby(code);
         lobbyList.add(newLobby);
-        newLobby.broadcastChatToLobby(nickname + " has created a new lobby (" + code + ")");
+        newLobby.broadcastChatToLobby(String.format(lang.get("server.createdLobby"), nickname, code));
         joinLobby(newLobby);
     }
 
@@ -931,7 +924,7 @@ public class ClientHandler implements Runnable {
         currentLobby.addMember(this);
 
         sendMessage("lobby:" + lobby.getCode());
-        currentLobby.broadcastChatToLobby(nickname + " has joined lobby " + lobby.getCode());
+        currentLobby.broadcastChatToLobby(String.format(lang.get("server.joinedLobby"), nickname, lobby.getCode()));
 
         broadcastGetLobbiesToAll();
         broadcastLobbyPlayerList();
@@ -940,7 +933,7 @@ public class ClientHandler implements Runnable {
     private void leaveCurrentLobby() {
         if (currentLobby != null) {
             currentLobby.removeMember(this);
-            currentLobby.broadcastChatToLobby(nickname + " has left the lobby");
+            currentLobby.broadcastChatToLobby(String.format(lang.get("server.leftLobby"), nickname));
 
             if (currentLobby.getMembers().isEmpty()) {
                 lobbyList.remove(currentLobby);
@@ -1011,11 +1004,11 @@ public class ClientHandler implements Runnable {
 
     private void handleReady(boolean status) {
         if (isSpectator) {
-            sendError("Spectators cannot ready up");
+            sendError(lang.get("server.spectatorReady"));
             return;
         }
         if (currentLobby == null) {
-            sendError("Not in a lobby");
+            sendError(lang.get("server.noLobby"));
             setReady(false);
             return;
         }
@@ -1026,7 +1019,11 @@ public class ClientHandler implements Runnable {
         }
         String statusMessage = "ready_status:" + this.nickname + "," + this.isReady;
         currentLobby.broadcastToAll(statusMessage);
-        appendToLobbyChat("Player " + nickname + (isReady ? " is ready." : " is no longer ready."), false);
+        if (isReady) {
+            appendToLobbyChat(String.format(lang.get("server.ready"), nickname), false);
+        } else {
+            appendToLobbyChat(String.format(lang.get("server.unready"), nickname), false);
+        }
     }
 
 
