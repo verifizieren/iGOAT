@@ -780,14 +780,11 @@ public class ClientHandler implements Runnable {
             currentLobby.getGameState().openDoors();
             currentLobby.broadcastToLobby("door");
             currentLobby.getMap().openDoors();
-<<<<<<< Updated upstream
             broadcast("chat:" + lang.get("server.doorsCheat"));
-=======
             broadcast("chat:CHEAT ACTIVATED -> Doors opened!");
 
             currentLobby.lockCheats();
             currentLobby.broadcastChatToLobby("CHEATS LOCKED: No further cheat attempts allowed.");
->>>>>>> Stashed changes
         }
     }
 
