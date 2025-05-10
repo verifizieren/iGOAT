@@ -125,7 +125,7 @@ public class ServerHandlerTest {
         handler.sendMessage(longMsg);
         pw.flush();
         String sent = sw.toString();
-        assertEquals(200, sent.replaceAll("\n", "").length());
+        assertEquals(200, sent.replaceAll("[\\r\\n]", "").length());
     }
 
     @Test
