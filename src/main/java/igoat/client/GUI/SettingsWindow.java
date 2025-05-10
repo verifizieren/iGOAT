@@ -1,13 +1,11 @@
 package igoat.client.GUI;
 
-import igoat.client.ScreenUtil;
+import igoat.client.LanguageManager;
 import igoat.client.SoundManager;
-import java.util.LinkedHashMap;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
@@ -22,7 +20,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -31,6 +28,8 @@ import java.util.Properties;
  */
 public class SettingsWindow {
     private static final Logger logger = LoggerFactory.getLogger(SettingsWindow.class);
+    private static final LanguageManager lang = LanguageManager.getInstance();
+
     private static SettingsWindow instance;
     private static final String CONFIG_FILENAME = "igoat_settings.properties";
 
@@ -55,7 +54,6 @@ public class SettingsWindow {
 
     public static String lastIP;
     public static int lastPort;
-    public static String lastUsername;
     
     static {
         DEFAULT_KEY_BINDINGS = new TreeMap<>();
@@ -124,8 +122,8 @@ public class SettingsWindow {
         mainLayout.getStylesheets().add(style);
         
         // Apply and Close Buttons
-        SoundButton applyButton = new SoundButton("Apply");
-        SoundButton closeButton = new SoundButton("Close");
+        SoundButton applyButton = new SoundButton(lang.get("settings.apply"));
+        SoundButton closeButton = new SoundButton(lang.get("settings.close"));
         
         HBox buttonBox = new HBox(10);
         buttonBox.setAlignment(Pos.CENTER_RIGHT);
@@ -141,7 +139,7 @@ public class SettingsWindow {
             volume = volumeSlider.getValue() / 100.0;
             SoundManager.getInstance().setVolume(volume);
             
-            fullscreen = windowModeChoice.getValue().equals("Fullscreen");
+            fullscreen = windowModeChoice.getValue().equals(lang.get("settings.fullscreen"));
             if (gameStage != null) {
                 gameStage.setFullScreen(fullscreen);
             }
@@ -165,13 +163,13 @@ public class SettingsWindow {
         pane.setHgap(10);
         
         // Volume Control
-        Label volumeLabel = new Label("Volume:");
+        Label volumeLabel = new Label(lang.get("settings.volume") +":");
         
         // Window mode
-        Label windowModeLabel = new Label("Window Mode:");
+        Label windowModeLabel = new Label(lang.get("settings.winMode") + ":");
         windowModeChoice = new ChoiceBox<>();
-        windowModeChoice.getItems().addAll("Windowed", "Fullscreen");
-        windowModeChoice.setValue(fullscreen ? "Fullscreen" : "Windowed");
+        windowModeChoice.getItems().addAll(lang.get("settings.windowed"), lang.get("settings.fullscreen"));
+        windowModeChoice.setValue(fullscreen ? lang.get("settings.fullscreen") : lang.get("settings.windowed"));
         
         pane.add(volumeLabel, 0, 0);
         pane.add(volumeSlider, 1, 0);
@@ -190,8 +188,8 @@ public class SettingsWindow {
         pane.setVgap(10);
         pane.setHgap(10);
         
-        Label actionHeader = new Label("Action");
-        Label keyHeader = new Label("Key");
+        Label actionHeader = new Label(lang.get("settings.action"));
+        Label keyHeader = new Label(lang.get("settings.key"));
         pane.add(actionHeader, 0, 0);
         pane.add(keyHeader, 1, 0);
         
@@ -206,7 +204,7 @@ public class SettingsWindow {
             Button keyButton = new Button(key.getName());
             
             keyButton.setOnAction(e -> {
-                keyButton.setText("Press any key...");
+                keyButton.setText(lang.get("settings.keyPrompt"));
                 keyButton.setOnKeyPressed(keyEvent -> {
                     KeyCode newKey = keyEvent.getCode();
                     keyButton.setText(newKey.getName());
@@ -222,7 +220,7 @@ public class SettingsWindow {
             row++;
         }
         
-        Button resetButton = new SoundButton("Reset to Defaults");
+        Button resetButton = new SoundButton(lang.get("settings.reset"));
         resetButton.setOnAction(e -> {
             keyBindings.clear();
             keyBindings.putAll(DEFAULT_KEY_BINDINGS);
@@ -245,8 +243,8 @@ public class SettingsWindow {
         pane.setVgap(10);
         pane.setHgap(10);
         
-        Label actionHeader = new Label("Action");
-        Label buttonHeader = new Label("Controller Button");
+        Label actionHeader = new Label(lang.get("settings.action"));
+        Label buttonHeader = new Label(lang.get("settings.controllerButton"));
         pane.add(actionHeader, 0, 0);
         pane.add(buttonHeader, 1, 0);
         
@@ -428,7 +426,7 @@ public class SettingsWindow {
      */
     public void open(Stage parentStage) {
         volumeSlider.setValue(volume * 100.0);
-        windowModeChoice.setValue(fullscreen ? "Fullscreen" : "Windowed");
+        windowModeChoice.setValue(fullscreen ? lang.get("settings.fullscreen") : lang.get("settings.windowed"));
         popup.show(parentStage);
     }
 

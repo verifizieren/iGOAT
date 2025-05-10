@@ -24,7 +24,7 @@ public class Banner {
     }
 
     public static Banner terminalActivation(Pane pane) {
-        Label banner = new Label("Terminal Activated!");
+        Label banner = new Label("");
         banner.setStyle("-fx-font-family: \"Jersey 10\"; -fx-background-color: rgba(0, 200, 0, 0.7); -fx-text-fill: white; -fx-font-size: 24px; -fx-padding: 10px; -fx-background-radius: 5px;");
         banner.setVisible(false);
         banner.layoutXProperty().bind(pane.widthProperty().subtract(banner.widthProperty()).divide(2));
@@ -38,7 +38,7 @@ public class Banner {
      * creates a new banner
      */
     public static Banner allTerminals(Pane pane) {
-        Label banner = new Label("All Terminals Activated! Exits Open!");
+        Label banner = new Label("");
         banner.setStyle("-fx-font-family: \"Jersey 10\"; -fx-background-color: rgba(0, 100, 255, 0.8); -fx-text-fill: white; -fx-font-size: 28px; -fx-padding: 15px; -fx-background-radius: 8px; -fx-border-color: white; -fx-border-width: 2; -fx-border-radius: 8;");
         banner.setVisible(false);
         banner.layoutXProperty().bind(pane.widthProperty().subtract(banner.widthProperty()).divide(2));
@@ -52,7 +52,7 @@ public class Banner {
      * creates a new banner
      */
     public static Banner noActivation(Pane pane) {
-        Label banner = new Label("Terminal X is already active!");
+        Label banner = new Label("");
         banner.setStyle("-fx-font-family: \"Jersey 10\"; -fx-background-color: rgba(255, 100, 0, 0.8); -fx-text-fill: white; -fx-font-size: 18px; -fx-padding: 8px; -fx-background-radius: 5px;");
         banner.setVisible(false);
         banner.layoutXProperty().bind(pane.widthProperty().subtract(banner.widthProperty()).divide(2));
@@ -63,7 +63,7 @@ public class Banner {
     }
 
     public static Banner revive(Pane pane) {
-        Label banner = new Label("Revived Player!");
+        Label banner = new Label("");
         banner.setStyle("-fx-font-family: \"Jersey 10\"; -fx-background-color: rgba(119,220,23,0.7); -fx-text-fill: white; -fx-font-size: 24px; -fx-padding: 10px; -fx-background-radius: 5px;");
         banner.setVisible(false);
         banner.layoutXProperty().bind(pane.widthProperty().subtract(banner.widthProperty()).divide(2));
@@ -74,7 +74,7 @@ public class Banner {
     }
 
     public static Banner caught(Pane pane) {
-        Label banner = new Label("Caught Player!");
+        Label banner = new Label("");
         banner.setStyle("-fx-font-family: \"Jersey 10\"; -fx-background-color: rgba(255,0,0,0.7); -fx-text-fill: white; -fx-font-size: 24px; -fx-padding: 10px; -fx-background-radius: 5px;");
         banner.setVisible(false);
         banner.layoutXProperty().bind(pane.widthProperty().subtract(banner.widthProperty()).divide(2));

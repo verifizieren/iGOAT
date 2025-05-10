@@ -76,6 +76,7 @@ import javafx.util.Duration;
  */
 public class Game extends Application {
     private static final Logger logger = LoggerFactory.getLogger(Game.class);
+    private static final LanguageManager lang = LanguageManager.getInstance();
 
     private static final double MOVEMENT_SPEED = 200;
     private static final double CAMERA_ZOOM = 3; // Default is 3
@@ -135,8 +136,8 @@ public class Game extends Application {
      * the mode in the game's user interface.
      */
     private enum ChatMode {
-        GLOBAL("Global"),
-        LOBBY("Lobby");
+        GLOBAL(lang.get("lobby.globalChat")),
+        LOBBY(lang.get("lobby.lobbyChat"));
 
         private final String displayName;
 
@@ -233,14 +234,14 @@ public class Game extends Application {
         settings.setGameStage(stage);
 
         if (serverHandler == null || playerName == null || lobbyCode == null) {
-            showError("Initialization Error", "Game cannot start without server connection details.");
+            showError(lang.get("game.initError"), lang.get("game.noConnectionError"));
             returnToLobby();
             return;
         }
 
         String confirmedNickname = serverHandler.getConfirmedNickname();
         if (confirmedNickname == null) {
-            showError("Initialization Error", "Cannot start game without confirmed nickname from server.");
+            showError(lang.get("game.initError"), lang.get("game.noNameError"));
             returnToLobby();
             return;
         }
@@ -305,7 +306,7 @@ public class Game extends Application {
             updateVisuals();
         });
         
-        String windowTitle = "iGoat Game - Lobby " + lobbyCode + " - Player: " + confirmedNickname;
+        String windowTitle = "iGoat - " + lang.get("game.lobby") + " " + lobbyCode + " - " + lang.get("hs.player") + ": " + confirmedNickname;
         primaryStage.setTitle(windowTitle);
         
         primaryStage.setScene(scene);
@@ -565,7 +566,7 @@ public class Game extends Application {
             } else if (message.startsWith("revive:")) {
                 String revivedPlayerName = message.substring("revive:".length());
                 logger.info("{} was revived!", revivedPlayerName);
-                reviveBanner.showAnimation(revivedPlayerName + " was freed!", 2);
+                reviveBanner.showAnimation(String.format(lang.get("game.revive"), revivedPlayerName), 2);
 
                 Platform.runLater(() -> {
                     if (player != null && revivedPlayerName.equals(player.getUsername())) {
@@ -759,7 +760,7 @@ public class Game extends Application {
         boolean isGuard = player.getRole() == Role.GUARD;
         boolean localWon = (isGuard && guardWon) || (!isGuard && !guardWon);
 
-        String message = localWon ? "🎉 You Win! 🎉" : "💀 You Lost... 💀";
+        String message = localWon ? lang.get("game.winMSG") : lang.get("game.lostMSG");
         Color color = localWon ? Color.GREEN : Color.RED;
 
         Platform.runLater(() -> {
@@ -773,13 +774,13 @@ public class Game extends Application {
             grid.setHgap(20);
             grid.setVgap(10);
 
-            Label headerName = new Label("Name");
+            Label headerName = new Label(lang.get("hs.player"));
             headerName.setFont(Font.font("Jersey 10", FontWeight.BOLD, 14));
             headerName.setStyle("-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
-            Label headerRole = new Label("Role");
+            Label headerRole = new Label(lang.get("hs.role"));
             headerRole.setFont(Font.font("Jersey 10", FontWeight.BOLD, 14));
             headerRole.setStyle("-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
-            Label headerResult = new Label("Result");
+            Label headerResult = new Label(lang.get("hs.outcome"));
             headerResult.setFont(Font.font("Jersey 10", FontWeight.BOLD, 14));
             headerResult.setStyle("-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
             grid.add(headerName, 0, 0);
@@ -800,7 +801,7 @@ public class Game extends Application {
                 Label nameLabel = new Label(p.getUsername());
 
                 Label roleLabel = new Label(p.getRole().name());
-                Label resultLabel = new Label(isWinner ? "Won" : "Lost");
+                Label resultLabel = new Label(isWinner ? lang.get("hs.won") : lang.get("hs.lost"));
                 String rowStyle = isWinner
                     ? "-fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-padding: 5;"
                     : "-fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-padding: 5;";
@@ -812,7 +813,7 @@ public class Game extends Application {
                 grid.add(resultLabel, 2, i + 1);
             }
 
-            SoundButton exitButton = new SoundButton("Exit Game");
+            SoundButton exitButton = new SoundButton(lang.get("game.exitGame"));
             exitButton.setOnAction(e -> returnToLobby());
 
             VBox layout = new VBox(20, title, grid, exitButton);
@@ -837,7 +838,7 @@ public class Game extends Application {
         }
 
         sound.doors.play();
-        allTerminalsBanner.showAnimation("All Terminals Activated! Exits Open!", 4);
+        allTerminalsBanner.showAnimation(lang.get("game.openDoors"), 4);
     }
 
     /**
@@ -1308,14 +1309,14 @@ public class Game extends Application {
      */
     private void activateTerminal(int id) {
         if (id == -1) {
-            noActivationBanner.showAnimation("Can't activate Terminal", 1.5);
+            noActivationBanner.showAnimation(lang.get("game.termError"), 1.5);
             noActivationBanner.shake();
             sound.denied.play();
             return;
         }
 
         // display terminal activation banner
-        terminalActivationBanner.showAnimation("Terminal " + id + " Activated!", 2.5f);
+        terminalActivationBanner.showAnimation(String.format(lang.get("game.terminal"), id), 2.5f);
 
         for (Terminal terminal : gameMap.getTerminalList()) {
             if (terminal.getTerminalID() == id) {
@@ -1420,7 +1421,7 @@ public class Game extends Application {
         chatScrollPane.setPannable(false);
         
         chatInput = new TextArea();
-        chatInput.setPromptText("Press Enter to chat...");
+        chatInput.setPromptText(lang.get("game.chatPrompt"));
         chatInput.setPrefRowCount(1);
         chatInput.setWrapText(true);
         chatInput.setStyle("-fx-control-inner-background: rgba(0, 0, 0, 0.3); -fx-text-fill: white;");
@@ -1440,7 +1441,7 @@ public class Game extends Application {
         TextFormatter<String> textFormatter = new TextFormatter<>(filter);
         chatInput.setTextFormatter(textFormatter);
         
-        chatModeIndicator = new Text("Lobby");
+        chatModeIndicator = new Text(lang.get("game.lobby"));
         chatModeIndicator.setStyle("-fx-fill: white; -fx-font-size: 16px;");
         chatModeIndicator.setFont(new Font("Jersey 10", 16));
         
@@ -1543,11 +1544,11 @@ public class Game extends Application {
         if (mode != null) {
             prefixColor = switch (mode) {
                 case LOBBY -> {
-                    prefixDisplay = "[LOBBY] ";
+                    prefixDisplay = lang.get("lobby.lobby");
                     yield Color.GREEN;
                 }
                 default -> {
-                    prefixDisplay = "[GLOBAL] ";
+                    prefixDisplay = lang.get("lobby.global");
                     yield Color.ORANGE;
                 }
             };
@@ -1668,7 +1669,7 @@ public class Game extends Application {
     private void cycleChatMode() {
         currentChatMode = ChatMode.values()[(currentChatMode.ordinal() + 1) % ChatMode.values().length];
         String modeName = currentChatMode.getDisplayName();
-        chatInput.setPromptText(modeName + " Chat (Press Enter)"); 
+        chatInput.setPromptText(modeName + lang.get("game.chatPrompt"));
         chatModeIndicator.setText(modeName);
     }
 

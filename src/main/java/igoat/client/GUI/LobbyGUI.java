@@ -1,5 +1,6 @@
 package igoat.client.GUI;
 
+import igoat.client.LanguageManager;
 import igoat.client.ScreenUtil;
 
 import igoat.client.Sprite;
@@ -62,6 +63,7 @@ import igoat.client.GameSpectator;
  */
 public class LobbyGUI {
     private static final Logger logger = LoggerFactory.getLogger(LobbyGUI.class);
+    private static final LanguageManager lang = LanguageManager.getInstance();
     
     // Server communication
     private static ServerHandler serverHandler;
@@ -160,7 +162,7 @@ public class LobbyGUI {
         scene.getStylesheets().add(getClass().getResource("/CSS/LobbyBackground.css").toExternalForm());
 
         ScreenUtil.moveStageToCursorScreen(stage, mainLayout.getPrefWidth() > 0 ? mainLayout.getPrefWidth() : 750, mainLayout.getPrefHeight() > 0 ? mainLayout.getPrefHeight() : 600);
-        stage.setTitle("Lobby Menu");
+        stage.setTitle(lang.get("lobby.title"));
         stage.setScene(scene);
         stage.show();
 
@@ -173,20 +175,20 @@ public class LobbyGUI {
      * @return a VBox containing the left panel UI elements
      */
     private VBox setupLeftPanel() {
-        Label lobbyListLabel = new Label("Available Lobbies");
+        Label lobbyListLabel = new Label(lang.get("lobby.lobbyList"));
         lobbyListLabel.setStyle("-fx-font-weight: bold;");
 
         lobbyListView = new ListView<>();
         lobbyListView.setStyle("-fx-font-fill: #000000");
         setupLobbyListViewEvents();
 
-        playerListLabel = new Label("Players in Lobby");
+        playerListLabel = new Label(lang.get("lobby.playerLabelLobby"));
         playerListLabel.setStyle("-fx-font-weight: bold;");
 
         playerListView = new ListView<>();
         playerListView.setPrefHeight(300);
         
-        readyButton = new SoundButton("Ready");
+        readyButton = new SoundButton(lang.get("lobby.ready"));
         readyButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
         readyButton.setOnAction(e -> toggleReadyStatus());
         readyButton.setDisable(true); 
@@ -204,7 +206,7 @@ public class LobbyGUI {
      * @return a VBox containing the right panel UI elements
      */
     private VBox setupRightPanel() {
-        chatModeLabel = new Label("Global Chat");
+        chatModeLabel = new Label(lang.get("lobby.globalChat"));
         chatModeLabel.setStyle("-fx-font-weight: bold;");
 
         messageArea = new TextArea();
@@ -213,13 +215,13 @@ public class LobbyGUI {
         messageArea.setPrefHeight(1000);
 
         chatInput = new TextField();
-        chatInput.setPromptText("Type a message...");
+        chatInput.setPromptText(lang.get("lobby.chatPrompt"));
         chatInput.setDisable(true);
 
-        sendButton = new SoundButton("Send");
+        sendButton = new SoundButton(lang.get("lobby.send"));
         sendButton.setDisable(true);
 
-        toggleChatButton = new SoundButton("Switch to Lobby Chat");
+        toggleChatButton = new SoundButton(lang.get("lobby.switchLobby"));
 
         setupChatEvents();
         VBox buttonBox = setupButtonActions();
@@ -244,7 +246,7 @@ public class LobbyGUI {
             
             if (isReady) {
                 serverHandler.sendMessage("ready:");
-                appendToMessageArea("You are now ready!");
+                appendToMessageArea(lang.get("lobby.readyMSG"));
             } else {
                 serverHandler.sendMessage("unready:");
             }
@@ -297,9 +299,9 @@ public class LobbyGUI {
 
         toggleChatButton.setOnAction(e -> {
             isGlobalChat = !isGlobalChat;
-            toggleChatButton.setText(isGlobalChat ? "Switch to Lobby Chat" : "Switch to Global Chat");
-            chatModeLabel.setText(isGlobalChat ? "Global Chat" : "Lobby Chat");
-            playerListLabel.setText(isGlobalChat ? "All Connected Players" : "Players in Lobby");
+            toggleChatButton.setText(isGlobalChat ? lang.get("lobby.switchGlobal") : lang.get("lobby.switchLobby"));
+            chatModeLabel.setText(isGlobalChat ? lang.get("lobby.globalChat") : lang.get("lobby.lobbyChat"));
+            playerListLabel.setText(isGlobalChat ? lang.get("lobby.playerLabelGlobal") : lang.get("lobby.playerLabelLobby"));
             appendToMessageArea("Now chatting in " + chatModeLabel.getText());
             if (serverHandler != null && serverHandler.isConnected()) {
                 serverHandler.sendMessage(isGlobalChat ? "getplayers:" : "getlobbyplayers:");
@@ -315,18 +317,18 @@ public class LobbyGUI {
      * @return a VBox with all main action buttons
      */
     private VBox setupButtonActions() {
-        SoundButton startButton = new SoundButton("Start Game");
-        SoundButton createButton = new SoundButton("Create Lobby");
-        SoundButton leaveLobbyButton = new SoundButton("Exit Lobby");
-        SoundButton nameButton = new SoundButton("Change Name");
-        SoundButton exitButton = new SoundButton("Exit");
-        SoundButton highscoresButton = new SoundButton("Highscores");
+        SoundButton startButton = new SoundButton(lang.get("lobby.startGame"));
+        SoundButton createButton = new SoundButton(lang.get("lobby.createLobby"));
+        SoundButton leaveLobbyButton = new SoundButton(lang.get("lobby.exitLobby"));
+        SoundButton nameButton = new SoundButton(lang.get("lobby.changeName"));
+        SoundButton exitButton = new SoundButton(lang.get("main.exit"));
+        SoundButton highscoresButton = new SoundButton(lang.get("lobby.highscores"));
 
         highscoresButton.setOnAction(event -> {
             if (serverHandler != null && serverHandler.isConnected()) {
                 serverHandler.sendMessage("gethighscores:");
             } else {
-                appendToMessageArea("Error: Cannot fetch highscores. Not connected.");
+                appendToMessageArea(lang.get("lobby.highscoreError"));
             }
         });
 
@@ -334,7 +336,7 @@ public class LobbyGUI {
             if (serverHandler != null && serverHandler.isConnected() && currentLobbyCode != null) {
                 serverHandler.sendMessage("startgame:");
             } else {
-                appendToMessageArea("Error: Cannot start game. Make sure you are in a lobby and connected to the server.");
+                appendToMessageArea(lang.get("lobby.startError"));
             }
         });
 
@@ -347,7 +349,7 @@ public class LobbyGUI {
         leaveLobbyButton.setOnAction(e -> {
             if (serverHandler != null && serverHandler.isConnected()) {
                 serverHandler.sendMessage("lobby:0");
-                appendToMessageArea("You have left the lobby.");
+                appendToMessageArea(lang.get("lobby.leftLobby"));
                 isReady = false;
                 updateReadyButton();
                 readyButton.setDisable(true);
@@ -358,9 +360,9 @@ public class LobbyGUI {
 
         nameButton.setOnAction(event -> {
             TextInputDialog dialog = new TextInputDialog();
-            dialog.setTitle("Change Username");
-            dialog.setHeaderText("Enter a new username:");
-            dialog.setContentText("Username:");
+            dialog.setTitle(lang.get("lobby.changeName"));
+            dialog.setHeaderText(lang.get("lobby.newNamePrompt"));
+            dialog.setContentText(lang.get("lobby.usernameLabel"));
             SoundButton.addDialogSound(dialog);
 
             DialogPane nameDialogPane = dialog.getDialogPane();
@@ -429,7 +431,7 @@ public class LobbyGUI {
             logger.error("Cannot initialize server communication: ServerHandler is null or not connected.");
             // Optionally show an error alert to the user
              Platform.runLater(() -> {
-                Alert alert = new Alert(Alert.AlertType.ERROR, "Lost connection to server. Please restart.", ButtonType.OK);
+                Alert alert = new Alert(Alert.AlertType.ERROR, lang.get("lobby.lostConnection"), ButtonType.OK);
                 alert.setHeaderText(null);
                 alert.showAndWait();
              });
@@ -453,7 +455,7 @@ public class LobbyGUI {
                 String localSender = (confirmedNickname != null) ? confirmedNickname : ((username != null) ? username : "You");
 
                 if (!isGlobalChat && currentLobbyCode == null) {
-                    appendToMessageArea("Error: You must be in a lobby to use Lobby Chat.");
+                    appendToMessageArea(lang.get("lobby.lobbyChatError"));
                     chatInput.setText("");
                     return;
                 }
@@ -465,7 +467,7 @@ public class LobbyGUI {
                         String whisperMessageContent = parts[2];
 
                         if (targetUsername.equalsIgnoreCase(localSender)) {
-                            appendToMessageArea("[System] You cannot whisper to yourself.");
+                            appendToMessageArea(lang.get("lobby.whisperError"));
                         } else {
                             String whisperMarker = String.format("[WHISPER->%s] ", targetUsername);
                             String messageWithMarker = whisperMarker + whisperMessageContent;
@@ -477,11 +479,11 @@ public class LobbyGUI {
                             appendToMessageArea(String.format("[To %s]: %s", targetUsername, whisperMessageContent));
                         }
                     } else {
-                        appendToMessageArea("[System] Usage: /whisper <username> <message>");
+                        appendToMessageArea(lang.get("lobby.whisperUsage"));
                     }
                 } else {
                     String messageToSend = prefix + text;
-                    String displayPrefix = isGlobalChat ? "[GLOBAL] " : "[LOBBY] ";
+                    String displayPrefix = isGlobalChat ? lang.get("lobby.global") : lang.get("lobby.lobby");
                     
                     appendToMessageArea(displayPrefix + localSender + ": " + text);
                     serverHandler.sendMessage(messageToSend);
@@ -496,7 +498,7 @@ public class LobbyGUI {
     private void startMessageReceiver() {
         while (running) {
             if (serverHandler == null || !serverHandler.isConnected()) {
-                appendToMessageArea("Connection lost. Please reconnect.");
+                appendToMessageArea(lang.get("lobby.lostConnection"));
                 break;
             }
 
@@ -561,11 +563,11 @@ public class LobbyGUI {
                      }
 
                      logger.info("Parsed {} message - Sender: '{}', Message: '{}'", chatPrefix.substring(0, chatPrefix.length() - 1).toUpperCase(), sender, chatMessage);
-                     String displayPrefix = chatPrefix.equals("chat:") ? "[GLOBAL] " : "[LOBBY] ";
+                     String displayPrefix = chatPrefix.equals("chat:") ? lang.get("lobby.global") : lang.get("lobby.lobby");
                      appendToMessageArea(displayPrefix + sender + ": " + chatMessage);
                  } else {
                      //no sender, probably server message
-                     appendToMessageArea("[System] " + chatData);
+                     appendToMessageArea(lang.get("lobby.system") + chatData);
                  }
                  continue;
              }
@@ -574,7 +576,7 @@ public class LobbyGUI {
             int colonIndex = message.indexOf(':');
             if (colonIndex == -1) {
                  logger.error("Invalid message format (no colon and not a known chat prefix): {}", message);
-                 appendToMessageArea("[System] " + message); // Display unknown format messages
+                 appendToMessageArea(lang.get("lobby.system") + message); // Display unknown format messages
                  continue;
             }
 
@@ -602,7 +604,7 @@ public class LobbyGUI {
                                     running = false;
                                 } catch (Exception ex) {
                                     logger.error("Error starting spectator mode", ex);
-                                    appendToMessageArea("Error starting spectator mode: " + ex.getMessage());
+                                    appendToMessageArea(lang.get("lobby.spectatorError"));
                                     stage.show();
                                 }
                             });
@@ -649,7 +651,7 @@ public class LobbyGUI {
                     break;
                 case "lobby":
                     if (content.equals("0")) {
-                        appendToMessageArea("Info: You have left the lobby.");
+                        appendToMessageArea(lang.get("lobby.leftLobby"));
                         if (!isGlobalChat) {
                             Platform.runLater(() -> playerListView.getItems().clear());
                         } else {
@@ -749,7 +751,7 @@ public class LobbyGUI {
                     appendToMessageArea("Game started!");
                     Platform.runLater(() -> {
                         if (currentLobbyCode == null) {
-                            appendToMessageArea("Error: Cannot start game without being in a lobby.");
+                            appendToMessageArea(lang.get("lobby.startError"));
                             return;
                         }
                         readyButton.setDisable(true);
@@ -769,7 +771,7 @@ public class LobbyGUI {
                             running = false; // Stop the message receiver thread
                         } catch (Exception ex) {
                             logger.error("Error starting game", ex);
-                            appendToMessageArea("Error starting game: " + ex.getMessage());
+                            appendToMessageArea(lang.get("lobby.gameError"));
                             stage.show();
                         }
                     });
@@ -777,7 +779,7 @@ public class LobbyGUI {
                 case "results":
                     Platform.runLater(() -> {
                         Stage stage2 = new Stage();
-                        stage2.setTitle("Past Game Results");
+                        stage2.setTitle(lang.get("hs.title"));
                         VBox root = new VBox(10);
                         root.setPadding(new Insets(10));
                         for (String line : content.split(Pattern.quote("\\n"))) {
@@ -794,20 +796,20 @@ public class LobbyGUI {
                                 
                                 String actualOutcome;
                                 if (res) { 
-                                    actualOutcome = role.equals("GUARD") ? "Won" : "Lost";
+                                    actualOutcome = role.equals("GUARD") ? lang.get("hs.won") : lang.get("hs.lost");
                                 } else {
-                                    actualOutcome = role.equals("GUARD") ? "Lost" : "Won";
+                                    actualOutcome = role.equals("GUARD") ? lang.get("hs.lost") : lang.get("hs.won");
                                 }
                                 
                                 playerRows.add(new PlayerRow(name, role, actualOutcome));
                             }
-                            Label header = new Label(ts + " | Lobby " + lb + " | " + (res ? "Guard Won" : "Goat Won"));
+                            Label header = new Label(ts + " | " + lang.get("hs.lobby") + " " + lb + " | " + (res ? lang.get("hs.guardwin") : lang.get("hs.goatwin")));
                             TableView<PlayerRow> table = new TableView<>();
-                            TableColumn<PlayerRow, String> nameCol = new TableColumn<>("Player");
+                            TableColumn<PlayerRow, String> nameCol = new TableColumn<>(lang.get("hs.player"));
                             nameCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
-                            TableColumn<PlayerRow, String> roleCol = new TableColumn<>("Role");
+                            TableColumn<PlayerRow, String> roleCol = new TableColumn<>(lang.get("hs.role"));
                             roleCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getRole()));
-                            TableColumn<PlayerRow, String> outCol = new TableColumn<>("Outcome");
+                            TableColumn<PlayerRow, String> outCol = new TableColumn<>(lang.get("hs.outcome"));
                             outCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getOutcome()));
                             table.getColumns().setAll(nameCol, roleCol, outCol);
                             table.setItems(FXCollections.observableArrayList(playerRows));
@@ -822,7 +824,7 @@ public class LobbyGUI {
                 case "highscores":
                     Platform.runLater(() -> {
                         Stage highscoreStage = new Stage();
-                        highscoreStage.setTitle("iGoat Leaderboard");
+                        highscoreStage.setTitle(lang.get("hs.leaderboard"));
                         highscoreStage.initStyle(StageStyle.UNDECORATED);
                         
                         String processedContent = content.replace("<br>", "\n");
@@ -847,7 +849,7 @@ public class LobbyGUI {
                         Label trophyIcon = new Label("🏆");
                         trophyIcon.setStyle("-fx-font-size: 40px; -fx-text-fill: gold;");
                         
-                        Label title = new Label("HALL OF FAME");
+                        Label title = new Label(lang.get("hs.halloffame"));
                         title.setStyle("-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: white; " +
                                       "-fx-effect: dropshadow(gaussian, gold, 10, 0.6, 0, 0);");
 
@@ -860,7 +862,7 @@ public class LobbyGUI {
                         
                         header.getChildren().addAll(trophyIcon, title, spacer, closeButton);
                         
-                        Label subtitle = new Label("The Fastest Players in the Lab");
+                        Label subtitle = new Label(lang.get("hs.fastest"));
                         subtitle.setStyle("-fx-font-size: 16px; -fx-font-style: italic; -fx-text-fill: #aaccff;");
                         subtitle.setOpacity(0.8);
                         
@@ -877,9 +879,9 @@ public class LobbyGUI {
                         
                         String[] sections = processedContent.split("\n\n");
                         
-                        Tab guardTab = createHighscoreTab("GUARD", "#4a90e2", sections[0], "👮");
+                        Tab guardTab = createHighscoreTab(lang.get("hs.guard"), "#4a90e2", sections[0], "👮");
                         
-                        Tab goatTab = createHighscoreTab("GOAT", "#50c878", 
+                        Tab goatTab = createHighscoreTab(lang.get("hs.goat"), "#50c878",
                                                       sections.length > 1 ? sections[1] : "No goat highscores yet.", "🐐");
                         
                         tabPane.getTabs().addAll(guardTab, goatTab);
@@ -984,7 +986,7 @@ public class LobbyGUI {
          }
 
          if (allReady && players.length == 4) {
-             appendToMessageArea("All players are ready! The lobby creator can now start the game.");
+             appendToMessageArea(lang.get("lobby.allReady"));
          }
      }
     
@@ -1004,11 +1006,11 @@ public class LobbyGUI {
      */
     private void updateChatUIForMode() {
         Platform.runLater(() -> {
-            String modeName = isGlobalChat ? "Global" : "Lobby";
-            String toggleButtonText = isGlobalChat ? "Switch to Lobby Chat" : "Switch to Global Chat";
-            String playerListText = isGlobalChat ? "All Connected Players" : "Players in Lobby";
+            String modeName = isGlobalChat ? lang.get("lobby.lobbyChat") : lang.get("lobby.globalChat");
+            String toggleButtonText = isGlobalChat ? lang.get("lobby.switchLobby") : lang.get("lobby.switchGlobal");
+            String playerListText = isGlobalChat ? lang.get("lobby.playerLabelGlobal") : lang.get("lobby.playerLabelLobby");
 
-            chatModeLabel.setText(modeName + " Chat");
+            chatModeLabel.setText(modeName);
             toggleChatButton.setText(toggleButtonText);
             playerListLabel.setText(playerListText);
             //appendToMessageArea("Now chatting in " + modeName + " Chat");
@@ -1044,7 +1046,7 @@ public class LobbyGUI {
     private void displayEnhancedHighscores(String content) {
         Platform.runLater(() -> {
             Stage highscoreStage = new Stage();
-            highscoreStage.setTitle("iGoat Highscores");
+            highscoreStage.setTitle(lang.get("hs.leaderboard"));
             
             String processedContent = content.replace("<br>", "\n");
             
@@ -1075,7 +1077,7 @@ public class LobbyGUI {
             
             header.getChildren().addAll(trophyIcon, title, spacer, closeButton);
             
-            Label subtitle = new Label("The Fastest Players");
+            Label subtitle = new Label(lang.get("hs.fastest"));
             subtitle.setStyle("-fx-font-size: 16px; -fx-font-style: italic; -fx-text-fill: #000000; -fx-font-family: 'Jersey 10', 'Courier New', monospace;");
             
             TabPane tabPane = new TabPane();
@@ -1084,10 +1086,10 @@ public class LobbyGUI {
             
             String[] sections = processedContent.split("\n\n");
             
-            Tab guardTab = createHighscoreTab("GUARD", "#b8b6b6", sections[0], "G");
+            Tab guardTab = createHighscoreTab(lang.get("hs.guard"), "#b8b6b6", sections[0], "G");
             
-            Tab goatTab = createHighscoreTab("GOAT", "#b8b6b6", 
-                                           sections.length > 1 ? sections[1] : "No goat highscores yet.", "G");
+            Tab goatTab = createHighscoreTab(lang.get("hs.goat"), "#b8b6b6",
+                                           sections.length > 1 ? sections[1] : lang.get("hs.noHS"), "G");
             
             tabPane.getTabs().addAll(guardTab, goatTab);
             
@@ -1125,8 +1127,8 @@ public class LobbyGUI {
         Tab tab = new Tab(icon + " " + title);
         tab.setStyle("-fx-background-color: " + color + "; -fx-text-base-color: white;");
         
-        if (content == null || content.trim().isEmpty() || content.contains("No highscores yet")) {
-            Label noDataLabel = new Label("No " + title + " highscores available yet.");
+        if (content == null || content.trim().isEmpty() || content.contains(lang.get("hs.noHS"))) {
+            Label noDataLabel = new Label(lang.get("hs.noHS"));
             noDataLabel.setStyle("-fx-font-size: 16px; -fx-font-style: italic; -fx-text-fill: #aaccff; -fx-padding: 30px;");
             VBox container = new VBox(noDataLabel);
             container.setAlignment(Pos.CENTER);
@@ -1139,19 +1141,19 @@ public class LobbyGUI {
         TableView<HighscoreEntry> table = new TableView<>();
         table.setItems(FXCollections.observableArrayList(entries));
         
-        TableColumn<HighscoreEntry, String> rankCol = new TableColumn<>("Rank");
+        TableColumn<HighscoreEntry, String> rankCol = new TableColumn<>(lang.get("hs.rank"));
         rankCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getRank()));
         rankCol.setPrefWidth(60);
         
-        TableColumn<HighscoreEntry, String> nameCol = new TableColumn<>("Player");
+        TableColumn<HighscoreEntry, String> nameCol = new TableColumn<>(lang.get("hs.player"));
         nameCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
         nameCol.setPrefWidth(200);
         
-        TableColumn<HighscoreEntry, String> timeCol = new TableColumn<>("Time");
+        TableColumn<HighscoreEntry, String> timeCol = new TableColumn<>(lang.get("hs.time"));
         timeCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTime()));
         timeCol.setPrefWidth(100);
         
-        TableColumn<HighscoreEntry, String> dateCol = new TableColumn<>("Date");
+        TableColumn<HighscoreEntry, String> dateCol = new TableColumn<>(lang.get("hs.date"));
         dateCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDate()));
         dateCol.setPrefWidth(160);
         
@@ -1189,10 +1191,10 @@ public class LobbyGUI {
                     String remaining = line.substring(line.indexOf(".") + 2);
                     String name = remaining.substring(0, remaining.indexOf(" - "));
                     
-                    remaining = remaining.substring(remaining.indexOf("Time: ") + 6);
+                    remaining = remaining.substring(remaining.indexOf(lang.get("hs.time") + ": ") + 6);
                     String time = remaining.substring(0, remaining.indexOf(" - "));
                     
-                    String date = remaining.substring(remaining.indexOf("Date: ") + 6);
+                    String date = remaining.substring(remaining.indexOf(lang.get("hs.date") + ": ") + 6);
                     
                     entries.add(new HighscoreEntry(rank, name, time, date));
                 } catch (Exception e) {
@@ -1227,7 +1229,7 @@ public class LobbyGUI {
         sectionTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + color + ";");
         
         if (content.contains("No") && content.contains("highscores yet")) {
-            Label noScores = new Label("No highscores recorded yet");
+            Label noScores = new Label(lang.get("hs.noHS"));
             noScores.setStyle("-fx-font-style: italic; -fx-text-fill: #666666;");
             section.getChildren().addAll(sectionTitle, noScores);
             return section;
@@ -1238,20 +1240,20 @@ public class LobbyGUI {
         table.setStyle("-fx-border-color: transparent;");
         
         // Create columns
-        TableColumn<HighscoreEntry, String> rankCol = new TableColumn<>("Rank");
+        TableColumn<HighscoreEntry, String> rankCol = new TableColumn<>(lang.get("hs.rank"));
         rankCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getRank()));
         rankCol.setMaxWidth(60);
         rankCol.setMinWidth(60);
         
-        TableColumn<HighscoreEntry, String> nameCol = new TableColumn<>("Player");
+        TableColumn<HighscoreEntry, String> nameCol = new TableColumn<>(lang.get("hs.player"));
         nameCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
         
-        TableColumn<HighscoreEntry, String> timeCol = new TableColumn<>("Time");
+        TableColumn<HighscoreEntry, String> timeCol = new TableColumn<>(lang.get("hs.time"));
         timeCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTime()));
         timeCol.setMaxWidth(100);
         timeCol.setMinWidth(100);
         
-        TableColumn<HighscoreEntry, String> dateCol = new TableColumn<>("Date");
+        TableColumn<HighscoreEntry, String> dateCol = new TableColumn<>(lang.get("hs.date"));
         dateCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDate()));
         dateCol.setMaxWidth(160);
         dateCol.setMinWidth(160);
@@ -1273,10 +1275,10 @@ public class LobbyGUI {
                     String remaining = line.substring(line.indexOf(".") + 2);
                     String name = remaining.substring(0, remaining.indexOf(" - "));
                     
-                    remaining = remaining.substring(remaining.indexOf("Time: ") + 6);
+                    remaining = remaining.substring(remaining.indexOf(lang.get("hs.time") + ": ") + 6);
                     String time = remaining.substring(0, remaining.indexOf(" - "));
                     
-                    String date = remaining.substring(remaining.indexOf("Date: ") + 6);
+                    String date = remaining.substring(remaining.indexOf(lang.get("hs.date") + ": ") + 6);
                     
                     entries.add(new HighscoreEntry(rank, name, time, date));
                 } catch (Exception e) {

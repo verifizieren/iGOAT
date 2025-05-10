@@ -1,7 +1,9 @@
 package igoat;
 
 import igoat.client.GUI.MainMenuGUI;
+import igoat.client.LanguageManager;
 import igoat.server.Server;
+import java.util.Locale;
 import javafx.application.Application;
 import javafx.application.Platform;
 import org.slf4j.Logger;
@@ -27,6 +29,8 @@ public class Main {
      *            - ["client", host, port]
      */
     public static void main(String[] args) {
+        LanguageManager.init("lang.text", Locale.ENGLISH);
+
         if (args.length == 0) {
             try {
                 Platform.startup(() -> {});

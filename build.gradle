@@ -81,6 +81,10 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-Xlint:unchecked"
 }*/
 
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
 // Create a task to build a fat/uber jar with all dependencies
 task fatJar(type: Jar) {
     manifest {

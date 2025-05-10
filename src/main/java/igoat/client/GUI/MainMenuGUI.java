@@ -1,10 +1,12 @@
 package igoat.client.GUI;
 
+import igoat.client.LanguageManager;
 import igoat.client.ScreenUtil;
 
 import igoat.client.ServerHandler;
 import igoat.client.Sprite;
 import igoat.server.Server;
+import java.util.Locale;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -31,6 +33,7 @@ public class MainMenuGUI extends Application {
     /** Logger for this class */
     private static final Logger logger = LoggerFactory.getLogger(MainMenuGUI.class);
     public static final Sprite icon = new Sprite("/sprites/igoat_icon.png");
+    private static final LanguageManager lang = LanguageManager.getInstance();
 
     private ServerHandler handler;
     private String username;
@@ -75,7 +78,7 @@ public class MainMenuGUI extends Application {
         imageView.setCache(true);
         VBox.setMargin(imageView, new Insets(0, 0, -20, 0));
 
-        Label presentLabel = new Label("presents:");
+        Label presentLabel = new Label(lang.get("main.presents"));
         presentLabel.setFont(new Font("Jersey 10", 24));
         presentLabel.setStyle("-fx-font-size: 30px;");
         VBox.setMargin(presentLabel, new Insets(0, 0, -20, 0));
@@ -84,12 +87,12 @@ public class MainMenuGUI extends Application {
         titleLabel.setFont(new Font("Jersey 10", 24));
         titleLabel.setStyle("-fx-font-size: 50px;");
 
-        SoundButton createServerButton = new SoundButton("Create Server");
+        SoundButton createServerButton = new SoundButton(lang.get("main.createServer"));
         createServerButton.setOnAction(e -> {
             TextInputDialog portDialog = new TextInputDialog("61000");
-            portDialog.setTitle("Create Server");
+            portDialog.setTitle(lang.get("main.createServer"));
             portDialog.setHeaderText(null);
-            portDialog.setContentText("Enter server port:");
+            portDialog.setContentText(lang.get("main.enterPort"));
             SoundButton.addDialogSound(portDialog);
 
             DialogPane dialogPane = portDialog.getDialogPane();
@@ -106,12 +109,12 @@ public class MainMenuGUI extends Application {
             });
         });
 
-        SoundButton joinServerButton = new SoundButton("Join Server");
+        SoundButton joinServerButton = new SoundButton(lang.get("main.joinServer"));
         joinServerButton.setOnAction(e -> {
             TextInputDialog ipDialog = new TextInputDialog(SettingsWindow.lastIP == null? "localhost" : SettingsWindow.lastIP);
-            ipDialog.setTitle("Join Server");
+            ipDialog.setTitle(lang.get("main.joinServer"));
             ipDialog.setHeaderText(null);
-            ipDialog.setContentText("Enter server IP:");
+            ipDialog.setContentText(lang.get("main.enterIP"));
             SoundButton.addDialogSound(ipDialog);
 
             DialogPane joinDialogPane = ipDialog.getDialogPane();
@@ -121,9 +124,9 @@ public class MainMenuGUI extends Application {
             ScreenUtil.moveStageToCursorScreen(ipDialogStage, ipDialogStage.getWidth() > 0 ? ipDialogStage.getWidth() : 350, ipDialogStage.getHeight() > 0 ? ipDialogStage.getHeight() : 200);
             ipDialog.showAndWait().ifPresent(serverIP -> {
                 TextInputDialog portDialog = new TextInputDialog(SettingsWindow.lastPort == 0? "61000" : String.valueOf(SettingsWindow.lastPort));
-                portDialog.setTitle("Join Server");
+                portDialog.setTitle(lang.get("main.joinServer"));
                 portDialog.setHeaderText(null);
-                portDialog.setContentText("Enter server port:");
+                portDialog.setContentText(lang.get("main.enterPort"));
                 SoundButton.addDialogSound(portDialog);
 
                 DialogPane portDialogPane = portDialog.getDialogPane();
@@ -132,23 +135,23 @@ public class MainMenuGUI extends Application {
                 Stage joinPortDialogStage = (Stage) portDialog.getDialogPane().getScene().getWindow();
                 ScreenUtil.moveStageToCursorScreen(joinPortDialogStage, joinPortDialogStage.getWidth() > 0 ? joinPortDialogStage.getWidth() : 350, joinPortDialogStage.getHeight() > 0 ? joinPortDialogStage.getHeight() : 200);
                 portDialog.showAndWait().ifPresent(port -> {
-                    String systemUsername = SettingsWindow.lastUsername == null? System.getProperty("user.name") : SettingsWindow.lastUsername;
+                    String systemUsername = (handler == null || handler.getConfirmedNickname() == null)? System.getProperty("user.name") : handler.getConfirmedNickname();
                     TextInputDialog nameDialog = new TextInputDialog(systemUsername);
-                    nameDialog.setTitle("Join Server");
+                    nameDialog.setTitle(lang.get("main.joinServer"));
                     nameDialog.setHeaderText(null);
-                    nameDialog.setContentText("Enter your username (default: " + systemUsername + "):");
+                    nameDialog.setContentText(lang.get("main.enterName"));
                     SoundButton.addDialogSound(nameDialog);
 
                     DialogPane nameDialogPane = nameDialog.getDialogPane();
                     nameDialogPane.getStylesheets().add(finalStyle);
 
-Stage dialogStage = (Stage) nameDialog.getDialogPane().getScene().getWindow();
-ScreenUtil.moveStageToCursorScreen(dialogStage, dialogStage.getWidth() > 0 ? dialogStage.getWidth() : 350, dialogStage.getHeight() > 0 ? dialogStage.getHeight() : 200);
-nameDialog.showAndWait().ifPresent(name -> {
+                    Stage dialogStage = (Stage) nameDialog.getDialogPane().getScene().getWindow();
+                    ScreenUtil.moveStageToCursorScreen(dialogStage, dialogStage.getWidth() > 0 ? dialogStage.getWidth() : 350, dialogStage.getHeight() > 0 ? dialogStage.getHeight() : 200);
+                    nameDialog.showAndWait().ifPresent(name -> {
                         // sanitize string
                         name = name.replaceAll("[\\s=:,]", "");
                         if (name.isEmpty()) {
-                            showAlert(Alert.AlertType.ERROR, "Username cannot be empty");
+                            showAlert(Alert.AlertType.ERROR, lang.get("main.nameEmpty"));
                             return;
                         }
 
@@ -161,7 +164,7 @@ nameDialog.showAndWait().ifPresent(name -> {
             });
         });
 
-        SoundButton exitButton = new SoundButton("Exit");
+        SoundButton exitButton = new SoundButton(lang.get("main.exit"));
         exitButton.setOnAction(e -> exit());
 
         root.getChildren().addAll(
@@ -188,8 +191,8 @@ nameDialog.showAndWait().ifPresent(name -> {
      */
     public void join(String serverIP, int port, String username) {
         if (serverIP.isEmpty()) {
-            logger.error("Invalid server IP entered.");
-            showAlert(Alert.AlertType.ERROR, "Invalid server IP.");
+            logger.error("Invalid server IP");
+            showAlert(Alert.AlertType.ERROR, lang.get("main.invalidIP"));
             return;
         }
 
@@ -198,7 +201,7 @@ nameDialog.showAndWait().ifPresent(name -> {
         if (!handler.isConnected()) {
             logger.error("Failed to connect to server at: {}:{}", serverIP, port);
             Platform.runLater(() ->
-                showAlert(Alert.AlertType.ERROR, "Failed to connect to server at: " + serverIP + ":" + port)
+                showAlert(Alert.AlertType.ERROR,  lang.get("main.failedConnect") + ": " + serverIP + ":" + port)
             );
             return;
         }
@@ -213,7 +216,7 @@ nameDialog.showAndWait().ifPresent(name -> {
                 stage.hide();
             } catch (Exception ex) {
                 logger.error("Couldn't launch LobbyGUI", ex);
-                showAlert(Alert.AlertType.ERROR, "Error launching lobby: " + ex.getMessage());
+                showAlert(Alert.AlertType.ERROR, lang.get("main.errorLobby") + ": " + ex.getMessage());
             }
         });
     }

@@ -70,7 +70,7 @@ public class ServerHandlerTest {
 
     @Test
     public void testReceiveMSGProcessesPingAndConfirm() throws Exception {
-        String input = "ping\nconfirm:Username gesetzt zu testuser\nnormalmsg\n";
+        String input = "ping\nconfirm:testuser\nnormalmsg\n";
         BufferedReader reader = new BufferedReader(new StringReader(input));
         TestServerHandler handler = new TestServerHandler("localhost", 12345, "testuser");
         PrintWriter writer = new PrintWriter(new StringWriter());
