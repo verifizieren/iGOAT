@@ -57,12 +57,12 @@ public class ClientHandler implements Runnable {
     private static final long TIMEOUT = 3000; // 3 seconds
     private int udpPort = -1; // Port the client is listening on for UDP updates
 
-    private static final List<ClientHandler> clientList = new CopyOnWriteArrayList<>();
+    protected static final List<ClientHandler> clientList = new CopyOnWriteArrayList<>();
 
-    private static final List<Lobby> lobbyList = new CopyOnWriteArrayList<>();
-    private Lobby currentLobby;
+    protected static final List<Lobby> lobbyList = new CopyOnWriteArrayList<>();
+    protected Lobby currentLobby;
     private static int nextLobbyCode = 1000;
-    private boolean isReady = false;
+    protected boolean isReady = false;
     private boolean clientReady = false;
 
     private static DatagramSocket serverUpdateSocket;
@@ -70,10 +70,10 @@ public class ClientHandler implements Runnable {
     private static volatile boolean udpListenerRunning = false;
     private static Thread udpListenerThread;
 
-    private String nickname;
-    private Player player;
+    protected String nickname;
+    protected Player player;
 
-    private boolean isSpectator = false;
+    protected boolean isSpectator = false;
 
     static {
         try {
@@ -524,6 +524,12 @@ public class ClientHandler implements Runnable {
                     break;
                 case "gethighscores":
                     handleGetHighscores();
+                    break;
+                case "spectate":
+                    handleSpectate(params.split(":"));
+                    break;
+                case "leavespectate":
+                    handleLeaveSpectate(params.split(":"));
                     break;
                 default:
                     sendError("Unknown command: " + command);

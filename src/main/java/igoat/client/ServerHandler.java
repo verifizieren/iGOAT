@@ -24,14 +24,14 @@ public class ServerHandler {
     private static final String NICKNAME_CONFIRM_PREFIX = "confirm:";
     private static final int MAX_MSG_LENGTH = 200;
 
-    private Socket msgSocket;
+    protected Socket msgSocket;
     PrintWriter msgWriter;
     BufferedReader msgReader;
 
     UDPSocket updateSocket; // abstraction for testability
 
-    private Thread messageReceiver;
-    private Thread updateReceiver;
+    protected Thread messageReceiver;
+    protected Thread updateReceiver;
 
     boolean connected = false;
     final BlockingQueue<String> messageBuffer = new LinkedBlockingQueue<>();
