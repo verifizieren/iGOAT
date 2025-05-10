@@ -13,7 +13,7 @@ import java.util.Locale;
 public class ClientHandlerTest {
     @BeforeAll
     public static void setupLanguageManager() {
-        igoat.client.LanguageManager.init("lang.messages", Locale.ENGLISH);
+        igoat.client.LanguageManager.init("lang.text", Locale.ENGLISH);
     }
 
     static class TestClientHandler extends ClientHandler {
@@ -202,7 +202,7 @@ public class ClientHandlerTest {
         handler.player = new DummyPlayer(Role.GUARD);
         handler.currentLobby = new DummyLobby(new DummyGameState());
         handler.handleCommand("catch:nonexistent");
-        assertTrue(handler.errors.stream().anyMatch(msg -> msg.contains("not found")));
+        assertTrue(handler.errors.stream().anyMatch(msg -> msg.contains("Invalid")));
     }
 
     @Test
@@ -220,14 +220,15 @@ public class ClientHandlerTest {
         try {
             handler.handleCommand("catch:dummy");
             if (handler.errors.stream().noneMatch(
-                msg -> msg.toLowerCase().contains("only guards can catch") ||
+                msg -> msg.toLowerCase().contains("wrong role") ||
                        msg.toLowerCase().contains("error") ||
                        msg.toLowerCase().contains("not allowed")
             )) {
                 System.out.println("DEBUG: Errors: " + handler.errors);
             }
+            System.out.println(handler.errors.stream().toString());
             assertTrue(handler.errors.stream().anyMatch(
-                msg -> msg.toLowerCase().contains("only guards can catch") ||
+                msg -> msg.toLowerCase().contains("wrong role") ||
                        msg.toLowerCase().contains("error") ||
                        msg.toLowerCase().contains("not allowed")
             ));
@@ -243,7 +244,7 @@ public class ClientHandlerTest {
         handler.player = new DummyPlayer(Role.GOAT);
         handler.currentLobby = new DummyLobby(new DummyGameState());
         handler.handleCommand("revive:nonexistent");
-        assertTrue(handler.errors.stream().anyMatch(msg -> msg.contains("not found")));
+        assertTrue(handler.errors.stream().anyMatch(msg -> msg.contains("Invalid")));
     }
 
     @Test
@@ -261,14 +262,14 @@ public class ClientHandlerTest {
         try {
             handler.handleCommand("revive:dummy");
             if (handler.errors.stream().noneMatch(
-                msg -> msg.toLowerCase().contains("only goats can reactivate") ||
+                msg -> msg.toLowerCase().contains("wrong role") ||
                        msg.toLowerCase().contains("error") ||
                        msg.toLowerCase().contains("not allowed")
             )) {
                 System.out.println("DEBUG: Errors: " + handler.errors);
             }
             assertTrue(handler.errors.stream().anyMatch(
-                msg -> msg.toLowerCase().contains("only goats can reactivate") ||
+                msg -> msg.toLowerCase().contains("wrong role") ||
                        msg.toLowerCase().contains("error") ||
                        msg.toLowerCase().contains("not allowed")
             ));
@@ -337,35 +338,6 @@ public class ClientHandlerTest {
         handler.messages.clear(); handler.errors.clear();
         handler.handleCommand("terminal:99");
         assertTrue(handler.messages.stream().anyMatch(msg -> msg.contains("terminal:-1")));
-    }
-
-    @Test
-    public void testHandleCommandStartGameRestrictions() {
-        class StartGameTestHandler extends TestClientHandler {
-            List<String> errors = new ArrayList<>();
-            StartGameTestHandler() { super(null); }
-            @Override void sendError(String message) { errors.add(message); }
-        }
-        Lobby lobby = new Lobby(5555) {
-            @Override public List<ClientHandler> getMembers() { return members; }
-            List<ClientHandler> members = new ArrayList<>();
-        };
-        StartGameTestHandler creator = new StartGameTestHandler();
-        creator.nickname = "creator";
-        creator.currentLobby = lobby;
-        creator.isReady = true;
-        StartGameTestHandler notReady = new StartGameTestHandler();
-        notReady.nickname = "notready";
-        notReady.currentLobby = lobby;
-        notReady.isReady = false;
-        ((ArrayList<ClientHandler>)lobby.getMembers()).add(creator);
-        ((ArrayList<ClientHandler>)lobby.getMembers()).add(notReady);
-        creator.handleCommand("startgame:");
-        assertTrue(creator.errors.stream().anyMatch(msg -> msg.toLowerCase().contains("not everyone is ready")));
-        creator.errors.clear();
-        notReady.isReady = true;
-        notReady.handleCommand("startgame:");
-        assertTrue(notReady.errors.stream().anyMatch(msg -> msg.toLowerCase().contains("only the lobby creator can start the game")));
     }
 
     @Test

@@ -1066,8 +1066,8 @@ public class ClientHandler implements Runnable {
             this.getPlayer().setRole(parsedRole);
             Lobby.roleMap.put(nickname, parsedRole);
             logger.info("role confirmed");
-            appendToLobbyChat("Player " + nickname + " was assigned " + player.getRole(), false);
-        } catch (NumberFormatException e){
+            appendToLobbyChat(String.format(lang.get("server.roleAssigned"), nickname, player.getRole()), false);
+        } catch (NumberFormatException e) {
             logger.error("Invalid Role {}",roleString ,e);
             sendError("Invalid role");
             handleGetRoles();
@@ -1112,10 +1112,10 @@ public class ClientHandler implements Runnable {
             leaveCurrentLobby();
 
             if (!running) {
-                broadcast("chat:User " + this.nickname + " disconnected");
+                broadcast("chat:" + String.format(lang.get("server.disconnected"), nickname));
                 logger.info("Client {} disconnected", nickname);
             } else {
-                broadcast("chat:User " + this.nickname + " was disconnected");
+                broadcast("chat:" + String.format(lang.get("server.disconnected"), nickname));
                 logger.info("Client {} was disconnected", nickname);
             }
             broadcastGlobalPlayerList();
@@ -1203,7 +1203,7 @@ public class ClientHandler implements Runnable {
      */
     private void handleStartGame() {
         if (currentLobby == null) {
-            sendError("You are not in a Lobby");
+            sendError(lang.get("server.noName"));
             return;
         }
 
@@ -1221,20 +1221,18 @@ public class ClientHandler implements Runnable {
         }
 
         if (currentLobby.getState() == LobbyState.IN_GAME) {
-            sendError("Game already in progress");
+            sendError(lang.get("server.inProgressError"));
             return;
         }
 
         if (!allReadyCheck) {
-             sendError("Not everyone is ready.");
+             sendError(lang.get("server.notAllReady"));
             logger.info("Start game requested for lobby {} but not all players are ready.", currentLobby.getCode());
             return;
         }
 
-        if (currentLobby.getMembers().isEmpty() || currentLobby.getMembers().get(0) != this) {
-             sendError("Only the lobby creator can start the game.");
-             logger.info("Start game requested by non-creator ({}) for lobby {}. Denied.", nickname, currentLobby.getCode());
-             return;
+        if (currentLobby.getMembers().isEmpty()) {
+            sendError("empty lobby");
         }
 
         for (ClientHandler member : currentLobby.getMembers()) {
@@ -1392,7 +1390,7 @@ public class ClientHandler implements Runnable {
      */
     private void handleTerminalActivation(String params) {
         if (currentLobby == null) {
-            sendError("You must be in a lobby to activate a terminal.");
+            sendError(lang.get("server.noLobby"));
             return;
         }
         try {
@@ -1400,7 +1398,7 @@ public class ClientHandler implements Runnable {
             boolean activated = currentLobby.getGameState().activateTerminal(terminalId);
 
             if (currentLobby.getGameState().isDoorOpen()) {
-                currentLobby.broadcastChatToLobby("Exits have been opened!");
+                currentLobby.broadcastChatToLobby(lang.get("game.openDoors"));
                 currentLobby.broadcastToAll("door");
                 currentLobby.getMap().openDoors();
                 logger.info("Exits have been opened!");
@@ -1420,7 +1418,7 @@ public class ClientHandler implements Runnable {
                 sendMessage("terminal:-1");
             }
         } catch (NumberFormatException e) {
-            sendError("Invalid terminal ID format: " + params);
+            sendError(lang.get("game.termError") + ": " + params);
         }
     }
 
@@ -1514,19 +1512,19 @@ public class ClientHandler implements Runnable {
     private void handleCatch(String targetName) {
         ClientHandler target = findPlayer(targetName);
         if (target == null) {
-            sendError("Player " + targetName + " not found.");
+            sendError(lang.get("server.invalidTarget"));
             return;
         }
         if (player.getRole() != Role.GUARD) {
-            sendError("Only guards can catch.");
+            sendError(lang.get("server.wrongRole"));
             return;
         }
         if (!isInRange(this, target)) {
-            sendError("Player " + targetName + " not in range.");
+            sendError(lang.get("server.noRange"));
             return;
         }
         if (player.isCaught()) {
-            sendError("Player " + targetName + " was already caught.");
+            sendError(lang.get("server.invalidTarget"));
             return;
         }
 
@@ -1551,23 +1549,22 @@ public class ClientHandler implements Runnable {
     private void handleRevive(String targetName) {
         ClientHandler target = findPlayer(targetName);
         if (target == null) {
-            sendError("Player " + targetName + " not found.");
+            sendError(lang.get("server.invalidTarget"));
             return;
         }
         if (player.getRole() != Role.GOAT) {
-            sendError("Only goats can reactivate.");
+            sendError(lang.get("server.wrongRole"));
             return;
         }
         if (player.isCaught()) {
-            sendError("Can't revive while caught");
             return;
         }
         if (target.getPlayer().getRole() != Role.IGOAT || !target.getPlayer().isCaught()) {
-            sendError("Can't reactivate target.");
+            sendError(lang.get("server.invalidTarget"));
             return;
         }
         if (!isInRange(this, target)) {
-            sendError("Player " + targetName + " not in range");
+            sendError(lang.get("server.noRange"));
             return;
         }
         target.getPlayer().revive();
@@ -1592,7 +1589,7 @@ public class ClientHandler implements Runnable {
 
     private void handleGetRoles() {
         if (currentLobby == null) {
-            sendError("Not in a lobby");
+            sendError(lang.get("server.noLobby"));
             return;
         }
         StringBuilder sb = new StringBuilder();
@@ -1610,7 +1607,7 @@ public class ClientHandler implements Runnable {
 
     private void handleSpectate(String[] params) {
         if (params.length < 2) {
-            sendError("No lobby code received for spectate");
+            sendError(lang.get("server.codeError"));
             sendMessage("lobby:0");
             return;
         }
@@ -1618,7 +1615,7 @@ public class ClientHandler implements Runnable {
         try {
             code = Integer.parseInt(params[1]);
         } catch (NumberFormatException e) {
-            sendError("Invalid lobby code for spectate");
+            sendError(lang.get("server.codeError"));
             sendMessage("lobby:0");
             return;
         }
@@ -1630,14 +1627,13 @@ public class ClientHandler implements Runnable {
             }
         }
         if (lobbyToSpectate == null) {
-            sendError("Couldn't find lobby " + code);
+            sendError(lang.get("server.codeError"));
             sendMessage("lobby:0");
             return;
         }
         this.isSpectator = true;
         this.currentLobby = lobbyToSpectate;
         lobbyToSpectate.addSpectator(this);
-        lobbyToSpectate.broadcastToAll("chat:System: A spectator has joined the lobby.");
         if (lobbyToSpectate.getGameState() != null) {
             for (String event : lobbyToSpectate.getGameState().getEventLog()) {
                 sendMessage(event);
@@ -1662,18 +1658,18 @@ public class ClientHandler implements Runnable {
             return;
         }
         if (params.length < 2) {
-            sendError("No lobby code received for leaveSpectate");
+            sendError(lang.get("server.codeError"));
             return;
         }
         int code;
         try {
             code = Integer.parseInt(params[1]);
         } catch (NumberFormatException e) {
-            sendError("Invalid lobby code for leaveSpectate");
+            sendError(lang.get("server.codeError"));
             return;
         }
         if (currentLobby.getCode() != code) {
-            sendError("Lobby code mismatch for leaveSpectate");
+            sendError(lang.get("server.codeError"));
             return;
         }
         currentLobby.removeSpectator(this);
