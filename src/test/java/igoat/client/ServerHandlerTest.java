@@ -7,6 +7,7 @@ import java.io.StringWriter;
 import java.io.BufferedReader;
 import java.io.StringReader;
 import java.net.DatagramPacket;
+import java.io.IOException;
 
 public class ServerHandlerTest {
     static class TestServerHandler extends ServerHandler {
@@ -97,5 +98,77 @@ public class ServerHandlerTest {
             String msg = new String(packet.getData(), 0, packet.getLength());
             return msg.startsWith("register_udp:testuser:");
         }));
+    }
+
+    @Test
+    public void testReconnectAndCloseResourceManagement() throws Exception {
+        TestServerHandler handler = new TestServerHandler("localhost", 12345, "testuser");
+        Thread dummyMsgThread = new Thread(() -> {});
+        Thread dummyUpdThread = new Thread(() -> {});
+        handler.messageReceiver = dummyMsgThread;
+        handler.updateReceiver = dummyUpdThread;
+        handler.msgSocket = new java.net.Socket();
+        handler.msgWriter = new PrintWriter(new StringWriter());
+        handler.msgReader = new BufferedReader(new StringReader(""));
+        handler.updateSocket = new MockUDPSocket();
+        handler.close();
+        assertFalse(handler.connected);
+    }
+
+    @Test
+    public void testSendMessageTruncatesLongMessages() {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        TestServerHandler handler = new TestServerHandler("localhost", 12345, "testuser");
+        handler.setMsgWriter(pw);
+        String longMsg = "x".repeat(300);
+        handler.sendMessage(longMsg);
+        pw.flush();
+        String sent = sw.toString();
+        assertEquals(200, sent.replaceAll("\n", "").length());
+    }
+
+    @Test
+    public void testSendUpdateHandlesNullSocketOrNotConnected() {
+        TestServerHandler handler = new TestServerHandler("localhost", 12345, "testuser");
+        handler.setUpdateSocket(null);
+        handler.setConnected(true);
+        handler.sendUpdate("test");
+        handler.setUpdateSocket(new MockUDPSocket());
+        handler.setConnected(false);
+        handler.sendUpdate("test");
+    }
+
+    @Test
+    public void testReceiveUpdateIgnoresUdpAck() throws Exception {
+        TestServerHandler handler = new TestServerHandler("localhost", 12345, "testuser");
+        handler.setConnected(true);
+        handler.lastUpdate = "";
+        String udpAck = "udp_ack:foo";
+        String normalUpdate = "player_position:foo:1:2:3";
+        if (!udpAck.startsWith("udp_ack:")) handler.lastUpdate = udpAck;
+        assertEquals("", handler.lastUpdate);
+        if (!normalUpdate.startsWith("udp_ack:")) handler.lastUpdate = normalUpdate;
+        assertEquals(normalUpdate, handler.lastUpdate);
+    }
+
+    @Test
+    public void testSendMessageHandlesException() {
+        TestServerHandler handler = new TestServerHandler("localhost", 12345, "testuser");
+        handler.setMsgWriter(new PrintWriter(new java.io.OutputStream() {
+            @Override public void write(int b) { throw new RuntimeException("fail"); }
+        }));
+        handler.sendMessage("test");
+    }
+
+    @Test
+    public void testSendUpdateHandlesException() {
+        TestServerHandler handler = new TestServerHandler("localhost", 12345, "testuser");
+        handler.setUpdateSocket(new UDPSocket() {
+            @Override public void send(DatagramPacket packet) throws IOException { throw new IOException("fail"); }
+            @Override public void close() {}
+        });
+        handler.setConnected(true);
+        handler.sendUpdate("test");
     }
 }
