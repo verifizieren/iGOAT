@@ -347,6 +347,56 @@ public class SceneDecoration {
             0, 0, 138, 64
         ));
 
+        // bottom Room Decoration 2
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/water.png")).toExternalForm(),
+            1070, 750, 64, 64,
+            false,
+            0, 0, 138, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/hayball.png")).toExternalForm(),
+            1030, 780, 64, 64,
+            false,
+            0, 0, 138, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/hayball.png")).toExternalForm(),
+            1030, 790, 64, 64,
+            false,
+            0, 0, 138, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/hayball.png")).toExternalForm(),
+            1030, 800, 64, 64,
+            false,
+            0, 0, 138, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/hayball.png")).toExternalForm(),
+            1128, 750, 64, 64,
+            false,
+            0, 0, 138, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/hayball.png")).toExternalForm(),
+            1128, 760, 64, 64,
+            false,
+            0, 0, 138, 64
+        ));
+
+        decorList.add(new Decoration(
+            Objects.requireNonNull(Sprite.class.getResource("/sprites/hayball.png")).toExternalForm(),
+            1128, 770, 64, 64,
+            false,
+            0, 0, 138, 64
+        ));
+
         // right Room Decoration 2
         decorList.add(new Decoration(
             Objects.requireNonNull(Sprite.class.getResource("/sprites/lab_coat.png")).toExternalForm(),
