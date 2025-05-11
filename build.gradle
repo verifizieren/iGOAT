@@ -55,8 +55,10 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.mockito:mockito-inline:5.2.0'
 
-    implementation 'net.java.jinput:jinput:2.0.10'
-    runtimeOnly 'net.java.jinput:jinput:2.0.10:natives-all'
+    implementation("net.java.jinput:jinput:2.0.10")
+    runtimeOnly("net.java.jinput:jinput-platform:2.0.7:natives-windows")
+    runtimeOnly("net.java.jinput:jinput-platform:2.0.7:natives-linux")
+    runtimeOnly("net.java.jinput:jinput-platform:2.0.7:natives-osx")    
 }
 
 test {
@@ -67,39 +69,17 @@ task extractNatives {
     doLast {
         def nativesDir = file("${buildDir}/natives")
         nativesDir.mkdirs()
-        
-        configurations.runtimeClasspath.each { file ->
+        configurations.runtimeClasspath.files.each { file ->
             if (file.name.contains('natives')) {
                 copy {
                     from zipTree(file)
                     into nativesDir
-                    include "*.dll"
-                    include "*.so"
-                    include "*.jnilib"
-                    include "*.dylib"
-                    
-                    rename { String fileName ->
-                        if (fileName.contains('osx')) {
-                            if (fileName.contains('libjinput')) {
-                                'libjinput-osx.dylib'
-                            } else if (fileName.contains('libosx')) {
-                                'libosx-prk.dylib'
-                            } else {
-                                fileName
-                            }
-                        } else {
-                            fileName
-                        }
-                    }
-                    
-                    fileMode = 0755
+                    include '*.dll'
+                    include '*.so'
+                    include '*.dylib'
+                    include '*.jnilib'
                 }
             }
-        }
-        
-        println "Extracted native libraries to: ${nativesDir.absolutePath}"
-        nativesDir.listFiles().each { file ->
-            println " - ${file.name} (${file.canExecute() ? 'executable' : 'not executable'})"
         }
     }
 }
@@ -108,12 +88,10 @@ tasks.withType(JavaExec) {
     dependsOn extractNatives
     systemProperty "java.library.path", file("${buildDir}/natives").absolutePath
     systemProperty "net.java.games.input.librarypath", file("${buildDir}/natives").absolutePath
-    
     environment "DYLD_LIBRARY_PATH", file("${buildDir}/natives").absolutePath
 }
 
 run {
-    dependsOn extractNatives
     doFirst {
         systemProperty "java.library.path", file("${buildDir}/natives").absolutePath
         systemProperty "net.java.games.input.librarypath", file("${buildDir}/natives").absolutePath
@@ -122,7 +100,6 @@ run {
 }
 
 jar {
-    dependsOn extractNatives
     manifest {
         attributes(
             'Main-Class': 'igoat.Main',

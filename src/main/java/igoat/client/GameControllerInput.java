@@ -39,6 +39,17 @@ public class GameControllerInput {
     private static final String DPAD_LEFT = "dpad left";
     private static final String DPAD_RIGHT = "dpad right";
     
+    private static final String BUTTON_A = "button a";
+
+    static {
+        String libraryPath = System.getProperty("java.library.path");
+        String jinputPath = System.getProperty("net.java.games.input.librarypath");
+        
+        System.out.println("JInput Native Library Paths:");
+        System.out.println("java.library.path: " + libraryPath);
+        System.out.println("jinput.librarypath: " + jinputPath);
+    }
+
     /**
      * Creates a new GameControllerInput instance for the specified controller.
      * 
