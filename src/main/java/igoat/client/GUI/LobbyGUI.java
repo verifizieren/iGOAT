@@ -601,10 +601,10 @@ public class LobbyGUI {
                     }
                     
                     if (codeToSpectate != null && 
-                        (content.contains("progress") || content.contains("full") || 
-                         content.contains("corso") || content.contains("piena") ||
-                         content.contains("進行中") || content.contains("満員") ||
-                         content.contains("andamento") || content.contains("cheia"))) {
+                        (content.contains("bereits") || content.contains("progress") || 
+                         content.contains("corso") || content.contains("curso") ||
+                         content.contains("ゲームはすでに進行中です") || content.contains("andamento") ||
+                         content.contains("游戏已在进行中") )) {
                         
                         String spectateMsg = "spectate:" + codeToSpectate;
                         logger.info("Sending spectate message: {}", spectateMsg);
