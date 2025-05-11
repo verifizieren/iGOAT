@@ -81,7 +81,7 @@
 * Die Gruppe war mit den Ergebnissen zufrieden.
 * ToDo: JAR-Review
 * Das nächste Treffen wurde für den Dienstag, den 29.04.2025 festgelegt.
-## <p align = "center"> 29. Apri
+## <p align = "center"> 29. April
 * Die Gruppe traf sich, um gemeinsam die JAR-Review durchzuführen und konnte diese erfolgreich abschließen.
 * Bei der JAR-Review gab es einige kleinere Schwierigkeiten: Da es keine Anleitung zu den gegebenen Spielen gab, musste die Gruppe zunächst herausfinden, wie und ob man die Spiele überhaupt spielen konnte.
 * Später arbeitete die Gruppe außerdem die ToDos für den letzten Meilenstein aus.
@@ -92,4 +92,13 @@
 * Die meisten erledigten Punkte waren in Ordnung und funktionierten wie gewünscht.
 * ToDo: Jedes Mitglied muss noch seine vorherigen ToDos fertigstellen, und die Gruppe sollte allgemein versuchen, alle Aufgaben für den letzten Meilenstein zu erledigen und das Spiel fertigzustellen.
 * Das nächste Treffen wurde für Samstag, den 10.05.2025, festgelegt.
-
+## <p align = "center"> 10.05.2025
+* Die Gruppe ging nochmals die erledigten Punkte durch und warf auch einen Blick auf die Meilensteinliste, um zu sehen, was noch zu tun ist.
+* Die meisten Pflichtpunkte aus dem Meilenstein waren erledigt. Es müssen noch kleinere Anpassungen vorgenommen und kleinere Bugs behoben werden.
+* ToDo: Weitere Bugs finden und beheben sowie die noch offenen Punkte aus dem Meilenstein erledigen.
+* Das nächste Treffen wurde Sonntag, den 11.05.2025, festgelegt.
+## <p align = "center"> 11.05.2025
+* Die Gruppe traf sich auf Discord, um das Spiel gemeinsam zu testen und die letzten Punkte für das Spiel zu erledigen.
+* Es wurden kleinere Bugs gefunden, die jedoch behoben werden konnten.
+* ToDo: Die Präsentation erstellen und die nötigen Punkte dafür erledigen.
+* Das nächste Treffen wurde Dienstag, den 13.05.2025, festgelegt.
