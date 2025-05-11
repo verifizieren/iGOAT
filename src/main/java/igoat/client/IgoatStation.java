@@ -48,9 +48,9 @@ public class IgoatStation extends Rectangle {
 
     private String getActivatedImagePathById(int id) {
         switch (id) {
+            case 0: return "/sprites/iGOAT_station_activated.png";
             case 1: return "/sprites/iGOAT_station_activated.png";
-            case 2: return "/sprites/iGOAT_station_activated.png";
-            default: return "/sprites/terminal_activated.png";
+            default: return "/sprites/iGOAT_station_activated.png";
         }
     }
 
