@@ -298,9 +298,7 @@ public class LobbyGUI {
         toggleChatButton.setOnAction(e -> {
             isGlobalChat = !isGlobalChat;
             toggleChatButton.setText(isGlobalChat ? lang.get("lobby.switchGlobal") : lang.get("lobby.switchLobby"));
-            chatModeLabel.setText(isGlobalChat ? lang.get("lobby.globalChat") : lang.get("lobby.lobbyChat"));
             playerListLabel.setText(isGlobalChat ? lang.get("lobby.playerLabelGlobal") : lang.get("lobby.playerLabelLobby"));
-            appendToMessageArea("Now chatting in " + chatModeLabel.getText());
             if (serverHandler != null && serverHandler.isConnected()) {
                 serverHandler.sendMessage(isGlobalChat ? "getplayers:" : "getlobbyplayers:");
             }
@@ -949,7 +947,7 @@ public class LobbyGUI {
      */
     private void updateChatUIForMode() {
         Platform.runLater(() -> {
-            String modeName = isGlobalChat ? lang.get("lobby.lobbyChat") : lang.get("lobby.globalChat");
+            String modeName = isGlobalChat ? lang.get("lobby.globalChat") : lang.get("lobby.lobbyChat");
             String toggleButtonText = isGlobalChat ? lang.get("lobby.switchLobby") : lang.get("lobby.switchGlobal");
             String playerListText = isGlobalChat ? lang.get("lobby.playerLabelGlobal") : lang.get("lobby.playerLabelLobby");
 
