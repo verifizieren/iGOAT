@@ -172,18 +172,14 @@ public class Main {
                         logger.info("Using username: {}", username);
 
                         String finalUsername = username;
-                        Platform.startup(() -> {
-                            try {
-                                Stage stage = new Stage();
-                                MainMenuGUI mainMenu = new MainMenuGUI();
-                                mainMenu.start(stage);
-                                mainMenu.join(host, port, finalUsername);
-
-                            } catch (Exception e) {
-                                logger.error("Couldn't start client: ", e);
-                                System.exit(1);
-                            }
-                        });
+                        try {
+                            Platform.startup(() -> {});
+                            SplashScreen.configure(host, port, finalUsername);
+                            Application.launch(SplashScreen.class, args);
+                        } catch (Exception e) {
+                            logger.error("Error launching GUI", e);
+                            System.exit(1);
+                        }
                     } catch (NumberFormatException e) {
                         logger.error("Invalid port number", e);
                         System.exit(1);

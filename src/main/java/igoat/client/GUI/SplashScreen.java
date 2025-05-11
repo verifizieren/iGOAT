@@ -18,7 +18,18 @@ import javafx.util.Duration;
 public class SplashScreen extends Application {
     private static final double SPLASH_DURATION = 3.0;
     private static final String GIF_PATH = "/sprites/splash.gif";
-    
+
+    // parameters for console launch
+    private static String host = null;
+    private static int port = 0;
+    private static String username = null;
+
+    public static void configure(String host, int port, String username) {
+        SplashScreen.host = host;
+        SplashScreen.port = port;
+        SplashScreen.username = username;
+    }
+
     @Override
     public void start(Stage primaryStage) {
         Stage splashStage = new Stage(StageStyle.UNDECORATED);
@@ -56,6 +67,9 @@ public class SplashScreen extends Application {
                     try {
                         MainMenuGUI mainMenu = new MainMenuGUI();
                         mainMenu.start(mainStage);
+                        if (SplashScreen.host != null) {
+                            mainMenu.join(host, port, username);
+                        }
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
