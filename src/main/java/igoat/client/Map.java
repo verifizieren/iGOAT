@@ -278,7 +278,7 @@ public class Map {
             Rectangle windowVisual = new Rectangle(x, y, width, height);
 
             Image windowImage = new Image(imagePath);
-            ImagePattern imagePattern = new ImagePattern(windowImage, x, y, 42, 60,false);
+            ImagePattern imagePattern = new ImagePattern(windowImage, x, y, 40, 56,false);
             windowVisual.setFill(imagePattern);
 
             visualWalls.add(windowVisual);
