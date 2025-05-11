@@ -66,7 +66,8 @@ public class SettingsWindow {
 
     public static final Map<String, Locale> AVAILABLE_LANGUAGES = Map.of(
         "English", Locale.ENGLISH,
-        "Deutsch", Locale.GERMAN
+        "Deutsch", Locale.GERMAN,
+        "Português", new Locale("pt", "BR")
     );
 
     private boolean isControllerSupportAvailable = false;

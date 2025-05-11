@@ -748,7 +748,7 @@ public class LobbyGUI {
                     }
                     break;
                 case "game_started":
-                    appendToMessageArea("Game started!");
+                    appendToMessageArea(lang.get("lobby.gameStarted"));
                     Platform.runLater(() -> {
                         if (currentLobbyCode == null) {
                             appendToMessageArea(lang.get("lobby.startError"));
