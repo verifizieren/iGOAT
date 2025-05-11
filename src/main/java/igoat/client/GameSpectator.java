@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import javafx.animation.AnimationTimer;
@@ -50,6 +51,7 @@ public class GameSpectator extends Application {
     private static final double CAMERA_ZOOM = 3;
     private static final double VISION_RADIUS = 1000000000;
     private final String style = getClass().getResource("/CSS/UI.css").toExternalForm();
+    private ResourceBundle translations;
 
     private Pane gamePane;
     private Pane uiOverlay;
@@ -121,6 +123,7 @@ public class GameSpectator extends Application {
      */
     @Override
     public void start(Stage primaryStage) {
+        translations = ResourceBundle.getBundle("lang.text");
         stage = primaryStage;
         stage.getIcons().add(MainMenuGUI.icon);
         stage.setOnCloseRequest(event -> exit());
@@ -211,7 +214,7 @@ public class GameSpectator extends Application {
         camera = new Camera(gamePane, primaryStage.getWidth(), primaryStage.getHeight(), CAMERA_ZOOM, false);
         Scene scene = new Scene(container);
         scene.setFill(Color.BLACK);
-        String windowTitle = "iGoat Spectator - Lobby " + lobbyCode;
+        String windowTitle = String.format(translations.getString("spectator.title"), lobbyCode);
         primaryStage.setTitle(windowTitle);
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -284,7 +287,7 @@ public class GameSpectator extends Application {
         spectatorInfoBar.getChildren().clear();
         Player spectated = spectatingPlayer.getCurrentValue();
         if (otherPlayers.isEmpty() || spectated == null) {
-            Label info = new Label("No players to spectate.");
+            Label info = new Label(translations.getString("spectator.noPlayers"));
             info.setTextFill(Color.WHITE);
             info.setFont(Font.font("Jersey 10", FontWeight.BOLD, 18));
             info.setStyle("-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: white !important;");
@@ -294,12 +297,12 @@ public class GameSpectator extends Application {
             return;
         }
         String name = spectated.getUsername();
-        String role = spectated.getRole() != null ? spectated.getRole().name() : "Unknown";
-        Label info = new Label("Spectating: " + name + " (" + role + ")");
+        String role = spectated.getRole() != null ? spectated.getRole().name() : translations.getString("spectator.unknown");
+        Label info = new Label(String.format(translations.getString("spectator.spectating"), name, role));
         info.setTextFill(Color.WHITE);
         info.setFont(Font.font("Jersey 10", FontWeight.BOLD, 18));
         info.setStyle("-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: white !important;");
-        Label hint = new Label("←/→ or A/D/TAB to switch player");
+        Label hint = new Label(translations.getString("spectator.switchHint"));
         hint.setTextFill(Color.LIGHTGRAY);
         hint.setFont(Font.font("Jersey 10", 14));
         hint.setStyle("-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: #cccccc !important;");
@@ -335,15 +338,15 @@ public class GameSpectator extends Application {
     private void updatePlayerInfoBox(Player spectated) {
         playerInfoBox.getChildren().clear();
         if (spectated == null) return;
-        Label name = new Label("Name: " + spectated.getUsername());
+        Label name = new Label(String.format(translations.getString("spectator.name"), spectated.getUsername()));
         name.setFont(Font.font("Jersey 10", FontWeight.BOLD, 18));
         name.setStyle("-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: white !important;");
-        String roleStr = spectated.getRole() != null ? spectated.getRole().name() : "Unknown";
-        Label role = new Label("Role: " + roleStr);
+        String roleStr = spectated.getRole() != null ? spectated.getRole().name() : translations.getString("spectator.unknown");
+        Label role = new Label(String.format(translations.getString("spectator.role"), roleStr));
         role.setFont(Font.font("Jersey 10", FontWeight.BOLD, 16));
         role.setStyle("-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: #ffffcc !important;");
-        String statusStr = spectated.isDown() ? "Caught" : "Active";
-        Label status = new Label("Status: " + statusStr);
+        String statusStr = spectated.isDown() ? translations.getString("spectator.caught") : translations.getString("spectator.active");
+        Label status = new Label(String.format(translations.getString("spectator.status"), statusStr));
         status.setFont(Font.font("Jersey 10", FontWeight.BOLD, 16));
         status.setStyle(spectated.isDown() ? "-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: #ff4444 !important;" : "-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: #00ff00 !important;");
         playerInfoBox.getChildren().addAll(name, role, status);
@@ -588,20 +591,20 @@ public class GameSpectator extends Application {
      */
     private void showWinLossScreen(boolean guardWon) {
         Platform.runLater(() -> {
-            Text title = new Text("Game Over");
+            Text title = new Text(translations.getString("spectator.gameOver"));
             title.setFont(Font.font("Jersey 10", 40));
             title.setFill(Color.BLUE);
             GridPane grid = new GridPane();
             grid.setAlignment(Pos.CENTER);
             grid.setHgap(20);
             grid.setVgap(10);
-            Label headerName = new Label("Name");
+            Label headerName = new Label(translations.getString("hs.player"));
             headerName.setFont(Font.font("Jersey 10", FontWeight.BOLD, 14));
             headerName.setStyle("-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
-            Label headerRole = new Label("Role");
+            Label headerRole = new Label(translations.getString("hs.role"));
             headerRole.setFont(Font.font("Jersey 10", FontWeight.BOLD, 14));
             headerRole.setStyle("-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
-            Label headerResult = new Label("Result");
+            Label headerResult = new Label(translations.getString("hs.outcome"));
             headerResult.setFont(Font.font("Jersey 10", FontWeight.BOLD, 14));
             headerResult.setStyle("-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
             grid.add(headerName, 0, 0);
@@ -615,7 +618,7 @@ public class GameSpectator extends Application {
                 boolean isWinner = (guardWon && p.getRole() == Role.GUARD) || (!guardWon && p.getRole() != Role.GUARD);
                 Label nameLabel = new Label(p.getUsername());
                 Label roleLabel = new Label(p.getRole().name());
-                Label resultLabel = new Label(isWinner ? "Won" : "Lost");
+                Label resultLabel = new Label(isWinner ? translations.getString("hs.won") : translations.getString("hs.lost"));
                 String rowStyle = isWinner
                     ? "-fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-padding: 5;"
                     : "-fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-padding: 5;";
@@ -626,7 +629,7 @@ public class GameSpectator extends Application {
                 grid.add(roleLabel, 1, i + 1);
                 grid.add(resultLabel, 2, i + 1);
             }
-            SoundButton exitButton = new SoundButton("Exit Spectator");
+            SoundButton exitButton = new SoundButton(translations.getString("spectator.exitSpectator"));
             exitButton.setOnAction(e -> returnToLobby());
             VBox layout = new VBox(20, title, grid, exitButton);
             layout.setAlignment(Pos.CENTER);
