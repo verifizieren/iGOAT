@@ -67,7 +67,6 @@ public class ManualWindow {
         Scene scene = new Scene(layout, 600, 400);
         try {
             scene.getStylesheets().add(getClass().getResource("/CSS/UI.css").toExternalForm());
-            scene.getStylesheets().add(getClass().getResource("/CSS/LobbyBackground.css").toExternalForm());   // Background
         } catch (Exception e) {
             logger.warn("Stylesheet couldn't load.", e);
         }
