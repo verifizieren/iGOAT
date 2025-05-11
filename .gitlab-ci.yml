@@ -24,11 +24,6 @@ build:
   stage: build
   script:
     - ./gradlew --no-daemon --build-cache build-cs108
-  artifacts:
-    paths:
-      - build/libs/*.jar
-      - build/docs/javadoc/
-    expire_in: 1 week
 
 test:
   stage: test
@@ -40,6 +35,7 @@ test:
       junit: build/test-results/test/**/*.xml
     paths:
       - build/reports/tests/
+    expire_in: 2 days
 
 deploy:
   stage: deploy
