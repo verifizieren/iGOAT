@@ -1,1 +1,0 @@
-The guard must catch all the goats using the action button to win, or prevent the real goat from escaping within the time limit. The lab is dark, so the guard has to navigate using a flashlight.

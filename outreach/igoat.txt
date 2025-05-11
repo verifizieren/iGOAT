@@ -1,1 +1,0 @@
-The iGoat must activate terminals using the action button to open the exits from the lab or to help the real goat escape if it gets caught by the guard.

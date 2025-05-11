@@ -2,19 +2,36 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="iGOAT - A retro-style prison escape game where goats and robots must outsmart the security guard!">
   <title>iGOAT - The Prison Lab Game</title>
-  <link rel="stylesheet" href="main.css">
-  <link rel="preload" href="Jersey10-Regular.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="index.css">
+  <link rel="preload" href="assets/Jersey10-Regular.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="icon" href="assets/game_assets/igoat_icon.png" type="image/png">
 </head>
 <body>
   <div class="pixel-bg"></div>
   <header class="pixel-header">
-    <img src="logo.png" alt="iGOAT Logo" class="logo">
+    <img src="assets/goatinduslogo.png" alt="iGOAT Logo" class="logo">
     <h1>iGOAT</h1>
-    <p class="subtitle">Retro Prison Goat Lab Multiplayer Game</p>
+    <p class="subtitle">Retro Goat Lab Multiplayer Game</p>
   </header>
   <div class="download-btn-wrapper">
-    <a href="https://google.com" class="pixel-download-btn">Download Game</a>
+    <div class="download-options">
+      <a href="assets/downloads/iGOAT-apple-silicon.dmg" class="pixel-download-btn">
+        <img src="assets/icons/apple-icon.png" alt="Apple Logo" class="platform-icon">
+        Download for Apple Silicon
+      </a>
+      <a href="assets/downloads/iGOAT-windows.exe" class="pixel-download-btn">
+        <img src="assets/icons/windows-icon.png" alt="Windows Logo" class="platform-icon">
+        Download for Windows
+      </a>
+      <a href="assets/downloads/iGOAT-linux.AppImage" class="pixel-download-btn">
+        <img src="assets/icons/linux-icon.png" alt="Linux Logo" class="platform-icon">
+        Download for Linux
+      </a>
+    </div>
+    <p class="version-info">Version 1.0.0</p>
   </div>
   <main class="pixel-main">
     <section class="game-info">
@@ -22,93 +39,84 @@
       <p><b>Year:</b> 2025</p>
       <p><b>Developers:</b> Jonas Flückiger, Max Mendes, Nicolas Berger, Marvin George</p>
       <p><b>Genre:</b> 2D Top-Down, Online Co-op, PvP, Hide & Seek</p>
-      <p><b>Setting:</b> A dark lab where a goat and its robot friends must escape while a security guard hunts them down!</p>
+      <p><b>Setting:</b> A dark laboratory where a goat and its robot companions must escape while evading a vigilant security guard!</p>
     </section>
     <section class="game-concept">
-      <h2>Concept</h2>
-      <p>Inspired by classic cops-and-robbers, iGOAT is a tense escape game. The goat and at least two robot goats break out of their cage after a power outage. The security guard must catch them before the real goat escapes. Robot goats activate terminals to open the exit. Only the real goat can jump through windows. Robot goats can be revived. The lab is dark— the guard sees only with a flashlight. Time is ticking!</p>
+      <h2>Game Overview</h2>
+      <p>In this thrilling escape game, a goat and at least two robot goats (iGoats) find themselves breaking free from their containment after an unexpected power outage. While the security guard patrols with only a flashlight to illuminate the darkness, players must work together strategically:</p>
+      <ul>
+        <li>The real goat must escape before time runs out</li>
+        <li>Robot goats need to activate terminals to open the exit</li>
+        <li>Only the real goat can jump through windows</li>
+        <li>Robot goats can be revived by the real goat</li>
+        <li>The guard must rely on their flashlight in the dark lab</li>
+      </ul>
     </section>
     <section class="roles">
-      <h2>Roles</h2>
+      <h2>Characters</h2>
       <div class="roles-flex">
         <div class="role">
-          <img src="goat_idle.png" alt="Goat" class="pixel-icon">
-          <h3>Goat</h3>
-          <p>Escape within the time limit! Only the goat can jump through windows and rescue robot goats.</p>
+          <img src="assets/game_assets/goat_idle.png" alt="Goat Character" class="pixel-icon">
+          <h3>The Goat</h3>
+          <p>The star of the show! Only you can jump through windows and rescue your robot friends. Your mission: escape the lab before time runs out!</p>
         </div>
         <div class="role">
-          <img src="igoat_icon.png" alt="iGoat" class="pixel-icon">
-          <h3>iGoat (Robot Goat)</h3>
-          <p>Activate terminals to open the exit or help free the goat if it's caught.</p>
+          <img src="assets/game_assets/igoat_icon.png" alt="iGoat Robot" class="pixel-icon">
+          <h3>iGoat (Robot)</h3>
+          <p>A technological marvel! Work with other robots to activate terminals and create diversions. Help the real goat escape, even if it means sacrificing yourself!</p>
         </div>
         <div class="role">
-          <img src="guard.png" alt="Guard" class="pixel-icon">
+          <img src="assets/game_assets/guard_idle.png" alt="Security Guard" class="pixel-icon">
           <h3>Security Guard</h3>
-          <p>Catch all goats or prevent the real goat from escaping. Sees only with a flashlight in the dark lab.</p>
+          <p>Armed with just a flashlight, you must navigate the dark lab to catch the escapees. Can you tell which goat is real and which are robots?</p>
         </div>
       </div>
     </section>
     <section class="media">
-      <h2>Trailer &amp; Screenshots</h2>
+      <h2>Gameplay Preview</h2>
       <div class="media-trailer">
-        <video controls width="380" class="pixel-video">
-          <source src="video.mp4" type="video/mp4">
-          Sorry, your browser doesn't support embedded videos.
+        <video controls width="100%" class="pixel-video">
+          <source src="assets/videos/trailer.mp4" type="video/mp4">
+          Your browser doesn't support embedded videos.
         </video>
       </div>
       <div class="media-screenshots">
-        <img src="screenshot.png" alt="Screenshot 1" class="pixel-screenshot">
-        <img src="screenshot.png" alt="Screenshot 2 (placeholder)" class="pixel-screenshot">
-        <img src="screenshot.png" alt="Screenshot 3 (placeholder)" class="pixel-screenshot">
-        <img src="screenshot.png" alt="Screenshot 4 (placeholder)" class="pixel-screenshot">
+        <img src="assets/screenshots/group_ingamer.png" alt="Group of players in game - Multiplayer view" class="pixel-screenshot">
+        <img src="assets/screenshots/guard_looking_at_goat.png" alt="Guard spotting a goat with flashlight" class="pixel-screenshot">
+        <img src="assets/screenshots/igoat_looking_at_goat_in_window.png" alt="iGoat watching real goat escape through window" class="pixel-screenshot">
+        <img src="assets/screenshots/guard_looking_at_catched_igoat.png" alt="Guard capturing an iGoat" class="pixel-screenshot">
+        <img src="assets/screenshots/catched_goat_view_in_prison.png" alt="Captured goat's view from prison" class="pixel-screenshot">
       </div>
     </section>
     <section class="controls">
-      <h2>Controls</h2>
+      <h2>Game Controls</h2>
       <div class="controls-flex">
         <div>
           <h3>Keyboard</h3>
           <ul>
-            <li><b>Move Up:</b> W</li>
-            <li><b>Move Down:</b> S</li>
-            <li><b>Move Left:</b> A</li>
-            <li><b>Move Right:</b> D</li>
-            <li><b>Interact:</b> E</li>
-            <li><b>Chat:</b> ENTER</li>
-            <li><b>Spectator Mode:</b> TAB (cycle), SPACE (exit)</li>
-            <li><b>Settings:</b> ESCAPE</li>
-          </ul>
-        </div>
-        <div>
-          <h3>Controller</h3>
-          <ul>
-            <li><b>Move Up:</b> DPad Up</li>
-            <li><b>Move Down:</b> DPad Down</li>
-            <li><b>Move Left:</b> DPad Left</li>
-            <li><b>Move Right:</b> DPad Right</li>
-            <li><b>Interact:</b> Button A</li>
-            <li><b>Chat:</b> Button Y</li>
-            <li><b>Settings:</b> Start</li>
+            <li><b>WASD:</b> Movement</li>
+            <li><b>E:</b> Interact</li>
+            <li><b>ENTER:</b> Chat</li>
+            <li><b>TAB:</b> Cycle Spectator</li>
+            <li><b>SPACE:</b> Exit Spectator</li>
+            <li><b>ESC:</b> Settings</li>
           </ul>
         </div>
       </div>
     </section>
     <section class="manual">
-      <h2>How to Play</h2>
+      <h2>Quick Guide</h2>
       <ul>
-        <li><b>Goat:</b> Escape and jump through windows. Can rescue iGoats.</li>
-        <li><b>iGoat:</b> Activate terminals to open the exit or free the goat.</li>
-        <li><b>Guard:</b> Catch all goats or stop the real goat from escaping.</li>
-        <li><b>Terminals:</b> Three random terminals must be activated to open the exit.</li>
-        <li><b>Exits:</b> After activating the terminals, the goat can escape through the exit.</li>
-        <li><b>iGoat Station:</b> The goat can revive iGoats here.</li>
-        <li><b>Windows:</b> Only the goat can jump through windows.</li>
+        <li><b>For Goats:</b> Find and activate three terminals to open the exit. Use windows for quick escapes!</li>
+        <li><b>For iGoats:</b> Protect the real goat and create distractions. You can be revived if caught!</li>
+        <li><b>For Guards:</b> Use your flashlight wisely - the real goat can't hide forever!</li>
+        <li><b>Winning:</b> Goats win if the real goat escapes. Guard wins by catching the real goat or preventing escape!</li>
       </ul>
-      <p>For more details, see the <a href="Spielanleitung.pdf" target="_blank">manual (PDF)</a></p>
+      <p>Need more details? Check out our <a href="assets/files/Spielanleitung.pdf" target="_blank">complete game manual (PDF)</a></p>
     </section>
   </main>
   <footer class="pixel-footer">
-    <p>&copy; 2025 Jonas Flückiger, Max Mendes, Nicolas Berger, Marvin George</p>
+    <p>&copy; 2025 Jonas Flückiger, Max Mendes, Nicolas Berger, Marvin George | University of Basel</p>
   </footer>
 </body>
 </html>

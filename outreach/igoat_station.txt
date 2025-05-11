@@ -1,1 +1,0 @@
-The iGoat loading station must be activated by the goat if an iGoat gets caught by the guard. Each station can only be activated once.
