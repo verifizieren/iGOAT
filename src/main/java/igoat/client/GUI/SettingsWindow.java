@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Properties;
+import java.nio.file.StandardCopyOption;
 
 /**
  * Singleton class for the settings window
@@ -39,6 +40,7 @@ public class SettingsWindow {
 
     private final Popup popup = new Popup();
     private Slider volumeSlider;
+    private Slider soundtrackSlider;
     private ChoiceBox<String> windowModeChoice;
     private ChoiceBox<String> languageChoice = new ChoiceBox<>();
     private TabPane tabPane;
@@ -48,6 +50,7 @@ public class SettingsWindow {
 
     private Stage gameStage;
     private double volume = SoundManager.getInstance().getVolume();
+    private double soundtrackVolume = SoundManager.getInstance().getSoundtrackVolume();
     private boolean fullscreen = false;
     
     private final SortedMap<String, KeyCode> keyBindings;
@@ -90,7 +93,21 @@ public class SettingsWindow {
         volumeSlider.setShowTickMarks(true);
         volumeSlider.valueChangingProperty().addListener((obs, wasChanging, isChanging) -> {
             if (!isChanging) {
-                SoundManager.getInstance().setVolume(volumeSlider.getValue() / 100.0);
+                volume = volumeSlider.getValue() / 100.0;
+                SoundManager.getInstance().setVolume(volume);
+                saveSettings();
+            }
+        });
+        
+        soundtrackSlider = new Slider(0, 100, soundtrackVolume * 100.0);
+        soundtrackSlider.getStylesheets().add(sliderStyle);
+        soundtrackSlider.setShowTickLabels(true);
+        soundtrackSlider.setShowTickMarks(true);
+        soundtrackSlider.valueChangingProperty().addListener((obs, wasChanging, isChanging) -> {
+            if (!isChanging) {
+                soundtrackVolume = soundtrackSlider.getValue() / 100.0;
+                SoundManager.getInstance().setSoundtrackVolume(soundtrackVolume);
+                saveSettings();
             }
         });
         
@@ -159,6 +176,8 @@ public class SettingsWindow {
         // Volume Control
         Label volumeLabel = new Label(lang.get("settings.volume") +":");
         
+        Label soundtrackLabel = new Label(lang.get("settings.soundtrack") + ":");
+        
         // Window mode
         Label windowModeLabel = new Label(lang.get("settings.winMode") + ":");
         windowModeChoice = new ChoiceBox<>();
@@ -171,10 +190,12 @@ public class SettingsWindow {
 
         pane.add(volumeLabel, 0, 0);
         pane.add(volumeSlider, 1, 0);
-        pane.add(windowModeLabel, 0, 1);
-        pane.add(windowModeChoice, 1, 1);
-        pane.add(languageLabel, 0, 2);
-        pane.add(languageChoice, 1, 2);
+        pane.add(soundtrackLabel, 0, 1);
+        pane.add(soundtrackSlider, 1, 1);
+        pane.add(windowModeLabel, 0, 2);
+        pane.add(windowModeChoice, 1, 2);
+        pane.add(languageLabel, 0, 3);
+        pane.add(languageChoice, 1, 3);
         
         return pane;
     }
@@ -284,6 +305,8 @@ public class SettingsWindow {
                 }
                 
                 volume = Double.parseDouble(properties.getProperty("volume", String.valueOf(volume)));
+                soundtrackVolume = Double.parseDouble(properties.getProperty("soundtrackVolume", "0.2"));
+                SoundManager.getInstance().setSoundtrackVolume(soundtrackVolume);
                 fullscreen = Boolean.parseBoolean(properties.getProperty("fullscreen", String.valueOf(fullscreen)));
                 
                 logger.info("Settings loaded from " + CONFIG_FILENAME);
@@ -303,8 +326,8 @@ public class SettingsWindow {
         Properties props = new Properties();
         
         props.setProperty("volume", String.valueOf(volume));
+        props.setProperty("soundtrackVolume", String.valueOf(soundtrackVolume));
         props.setProperty("fullscreen", String.valueOf(fullscreen));
-
         props.setProperty("language", languageChoice.getValue() == null ? "English" : languageChoice.getValue());
         
         for (Map.Entry<String, KeyCode> entry : keyBindings.entrySet()) {
@@ -317,12 +340,42 @@ public class SettingsWindow {
                 Files.createDirectories(configPath.getParent());
             }
             
-            try (OutputStream out = new FileOutputStream(configPath.toFile())) {
+            if (Files.exists(configPath)) {
+                Path backupPath = Paths.get(configPath.toString() + ".backup");
+                try {
+                    Files.copy(configPath, backupPath, StandardCopyOption.REPLACE_EXISTING);
+                    logger.info("Created backup of settings file at " + backupPath);
+                } catch (IOException e) {
+                    logger.warn("Failed to create backup of settings file", e);
+                }
+            }
+            
+            try (FileOutputStream out = new FileOutputStream(configPath.toFile())) {
                 props.store(out, "iGoat Game Settings");
-                logger.info("Settings saved to " + configPath);
+                logger.info("Settings successfully saved to " + configPath);
+                
+                Properties verifyProps = new Properties();
+                try (FileInputStream in = new FileInputStream(configPath.toFile())) {
+                    verifyProps.load(in);
+                    if (!verifyProps.getProperty("soundtrackVolume").equals(String.valueOf(soundtrackVolume))) {
+                        logger.error("Settings verification failed - soundtrackVolume mismatch");
+                    }
+                    if (!verifyProps.getProperty("volume").equals(String.valueOf(volume))) {
+                        logger.error("Settings verification failed - volume mismatch");
+                    }
+                }
             }
         } catch (IOException e) {
-            logger.error("Failed to save settings", e);
+            logger.error("Failed to save settings to " + configPath, e);
+            try {
+                Path tempPath = Paths.get(System.getProperty("java.io.tmpdir"), "igoat_settings.properties");
+                try (OutputStream out = new FileOutputStream(tempPath.toFile())) {
+                    props.store(out, "iGoat Game Settings (Temporary)");
+                    logger.warn("Settings saved to temporary location: " + tempPath);
+                }
+            } catch (IOException e2) {
+                logger.error("Failed to save settings to temporary location", e2);
+            }
         }
     }
     
@@ -358,6 +411,7 @@ public class SettingsWindow {
     public void open(Stage parentStage) {
         loadSettings();
         volumeSlider.setValue(volume * 100.0);
+        soundtrackSlider.setValue(soundtrackVolume * 100.0);
         windowModeChoice.setValue(fullscreen ? lang.get("settings.fullscreen") : lang.get("settings.windowed"));
         keyboardScrollPane = new ScrollPane(createKeyboardBindingsPane());
         keyboardTab.setContent(keyboardScrollPane);
@@ -388,9 +442,21 @@ public class SettingsWindow {
 
     private void resetToDefaults() {
         keyBindings.clear();
-        keyBindings.putAll(DEFAULT_KEY_BINDINGS);;
+        keyBindings.putAll(DEFAULT_KEY_BINDINGS);
         volume = SoundManager.getInstance().getVolume();
+        soundtrackVolume = 0.2;
+        SoundManager.getInstance().setSoundtrackVolume(soundtrackVolume);
         fullscreen = false;
+        saveSettings();
+    }
+
+    public double getSoundtrackVolume() {
+        return soundtrackVolume;
+    }
+
+    public void setSoundtrackVolume(double volume) {
+        this.soundtrackVolume = volume;
+        SoundManager.getInstance().setSoundtrackVolume(volume);
         saveSettings();
     }
 }

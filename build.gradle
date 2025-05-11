@@ -6,7 +6,7 @@ plugins {
 
 javafx {
     version = "21"
-    modules = ['javafx.controls', 'javafx.fxml', 'javafx.base']
+    modules = ['javafx.controls', 'javafx.fxml', 'javafx.base', 'javafx.media']
 }
 
 javadoc {
@@ -43,6 +43,7 @@ dependencies {
     implementation 'org.openjfx:javafx-fxml:21'
     implementation 'org.openjfx:javafx-base:21'
     implementation 'org.openjfx:javafx-graphics:21'
+    implementation 'org.openjfx:javafx-media:21'
     implementation 'io.github.typhon0:AnimateFX:1.2.4'
 
     implementation 'com.google.code.gson:gson:2.10.1'

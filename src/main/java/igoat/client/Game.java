@@ -212,6 +212,8 @@ public class Game extends Application {
                 logger.error("Cannot initialize - confirmed nickname is null");
             }
         });
+
+        sound.playSoundtrack();
     }
 
     /**
@@ -224,156 +226,158 @@ public class Game extends Application {
      */
     @Override
     public void start(Stage primaryStage) {
-        stage = primaryStage;
-        stage.getIcons().add(MainMenuGUI.icon);
-        stage.setOnCloseRequest(event -> exit());
-        stage.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
+        try {
+            stage = primaryStage;
+            stage.getIcons().add(MainMenuGUI.icon);
+            stage.setOnCloseRequest(event -> exit());
+            stage.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
 
-        SettingsWindow settings = SettingsWindow.getInstance();
-        stage.setFullScreen(false);
-        settings.setGameStage(stage);
+            SettingsWindow settings = SettingsWindow.getInstance();
+            stage.setFullScreen(false);
+            settings.setGameStage(stage);
 
-        if (serverHandler == null || playerName == null || lobbyCode == null) {
-            showError(lang.get("game.initError"), lang.get("game.noConnectionError"));
-            returnToLobby();
-            return;
-        }
-
-        String confirmedNickname = serverHandler.getConfirmedNickname();
-        if (confirmedNickname == null) {
-            showError(lang.get("game.initError"), lang.get("game.noNameError"));
-            returnToLobby();
-            return;
-        }
-
-        // Request role assignment from server
-        serverHandler.sendMessage("ready:");
-
-        gameMap = new igoat.client.Map(false);
-        gamePane = new Pane();
-        gamePane.setMinSize(gameMap.getWidth(), gameMap.getHeight());
-        gamePane.setMaxSize(gameMap.getWidth(), gameMap.getHeight());
-        gamePane.setPrefSize(gameMap.getWidth(), gameMap.getHeight());
-        gamePane.setClip(new Rectangle(0, 0, gameMap.getWidth(), gameMap.getHeight()));
-
-        // background image
-        Sprite floor = new Sprite("sprites/floor_tile01.png");
-        gamePane.setBackground(floor.getBackground());
-
-        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-        double screenWidth = screenBounds.getWidth() * 0.8;
-        double screenHeight = screenBounds.getHeight() * 0.8;
-
-        double mapAspectRatio = (double)gameMap.getWidth() / gameMap.getHeight();
-
-        if (screenWidth / screenHeight > mapAspectRatio) {
-            windowHeight = screenHeight;
-            windowWidth = screenHeight * mapAspectRatio;
-        } else {
-            windowWidth = screenWidth;
-            windowHeight = screenWidth / mapAspectRatio;
-        }
-
-        stage.setWidth(windowWidth);
-        stage.setHeight(windowHeight);
-        stage.setFullScreenExitHint("");
-
-        Pane container = new Pane();
-        container.setStyle("-fx-background-color: black;");
-        container.getChildren().add(gamePane);
-
-        String style = getClass().getResource("/CSS/UI.css").toExternalForm();
-
-        uiOverlay = new Pane();
-        uiOverlay.getStylesheets().add(style);
-        uiOverlay.setMouseTransparent(true);
-        uiOverlay.prefWidthProperty().bind(stage.widthProperty());
-        uiOverlay.prefHeightProperty().bind(stage.heightProperty());
-        container.getChildren().add(uiOverlay);
-
-        timeText = new Text();
-        timeText.setX(10);
-        timeText.setY(20);
-        timeText.setFill(Color.WHITE);
-        timeText.setFont(new Font("Jersey 10", 25));
-        container.getChildren().add(timeText);
-
-        Scene scene = new Scene(container);
-        scene.setFill(Color.BLACK);
-        scene.setOnMouseMoved(event -> {
-            mouseX = event.getSceneX();
-            mouseY = event.getSceneY();
-            updateVisuals();
-        });
-
-        String windowTitle = "iGoat - " + lang.get("game.lobby") + " " + lobbyCode + " - " + lang.get("hs.player") + ": " + confirmedNickname;
-        primaryStage.setTitle(windowTitle);
-
-        primaryStage.setScene(scene);
-
-        primaryStage.show();
-
-        // create banners
-        terminalActivationBanner = Banner.terminalActivation(uiOverlay);
-        allTerminalsBanner = Banner.allTerminals(uiOverlay);
-        noActivationBanner = Banner.noActivation(uiOverlay);
-        reviveBanner = Banner.revive(uiOverlay);
-        caughtBanner = Banner.caught(uiOverlay);
-
-        for (Node wall : gameMap.getVisualWalls()) {
-            gamePane.getChildren().add(wall);
-        }
-
-        // decoration implementation
-        for (ImageView decor : gameMap.getDecorItems()) {
-            gamePane.getChildren().add(decor);
-        }
-
-        player = new Player(gamePane, initialX, initialY, confirmedNickname);
-
-        camera = new Camera(gamePane, primaryStage.getWidth(), primaryStage.getHeight(), CAMERA_ZOOM, true);
-
-        scene.widthProperty().addListener((obs, oldVal, newVal) -> {
-            camera.updateViewport(newVal.doubleValue(), scene.getHeight());
-            windowWidth = newVal.doubleValue();
-            updateVisuals();
-        });
-
-        scene.heightProperty().addListener((obs, oldVal, newVal) -> {
-            camera.updateViewport(scene.getWidth(), newVal.doubleValue());
-            windowHeight = newVal.doubleValue();
-            updateVisuals();
-        });
-
-        primaryStage.fullScreenProperty().addListener((obs, oldVal, newVal) -> {
-            Platform.runLater(() -> {
-                camera.updateViewport(scene.getWidth(), scene.getHeight());
-            });
-        });
-
-        activeKeys = new HashSet<>();
-
-        gamePane.setFocusTraversable(true);
-        gamePane.requestFocus();
-
-        lastUpdate = System.nanoTime();
-        AnimationTimer mainLoop = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                double deltaTime = (now - lastUpdate) / 1_000_000_000.0;
-                lastUpdate = now;
-                update(deltaTime);
-                if (serverHandler == null || !serverHandler.isConnected()) {
-                    logger.error("Connection was closed");
-                    exit();
-                    stop();
-                }
+            if (serverHandler == null || playerName == null || lobbyCode == null) {
+                showError(lang.get("game.initError"), lang.get("game.noConnectionError"));
+                returnToLobby();
+                return;
             }
-        };
-        mainLoop.start();
-        initializeChatUI();
-        timer.reset(0);
-        time = "0:0";
+
+            String confirmedNickname = serverHandler.getConfirmedNickname();
+            if (confirmedNickname == null) {
+                showError(lang.get("game.initError"), lang.get("game.noNameError"));
+                returnToLobby();
+                return;
+            }
+
+            serverHandler.sendMessage("ready:");
+
+            gameMap = new igoat.client.Map(false);
+            gamePane = new Pane();
+            gamePane.setMinSize(gameMap.getWidth(), gameMap.getHeight());
+            gamePane.setMaxSize(gameMap.getWidth(), gameMap.getHeight());
+            gamePane.setPrefSize(gameMap.getWidth(), gameMap.getHeight());
+            gamePane.setClip(new Rectangle(0, 0, gameMap.getWidth(), gameMap.getHeight()));
+
+            Sprite floor = new Sprite("sprites/floor_tile01.png");
+            gamePane.setBackground(floor.getBackground());
+
+            Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+            double screenWidth = screenBounds.getWidth() * 0.8;
+            double screenHeight = screenBounds.getHeight() * 0.8;
+
+            double mapAspectRatio = (double)gameMap.getWidth() / gameMap.getHeight();
+
+            if (screenWidth / screenHeight > mapAspectRatio) {
+                windowHeight = screenHeight;
+                windowWidth = screenHeight * mapAspectRatio;
+            } else {
+                windowWidth = screenWidth;
+                windowHeight = screenWidth / mapAspectRatio;
+            }
+
+            stage.setWidth(windowWidth);
+            stage.setHeight(windowHeight);
+            stage.setFullScreenExitHint("");
+
+            Pane container = new Pane();
+            container.setStyle("-fx-background-color: black;");
+            container.getChildren().add(gamePane);
+
+            String style = getClass().getResource("/CSS/UI.css").toExternalForm();
+
+            uiOverlay = new Pane();
+            uiOverlay.getStylesheets().add(style);
+            uiOverlay.setMouseTransparent(true);
+            uiOverlay.prefWidthProperty().bind(stage.widthProperty());
+            uiOverlay.prefHeightProperty().bind(stage.heightProperty());
+            container.getChildren().add(uiOverlay);
+
+            timeText = new Text();
+            timeText.setX(10);
+            timeText.setY(20);
+            timeText.setFill(Color.WHITE);
+            timeText.setFont(new Font("Jersey 10", 25));
+            container.getChildren().add(timeText);
+
+            Scene scene = new Scene(container);
+            scene.setFill(Color.BLACK);
+            scene.setOnMouseMoved(event -> {
+                mouseX = event.getSceneX();
+                mouseY = event.getSceneY();
+                updateVisuals();
+            });
+
+            String windowTitle = "iGoat - " + lang.get("game.lobby") + " " + lobbyCode + " - " + lang.get("hs.player") + ": " + confirmedNickname;
+            primaryStage.setTitle(windowTitle);
+
+            primaryStage.setScene(scene);
+
+            primaryStage.show();
+
+            // create banners
+            terminalActivationBanner = Banner.terminalActivation(uiOverlay);
+            allTerminalsBanner = Banner.allTerminals(uiOverlay);
+            noActivationBanner = Banner.noActivation(uiOverlay);
+            reviveBanner = Banner.revive(uiOverlay);
+            caughtBanner = Banner.caught(uiOverlay);
+
+            for (Node wall : gameMap.getVisualWalls()) {
+                gamePane.getChildren().add(wall);
+            }
+
+            // decoration implementation
+            for (ImageView decor : gameMap.getDecorItems()) {
+                gamePane.getChildren().add(decor);
+            }
+
+            player = new Player(gamePane, initialX, initialY, confirmedNickname);
+
+            camera = new Camera(gamePane, primaryStage.getWidth(), primaryStage.getHeight(), CAMERA_ZOOM, true);
+
+            scene.widthProperty().addListener((obs, oldVal, newVal) -> {
+                camera.updateViewport(newVal.doubleValue(), scene.getHeight());
+                windowWidth = newVal.doubleValue();
+                updateVisuals();
+            });
+
+            scene.heightProperty().addListener((obs, oldVal, newVal) -> {
+                camera.updateViewport(scene.getWidth(), newVal.doubleValue());
+                windowHeight = newVal.doubleValue();
+                updateVisuals();
+            });
+
+            primaryStage.fullScreenProperty().addListener((obs, oldVal, newVal) -> {
+                Platform.runLater(() -> {
+                    camera.updateViewport(scene.getWidth(), scene.getHeight());
+                });
+            });
+
+            activeKeys = new HashSet<>();
+
+            gamePane.setFocusTraversable(true);
+            gamePane.requestFocus();
+
+            lastUpdate = System.nanoTime();
+            AnimationTimer mainLoop = new AnimationTimer() {
+                @Override
+                public void handle(long now) {
+                    double deltaTime = (now - lastUpdate) / 1_000_000_000.0;
+                    lastUpdate = now;
+                    update(deltaTime);
+                    if (serverHandler == null || !serverHandler.isConnected()) {
+                        logger.error("Connection was closed");
+                        exit();
+                        stop();
+                    }
+                }
+            };
+            mainLoop.start();
+            initializeChatUI();
+            timer.reset(0);
+            time = "0:0";
+        } catch (Exception e) {
+            logger.error("Error starting game", e);
+        }
     }
 
     /**
@@ -382,6 +386,7 @@ public class Game extends Application {
 
     private void returnToLobby() {
         gameStarted = false;
+        sound.stopAll();
         stage.close();
         lobby.getStage().show();
         lobby.initializeServerCommunication();
@@ -392,6 +397,7 @@ public class Game extends Application {
      */
     private void exit() {
         gameStarted = false;
+        sound.stopAll();
         stage.close();
         lobby.exit();
     }
@@ -685,11 +691,6 @@ public class Game extends Application {
                 if (parts.length == 2) {
                     endGame(parts[1].equals("true"));
                 }
-            } else if (mode != null) {
-                String[] parsed = parseSenderAndContent.apply(prefixString, message);
-                String sender = parsed[0];
-                String content = parsed[1];
-                addChatMessage(sender, null, content, mode);
             } else {
                 logger.warn("Received message with unknown prefix or format: {}", message);
             }
@@ -751,6 +752,7 @@ public class Game extends Application {
      * @param result true if the guard has won, false otherwise
      */
     private void endGame(boolean result) {
+        sound.stopAll();
         time = "";
         showWinLossScreen(result);
     }
@@ -1682,5 +1684,17 @@ public class Game extends Application {
     public static void main(String[] args) {
         logger.warn("Warning: Launching Game directly via main() requires manual initialization setup.");
         launch(args);
+    }
+
+    @Override
+    public void stop() {
+                    if (serverHandler != null) {
+                serverHandler.close();
+        }
+        sound.stopAll();
+    }
+
+    public void updateSoundtrackVolume(double volume) {
+        sound.setSoundtrackVolume(volume);
     }
 } 

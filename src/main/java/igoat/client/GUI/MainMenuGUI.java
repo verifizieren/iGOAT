@@ -24,6 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import igoat.client.SoundManager;
+import igoat.client.GUI.SoundButton;
 
 /**
  * The main entry point for the iGoat client application. Displays the main menu that allows users to
@@ -212,6 +214,7 @@ public class MainMenuGUI extends Application {
                 LobbyGUI.setServerHandler(handler);
                 LobbyGUI lobby = new LobbyGUI(stage);
                 lobby.setUsername(username);
+                SoundManager.getInstance().stopAll();
                 lobby.show(new Stage());
                 stage.hide();
             } catch (Exception ex) {
@@ -230,6 +233,7 @@ public class MainMenuGUI extends Application {
         if (handler != null) {
             handler.close();
         }
+        SoundManager.getInstance().stopAll();
         Platform.exit();
     }
 

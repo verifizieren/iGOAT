@@ -55,6 +55,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.beans.property.SimpleStringProperty;
 import igoat.client.GameSpectator;
+import igoat.client.SoundManager;
 
 /**
  * Represents the GUI for the game lobby where players can chat and join games.
@@ -398,6 +399,7 @@ public class LobbyGUI {
             serverHandler.sendMessage("exit");
             serverHandler.close();
         }
+        SoundManager.getInstance().stopAll();
         stage.close();
         mainMenu.show();
     }
@@ -739,6 +741,7 @@ public class LobbyGUI {
                         readyButton.setDisable(true);
 
                         try {
+                            SoundManager.getInstance().stopAll();
                             Game game = new Game(this);
                             game.initialize(serverHandler, username, currentLobbyCode);
 
