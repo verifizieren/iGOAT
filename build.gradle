@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'application'
-    id 'org.openjfx.javafxplugin' version '0.0.13'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
 }
 
 javafx {
@@ -20,6 +20,10 @@ version '0.15-ALPHA'
 
 application {
     mainClass = 'igoat.Main'
+    applicationDefaultJvmArgs = [
+        '--add-opens=java.base/java.lang=ALL-UNNAMED',
+        '--add-opens=javafx.graphics/com.sun.glass.ui=ALL-UNNAMED'
+    ]
 }
 
 java {
@@ -119,4 +123,11 @@ task 'build-cs108' {
         println "JavaDoc: ${javadoc.destinationDir}"
         println "JAR: ${jar.archiveFile.get()}"
     }
+}
+
+run {
+    jvmArgs = [
+        '--add-opens=java.base/java.lang=ALL-UNNAMED',
+        '--add-opens=javafx.graphics/com.sun.glass.ui=ALL-UNNAMED'
+    ]
 }
