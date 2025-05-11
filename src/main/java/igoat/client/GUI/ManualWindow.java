@@ -1,5 +1,6 @@
 package igoat.client.GUI;
 
+import igoat.client.LanguageManager;
 import igoat.client.ScreenUtil;
 
 import javafx.geometry.Insets;
@@ -13,33 +14,29 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 /**
  * Singleton window for displaying the game manual, including character info and navigation.
  */
 public class ManualWindow {
-    private BorderPane layout;
     private static final Logger logger = LoggerFactory.getLogger(ManualWindow.class);
+    private static final LanguageManager lang = LanguageManager.getInstance();
+
+    private BorderPane layout;
     private static final ManualWindow instance = new ManualWindow();
 
     private final Stage stage = new Stage();
 
     private final List<CharacterInfo> characters = List.of(
-            new CharacterInfo("Goat", "/sprites/goat_idle.png", "/manual/goat.txt"),
-            new CharacterInfo("Guard", "/sprites/guard_idle.png", "/manual/guard.txt"),
-            new CharacterInfo("iGOAT", "/sprites/igoat_idle.png", "/manual/igoat.txt"),
-            new CharacterInfo("Terminal", "/sprites/terminal.png", "/manual/terminal.txt"),
-            new CharacterInfo("iGOAT-Station", "/sprites/igoat_station.png", "/manual/igoat_station.txt"),
-            new CharacterInfo("Exit", "/sprites/door.png", "/manual/exit.txt"),
-            new CharacterInfo("Window", "/sprites/window.png", "/manual/window.txt")
+            new CharacterInfo("Goat", "/sprites/goat_idle.png", "tutorial.goat"),
+            new CharacterInfo("Guard", "/sprites/guard_idle.png", "tutorial.guard"),
+            new CharacterInfo("iGOAT", "/sprites/igoat_idle.png", "tutorial.igoat"),
+            new CharacterInfo("Terminal", "/sprites/terminal.png", "tutorial.terminal"),
+            new CharacterInfo("iGOAT-Station", "/sprites/igoat_station.png", "tutorial.igoat_station"),
+            new CharacterInfo("Exit", "/sprites/door.png", "tutorial.exit"),
+            new CharacterInfo("Window", "/sprites/window.png", "tutorial.window")
     );
 
     private int currentIndex = 0;
@@ -127,7 +124,7 @@ stage.showAndWait();
         Label name = new Label(info.name);
         name.setStyle("-fx-font-size: 25px; -fx-font-weight: bold;");
 
-        Label description = new Label(info.loadDescription());
+        Label description = new Label(info.text);
         description.setWrapText(true);
         description.setStyle("-fx-font-size: 20px;");
 
@@ -138,21 +135,12 @@ stage.showAndWait();
     private static class CharacterInfo {
         String name;
         String imagePath;
-        String textFilePath;
+        String text;
 
-        CharacterInfo(String name, String imagePath, String textFilePath) {
+        CharacterInfo(String name, String imagePath, String text) {
             this.name = name;
             this.imagePath = imagePath;
-            this.textFilePath = textFilePath;
-        }
-
-        String loadDescription() {
-            try (InputStream is = getClass().getResourceAsStream(textFilePath);
-                 BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
-                return reader.lines().collect(Collectors.joining("\n"));
-            } catch (Exception e) {
-                return "Description could not be loaded.";
-            }
+            this.text = lang.get(text);
         }
     }
 }
