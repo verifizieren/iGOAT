@@ -2,6 +2,7 @@ package igoat;
 
 import igoat.client.GUI.MainMenuGUI;
 import igoat.client.GUI.SettingsWindow;
+import igoat.client.GUI.SplashScreen;
 import igoat.client.LanguageManager;
 import igoat.server.Server;
 import java.io.FileInputStream;
@@ -127,7 +128,7 @@ public class Main {
         if (args.length == 0) {
             try {
                 Platform.startup(() -> {});
-                Application.launch(MainMenuGUI.class, args);
+                Application.launch(SplashScreen.class, args);
             } catch (Exception e) {
                 logger.error("Error launching GUI", e);
                 System.exit(1);
