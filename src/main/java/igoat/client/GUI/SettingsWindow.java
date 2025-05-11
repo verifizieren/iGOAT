@@ -61,7 +61,10 @@ public class SettingsWindow {
         "English", Locale.ENGLISH,
         "Deutsch", Locale.GERMAN,
         "Português", new Locale("pt", "BR"),
-        "日本語", Locale.JAPANESE
+        "日本語", Locale.JAPANESE,
+        "Español", new Locale("es", "ES"),
+        "Italiano", Locale.ITALIAN,
+        "汉语", Locale.CHINESE
     );
 
     static {
