@@ -76,20 +76,37 @@ public class Main {
                         
                         try (InputStream in = jar.getInputStream(entry)) {
                             Files.copy(in, targetPath, StandardCopyOption.REPLACE_EXISTING);
+                            if (!osName.contains("windows")) {
+                                targetPath.toFile().setExecutable(true);
+                            }
                         }
+                        logger.info("Extracted native library: " + fileName);
                     }
                 }
             }
         }
 
-        System.setProperty("java.library.path", tempDir.toString());
-        System.setProperty("net.java.games.input.librarypath", tempDir.toString());
+        String libraryPath = tempDir.toString();
+        String existingPath = System.getProperty("java.library.path", "");
+        String newLibraryPath = libraryPath + File.pathSeparator + existingPath;
         
-        try {
-            Field field = ClassLoader.class.getDeclaredField("sys_paths");
-            field.setAccessible(true);
-            field.set(null, null);
-        } catch (Exception e) {
+        System.setProperty("java.library.path", newLibraryPath);
+        System.setProperty("net.java.games.input.librarypath", libraryPath);
+
+        if (osName.contains("windows")) {
+            File[] files = tempDir.toFile().listFiles((dir, name) -> 
+                name.startsWith("jinput") && name.endsWith(".dll"));
+            
+            if (files != null) {
+                for (File file : files) {
+                    try {
+                        System.load(file.getAbsolutePath());
+                        logger.info("Loaded native library: " + file.getName());
+                    } catch (Exception e) {
+                        logger.warn("Failed to load " + file.getName(), e);
+                    }
+                }
+            }
         }
     }
 

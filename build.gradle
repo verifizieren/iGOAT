@@ -77,6 +77,9 @@ task extractNatives {
                     include '*.so'
                     include '*.dylib'
                     include '*.jnilib'
+                    include 'jinput-dx8_64.dll'
+                    include 'jinput-raw_64.dll'
+                    include 'jinput-wintab.dll'
                 }
             }
         }
@@ -173,6 +176,9 @@ task fatJar(type: Jar) {
     into('natives-windows') {
         from "${buildDir}/natives"
         include '*.dll'
+        include 'jinput-dx8_64.dll'
+        include 'jinput-raw_64.dll'
+        include 'jinput-wintab.dll'
     }
     
     into('natives-linux') {
