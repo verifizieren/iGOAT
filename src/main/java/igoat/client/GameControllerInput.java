@@ -42,12 +42,28 @@ public class GameControllerInput {
     private static final String BUTTON_A = "button a";
 
     static {
-        String libraryPath = System.getProperty("java.library.path");
-        String jinputPath = System.getProperty("net.java.games.input.librarypath");
-        
-        System.out.println("JInput Native Library Paths:");
-        System.out.println("java.library.path: " + libraryPath);
-        System.out.println("jinput.librarypath: " + jinputPath);
+        try {
+            String os = System.getProperty("os.name").toLowerCase();
+            String arch = System.getProperty("os.arch").toLowerCase();
+            String libraryPath = System.getProperty("java.library.path");
+            String jinputPath = System.getProperty("net.java.games.input.librarypath");
+            
+            System.out.println("OS: " + os + ", Architecture: " + arch);
+            System.out.println("JInput Native Library Paths:");
+            System.out.println("java.library.path: " + libraryPath);
+            System.out.println("jinput.librarypath: " + jinputPath);
+
+            ControllerEnvironment.getDefaultEnvironment();
+            
+            Controller[] controllers = ControllerEnvironment.getDefaultEnvironment().getControllers();
+            System.out.println("Found " + controllers.length + " controllers");
+            for (Controller c : controllers) {
+                System.out.println("Controller: " + c.getName() + " (" + c.getType() + ")");
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading JInput native libraries: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     /**

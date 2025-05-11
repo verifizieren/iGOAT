@@ -81,21 +81,40 @@ task extractNatives {
                 }
             }
         }
+        println "Native libraries extracted to: ${nativesDir.absolutePath}"
+        nativesDir.listFiles().each { file ->
+            println "Found native file: ${file.name}"
+        }
     }
 }
 
 tasks.withType(JavaExec) {
     dependsOn extractNatives
-    systemProperty "java.library.path", file("${buildDir}/natives").absolutePath
-    systemProperty "net.java.games.input.librarypath", file("${buildDir}/natives").absolutePath
-    environment "DYLD_LIBRARY_PATH", file("${buildDir}/natives").absolutePath
+    
+    doFirst {
+        def nativesDir = file("${buildDir}/natives")
+        println "Setting native library path to: ${nativesDir.absolutePath}"
+        
+        systemProperty "java.library.path", nativesDir.absolutePath
+        systemProperty "net.java.games.input.librarypath", nativesDir.absolutePath
+        
+        if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+            environment "DYLD_LIBRARY_PATH", nativesDir.absolutePath
+        }
+    }
 }
 
 run {
+    dependsOn extractNatives
+    
     doFirst {
-        systemProperty "java.library.path", file("${buildDir}/natives").absolutePath
-        systemProperty "net.java.games.input.librarypath", file("${buildDir}/natives").absolutePath
-        environment "DYLD_LIBRARY_PATH", file("${buildDir}/natives").absolutePath
+        def nativesDir = file("${buildDir}/natives")
+        systemProperty "java.library.path", nativesDir.absolutePath
+        systemProperty "net.java.games.input.librarypath", nativesDir.absolutePath
+        
+        if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+            environment "DYLD_LIBRARY_PATH", nativesDir.absolutePath
+        }
     }
 }
 
