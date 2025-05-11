@@ -696,13 +696,16 @@ public class ClientHandler implements Runnable {
         }
 
         // send gamestate event log
+        int counter = 0;
         for (String event : currentLobby.getGameState().getEventLog()) {
             sendMessage(event);
+            counter++;
         }
         // send player status
         for (Player player : currentLobby.getPlayerList()) {
             if (player.isCaught()) {
                 sendMessage("catch:" + player.getNickname());
+                counter++;
             }
         }
         // send station status
@@ -710,10 +713,11 @@ public class ClientHandler implements Runnable {
         for (int i = 0; i < stations.length; i++) {
             if (stations[i]) {
                 sendMessage("activateStation:" + i);
+                counter++;
             }
         }
 
-        logger.info("sent event log");
+        logger.info("sent event log ({} items)", counter);
     }
     /**
      * Processes a chat message.

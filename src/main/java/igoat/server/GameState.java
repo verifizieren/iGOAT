@@ -76,7 +76,10 @@ public class GameState {
                 return false;
             }
         }
-        eventLog.add("door");
+        if (!eventLog.contains("door")) {
+            eventLog.add("door");
+        }
+
         return true;
     }
 
@@ -84,7 +87,9 @@ public class GameState {
      * Manually activate terminals for doors top open. For debugging / cheat code purposes
      */
     public void openDoors() {
-        eventLog.add("door");
+        if (!eventLog.contains("door")) {
+            eventLog.add("door");
+        }
         for (int id : ids) {
             terminals[id] = true;
         }
