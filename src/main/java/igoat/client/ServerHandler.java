@@ -8,8 +8,15 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +39,7 @@ public class ServerHandler {
 
     protected Thread messageReceiver;
     protected Thread updateReceiver;
+    protected Thread pingThread;
 
     boolean connected = false;
     final BlockingQueue<String> messageBuffer = new LinkedBlockingQueue<>();
@@ -40,9 +48,10 @@ public class ServerHandler {
 
     private final String host;
     private final int port;
-    private final int TIMEOUT = 3000;
+    private final int TIMEOUT = 5000;
 
     private final String username;
+    private long pingTimer;
 
     /**
      * Creates a new ServerHandler instance
@@ -157,8 +166,10 @@ public class ServerHandler {
 
                 messageReceiver = new Thread(this::receiveMSG);
                 updateReceiver = new Thread(this::receiveUpdate);
+                pingThread = new Thread(this::checkPing);
                 messageReceiver.start();
                 updateReceiver.start();
+                pingThread.start();
                 return;
             } catch (Exception e) {
                 logger.error("Failed to create UDP socket: ", e);
@@ -193,6 +204,15 @@ public class ServerHandler {
                 logger.error("Couldn't close updateReceiver", e);
             }
         }
+        // close ping thread
+        if (pingThread != null) {
+            try {
+                pingThread.join();
+            } catch (InterruptedException e) {
+                logger.error("Couldn't close ping Thread", e);
+            }
+        }
+
         // close msgSocket
         if (msgSocket != null) {
             try {
@@ -209,31 +229,57 @@ public class ServerHandler {
         }
     }
 
+    void checkPing() {
+        while (connected) {
+            if (System.currentTimeMillis() - pingTimer > TIMEOUT) {
+                logger.warn("Connection timed out");
+                messageBuffer.add("Connection timed out");
+                connected = false;
+                break;
+            } else {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    logger.error("Couldn't sleep", e);
+                }
+            }
+        }
+    }
+
     /**
      * Continuously checks for a received TCP message from the server and adds it to the message
      * buffer. If the message was a ping, it sends a response instead.
      */
     void receiveMSG() {
-        long pingTimer = System.currentTimeMillis();
-        String msg;
+        pingTimer = System.currentTimeMillis();
 
         while (connected) {
+            String msg = null;
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            Future<String> future = executor.submit(() -> msgReader.readLine());
+
             try {
-                msg = msgReader.readLine();
-                if (msg == null) {
-                    logger.warn("Server closed connection");
-                    connected = false;
-                    break;
-                }
-            } catch (IOException e) {
-                logger.error("Error reading from server", e);
+                msg = future.get(3, TimeUnit.SECONDS);
+            } catch (TimeoutException e) {
+                future.cancel(true);
+                logger.warn("Timeout reading from Server");
+            } catch (ExecutionException | InterruptedException e) {
+                logger.error("Error reading from Server", e);
+                logger.warn("Server closed connection");
+                connected = false;
+                break;
+            }
+            executor.shutdownNow();
+
+            if (msg == null) {
+                logger.warn("Server closed connection");
+                connected = false;
                 break;
             }
 
             if ("ping".equals(msg)) {
                 sendMessage("pong");
                 pingTimer = System.currentTimeMillis();
-                continue;
             } else if (msg.startsWith(NICKNAME_CONFIRM_PREFIX)) {
                 this.confirmedNickname = msg.substring(NICKNAME_CONFIRM_PREFIX.length());
                 logger.info("username {}", confirmedNickname);
@@ -242,12 +288,6 @@ public class ServerHandler {
                 messageBuffer.add(msg);
             } else if (!msg.isEmpty()) {
                 messageBuffer.add(msg);
-            }
-
-            if (System.currentTimeMillis() - pingTimer > TIMEOUT) {
-                logger.warn("Connection timed out");
-                messageBuffer.add("Connection timed out");
-                break;
             }
         }
         connected = false;
@@ -282,7 +322,7 @@ public class ServerHandler {
                         if (!receivedMsg.startsWith("udp_ack:")) {
                             lastUpdate = receivedMsg;
                         }
-                    } catch (java.net.SocketTimeoutException e) {
+                    } catch (SocketTimeoutException e) {
                     }
                 } else {
                     // Not supported for mocks

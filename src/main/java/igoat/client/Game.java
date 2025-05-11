@@ -365,8 +365,8 @@ public class Game extends Application {
                 update(deltaTime);
                 if (serverHandler == null || !serverHandler.isConnected()) {
                     logger.error("Connection was closed");
-                    stop();
                     exit();
+                    stop();
                 }
             }
         };
