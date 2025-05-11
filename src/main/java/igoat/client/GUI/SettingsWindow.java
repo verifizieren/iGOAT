@@ -188,6 +188,8 @@ public class SettingsWindow {
         Label languageLabel = new Label(lang.get("settings.language") + ":");
         languageChoice.getItems().addAll(AVAILABLE_LANGUAGES.keySet());
         Label languageInfo = new Label(lang.get("settings.langInfo"));
+        languageInfo.setWrapText(true);
+        languageInfo.setMaxWidth(400);
 
         pane.add(volumeLabel, 0, 0);
         pane.add(volumeSlider, 1, 0);
@@ -197,7 +199,7 @@ public class SettingsWindow {
         pane.add(windowModeChoice, 1, 2);
         pane.add(languageLabel, 0, 3);
         pane.add(languageChoice, 1, 3);
-        pane.add(languageInfo, 0, 4);
+        pane.add(languageInfo, 0, 4, 2, 1);
 
         return pane;
     }
