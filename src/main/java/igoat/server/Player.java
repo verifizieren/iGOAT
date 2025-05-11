@@ -11,7 +11,7 @@ public class Player {
     private double x;
     private double y;
     private double width = 32;
-    private double height = 32;
+    private final double height = 32;
     private Role role;
     private final String nickname;
     private boolean isCaught = false;
@@ -20,6 +20,7 @@ public class Player {
     private final Timer spawnProtection = new Timer();
 
     private final Lobby lobby;
+
     public Player(double x, double y, String nickname, Lobby lobby) {
         this.x = x;
         this.y = y;
@@ -29,6 +30,7 @@ public class Player {
 
     /**
      * Moves the player to the specified location
+     *
      * @param x target x-coordinate
      * @param y target y-coordinate
      */
@@ -36,7 +38,8 @@ public class Player {
         this.x = x;
         this.y = y;
         positionWasSet = false;
-        lobby.broadcastUpdateToLobby("player_position:" + nickname + ":" + (int)x + ":" + (int)y, null);
+        lobby.broadcastUpdateToLobby("player_position:" + nickname + ":" + (int) x + ":" + (int) y,
+            null);
     }
 
     public double getWidth() {

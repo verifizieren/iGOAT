@@ -12,11 +12,14 @@ import javafx.scene.input.MouseEvent;
  * A JavaFX button that plays a sound when pressed
  */
 public class SoundButton extends Button {
+
     private static final SoundManager sound = SoundManager.getInstance();
 
     public SoundButton(String text) {
         super(text);
-        this.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> { sound.click.play();});
+        this.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> {
+            sound.click.play();
+        });
     }
 
     /**

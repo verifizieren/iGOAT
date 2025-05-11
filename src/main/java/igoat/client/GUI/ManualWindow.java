@@ -2,41 +2,43 @@ package igoat.client.GUI;
 
 import igoat.client.LanguageManager;
 import igoat.client.ScreenUtil;
-
+import java.util.List;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.List;
 
 
 /**
  * Singleton window for displaying the game manual, including character info and navigation.
  */
 public class ManualWindow {
+
     private static final Logger logger = LoggerFactory.getLogger(ManualWindow.class);
     private static final LanguageManager lang = LanguageManager.getInstance();
 
-    private BorderPane layout;
+    private final BorderPane layout;
     private static final ManualWindow instance = new ManualWindow();
 
     private final Stage stage = new Stage();
 
     private final List<CharacterInfo> characters = List.of(
-            new CharacterInfo("Goat", "/sprites/goat_idle.png", "tutorial.goat"),
-            new CharacterInfo("Guard", "/sprites/guard_idle.png", "tutorial.guard"),
-            new CharacterInfo("iGOAT", "/sprites/igoat_idle.png", "tutorial.igoat"),
-            new CharacterInfo("Terminal", "/sprites/terminal.png", "tutorial.terminal"),
-            new CharacterInfo("iGOAT-Station", "/sprites/igoat_station.png", "tutorial.igoat_station"),
-            new CharacterInfo("Exit", "/sprites/door.png", "tutorial.exit"),
-            new CharacterInfo("Window", "/sprites/window.png", "tutorial.window")
+        new CharacterInfo("Goat", "/sprites/goat_idle.png", "tutorial.goat"),
+        new CharacterInfo("Guard", "/sprites/guard_idle.png", "tutorial.guard"),
+        new CharacterInfo("iGOAT", "/sprites/igoat_idle.png", "tutorial.igoat"),
+        new CharacterInfo("Terminal", "/sprites/terminal.png", "tutorial.terminal"),
+        new CharacterInfo("iGOAT-Station", "/sprites/igoat_station.png", "tutorial.igoat_station"),
+        new CharacterInfo("Exit", "/sprites/door.png", "tutorial.exit"),
+        new CharacterInfo("Window", "/sprites/window.png", "tutorial.window")
     );
 
     private int currentIndex = 0;
@@ -78,6 +80,7 @@ public class ManualWindow {
 
     /**
      * Returns the singleton instance of ManualWindow.
+     *
      * @return ManualWindow instance
      */
     public static ManualWindow getInstance() {
@@ -88,8 +91,10 @@ public class ManualWindow {
      * Opens the manual window and blocks until it is closed.
      */
     public void open() {
-        ScreenUtil.moveStageToCursorScreen(stage, layout.getPrefWidth() > 0 ? layout.getPrefWidth() : 600, layout.getPrefHeight() > 0 ? layout.getPrefHeight() : 400);
-stage.showAndWait();
+        ScreenUtil.moveStageToCursorScreen(stage,
+            layout.getPrefWidth() > 0 ? layout.getPrefWidth() : 600,
+            layout.getPrefHeight() > 0 ? layout.getPrefHeight() : 400);
+        stage.showAndWait();
     }
 
     /**
@@ -132,6 +137,7 @@ stage.showAndWait();
 
 
     private static class CharacterInfo {
+
         String name;
         String imagePath;
         String text;

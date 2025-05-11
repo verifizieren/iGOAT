@@ -2,8 +2,8 @@ package igoat.client.GUI;
 
 import igoat.client.LanguageManager;
 import igoat.client.ScreenUtil;
-
 import igoat.client.ServerHandler;
+import igoat.client.SoundManager;
 import igoat.client.Sprite;
 import igoat.server.Server;
 import javafx.application.Application;
@@ -16,21 +16,23 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import igoat.client.SoundManager;
 
 /**
- * The main entry point for the iGoat client application. Displays the main menu that allows users to
- * create a server or join an existing one.
+ * The main entry point for the iGoat client application. Displays the main menu that allows users
+ * to create a server or join an existing one.
  */
 public class MainMenuGUI extends Application {
-    /** Logger for this class */
+
+    /**
+     * Logger for this class
+     */
     private static final Logger logger = LoggerFactory.getLogger(MainMenuGUI.class);
     public static final Sprite icon = new Sprite("/sprites/igoat_icon.png");
     private static final LanguageManager lang = LanguageManager.getInstance();
@@ -41,8 +43,8 @@ public class MainMenuGUI extends Application {
     private Stage stage;
 
     /**
-     * Initializes and displays the main menu of the application.
-     * Sets up the GUI components including server creation, joining, and exit options.
+     * Initializes and displays the main menu of the application. Sets up the GUI components
+     * including server creation, joining, and exit options.
      *
      * @param primaryStage the primary stage for this application
      */
@@ -60,10 +62,12 @@ public class MainMenuGUI extends Application {
         Scene scene = new Scene(root, 400, 350);
 
         try {
-            Font.loadFont(getClass().getResource("/fonts/Jersey10-Regular.ttf").toExternalForm(), 12);
+            Font.loadFont(getClass().getResource("/fonts/Jersey10-Regular.ttf").toExternalForm(),
+                12);
             style = getClass().getResource("/CSS/UI.css").toExternalForm();
             scene.getStylesheets().add(style);
-            scene.getStylesheets().add(getClass().getResource("/CSS/LobbyBackground.css").toExternalForm());
+            scene.getStylesheets()
+                .add(getClass().getResource("/CSS/LobbyBackground.css").toExternalForm());
         } catch (NullPointerException e) {
             logger.error("Failed to load CSS resources", e);
         }
@@ -100,7 +104,9 @@ public class MainMenuGUI extends Application {
             logger.info(finalStyle);
 
             Stage portDialogStage = (Stage) portDialog.getDialogPane().getScene().getWindow();
-            ScreenUtil.moveStageToCursorScreen(portDialogStage, portDialogStage.getWidth() > 0 ? portDialogStage.getWidth() : 350, portDialogStage.getHeight() > 0 ? portDialogStage.getHeight() : 200);
+            ScreenUtil.moveStageToCursorScreen(portDialogStage,
+                portDialogStage.getWidth() > 0 ? portDialogStage.getWidth() : 350,
+                portDialogStage.getHeight() > 0 ? portDialogStage.getHeight() : 200);
             portDialog.showAndWait().ifPresent(serverPort -> {
                 serverThread = new Thread(() -> Server.startServer(Integer.parseInt(serverPort)));
                 serverThread.setDaemon(true);
@@ -111,7 +117,8 @@ public class MainMenuGUI extends Application {
 
         SoundButton joinServerButton = new SoundButton(lang.get("main.joinServer"));
         joinServerButton.setOnAction(e -> {
-            TextInputDialog ipDialog = new TextInputDialog(SettingsWindow.lastIP == null? "localhost" : SettingsWindow.lastIP);
+            TextInputDialog ipDialog = new TextInputDialog(
+                SettingsWindow.lastIP == null ? "localhost" : SettingsWindow.lastIP);
             ipDialog.setTitle(lang.get("main.joinServer"));
             ipDialog.setHeaderText(null);
             ipDialog.setContentText(lang.get("main.enterIP"));
@@ -121,9 +128,13 @@ public class MainMenuGUI extends Application {
             joinDialogPane.getStylesheets().add(finalStyle);
 
             Stage ipDialogStage = (Stage) ipDialog.getDialogPane().getScene().getWindow();
-            ScreenUtil.moveStageToCursorScreen(ipDialogStage, ipDialogStage.getWidth() > 0 ? ipDialogStage.getWidth() : 350, ipDialogStage.getHeight() > 0 ? ipDialogStage.getHeight() : 200);
+            ScreenUtil.moveStageToCursorScreen(ipDialogStage,
+                ipDialogStage.getWidth() > 0 ? ipDialogStage.getWidth() : 350,
+                ipDialogStage.getHeight() > 0 ? ipDialogStage.getHeight() : 200);
             ipDialog.showAndWait().ifPresent(serverIP -> {
-                TextInputDialog portDialog = new TextInputDialog(SettingsWindow.lastPort == 0? "61000" : String.valueOf(SettingsWindow.lastPort));
+                TextInputDialog portDialog = new TextInputDialog(
+                    SettingsWindow.lastPort == 0 ? "61000"
+                        : String.valueOf(SettingsWindow.lastPort));
                 portDialog.setTitle(lang.get("main.joinServer"));
                 portDialog.setHeaderText(null);
                 portDialog.setContentText(lang.get("main.enterPort"));
@@ -132,10 +143,15 @@ public class MainMenuGUI extends Application {
                 DialogPane portDialogPane = portDialog.getDialogPane();
                 portDialogPane.getStylesheets().add(finalStyle);
 
-                Stage joinPortDialogStage = (Stage) portDialog.getDialogPane().getScene().getWindow();
-                ScreenUtil.moveStageToCursorScreen(joinPortDialogStage, joinPortDialogStage.getWidth() > 0 ? joinPortDialogStage.getWidth() : 350, joinPortDialogStage.getHeight() > 0 ? joinPortDialogStage.getHeight() : 200);
+                Stage joinPortDialogStage = (Stage) portDialog.getDialogPane().getScene()
+                    .getWindow();
+                ScreenUtil.moveStageToCursorScreen(joinPortDialogStage,
+                    joinPortDialogStage.getWidth() > 0 ? joinPortDialogStage.getWidth() : 350,
+                    joinPortDialogStage.getHeight() > 0 ? joinPortDialogStage.getHeight() : 200);
                 portDialog.showAndWait().ifPresent(port -> {
-                    String systemUsername = (handler == null || handler.getConfirmedNickname() == null)? System.getProperty("user.name") : handler.getConfirmedNickname();
+                    String systemUsername =
+                        (handler == null || handler.getConfirmedNickname() == null)
+                            ? System.getProperty("user.name") : handler.getConfirmedNickname();
                     TextInputDialog nameDialog = new TextInputDialog(systemUsername);
                     nameDialog.setTitle(lang.get("main.joinServer"));
                     nameDialog.setHeaderText(null);
@@ -146,7 +162,9 @@ public class MainMenuGUI extends Application {
                     nameDialogPane.getStylesheets().add(finalStyle);
 
                     Stage dialogStage = (Stage) nameDialog.getDialogPane().getScene().getWindow();
-                    ScreenUtil.moveStageToCursorScreen(dialogStage, dialogStage.getWidth() > 0 ? dialogStage.getWidth() : 350, dialogStage.getHeight() > 0 ? dialogStage.getHeight() : 200);
+                    ScreenUtil.moveStageToCursorScreen(dialogStage,
+                        dialogStage.getWidth() > 0 ? dialogStage.getWidth() : 350,
+                        dialogStage.getHeight() > 0 ? dialogStage.getHeight() : 200);
                     nameDialog.showAndWait().ifPresent(name -> {
                         // sanitize string
                         name = name.replaceAll("[\\s=:,]", "");
@@ -168,25 +186,27 @@ public class MainMenuGUI extends Application {
         exitButton.setOnAction(e -> exit());
 
         root.getChildren().addAll(
-                imageView,
-                presentLabel,
+            imageView,
+            presentLabel,
             titleLabel,
             createServerButton,
             joinServerButton,
             exitButton
         );
 
-        ScreenUtil.moveStageToCursorScreen(primaryStage, root.getPrefWidth() > 0 ? root.getPrefWidth() : 400, root.getPrefHeight() > 0 ? root.getPrefHeight() : 350);
+        ScreenUtil.moveStageToCursorScreen(primaryStage,
+            root.getPrefWidth() > 0 ? root.getPrefWidth() : 400,
+            root.getPrefHeight() > 0 ? root.getPrefHeight() : 350);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
     /**
-     * Establishes a connection to the server and launches the lobby GUI.
-     * If the connection fails, displays an error message.
+     * Establishes a connection to the server and launches the lobby GUI. If the connection fails,
+     * displays an error message.
      *
      * @param serverIP the IP address of the server to connect to
-     * @param port the port number of the server
+     * @param port     the port number of the server
      * @param username the player's username for the game session
      */
     public void join(String serverIP, int port, String username) {
@@ -201,7 +221,8 @@ public class MainMenuGUI extends Application {
         if (!handler.isConnected()) {
             logger.error("Failed to connect to server at: {}:{}", serverIP, port);
             Platform.runLater(() ->
-                showAlert(Alert.AlertType.ERROR,  lang.get("main.failedConnect") + ": " + serverIP + ":" + port)
+                showAlert(Alert.AlertType.ERROR,
+                    lang.get("main.failedConnect") + ": " + serverIP + ":" + port)
             );
             return;
         }
@@ -217,14 +238,15 @@ public class MainMenuGUI extends Application {
                 stage.hide();
             } catch (Exception ex) {
                 logger.error("Couldn't launch LobbyGUI", ex);
-                showAlert(Alert.AlertType.ERROR, lang.get("main.errorLobby") + ": " + ex.getMessage());
+                showAlert(Alert.AlertType.ERROR,
+                    lang.get("main.errorLobby") + ": " + ex.getMessage());
             }
         });
     }
 
     /**
-     * Handles the application exit process.
-     * Closes the server connection if it exists and terminates the JavaFX application.
+     * Handles the application exit process. Closes the server connection if it exists and
+     * terminates the JavaFX application.
      */
     private void exit() {
         logger.info("Exited application");
@@ -236,10 +258,10 @@ public class MainMenuGUI extends Application {
     }
 
     /**
-     * Displays an alert dialog to the user.
-     * This method is thread-safe and can be called from any thread.
+     * Displays an alert dialog to the user. This method is thread-safe and can be called from any
+     * thread.
      *
-     * @param type the type of alert to display (e.g., ERROR, INFORMATION)
+     * @param type    the type of alert to display (e.g., ERROR, INFORMATION)
      * @param message the message to display in the alert dialog
      */
     private void showAlert(Alert.AlertType type, String message) {
@@ -255,10 +277,9 @@ public class MainMenuGUI extends Application {
             });
         }
     }
-    
+
     /**
-     * Alternative entry point for the application.
-     * Launches the JavaFX application thread.
+     * Alternative entry point for the application. Launches the JavaFX application thread.
      *
      * @param args command line arguments (not used)
      */

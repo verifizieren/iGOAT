@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
  * Singleton class that contains all the sounds for the game
  */
 public class SoundManager {
+
     private static final Logger logger = LoggerFactory.getLogger(SoundManager.class);
 
     private static final SoundManager instance = new SoundManager();

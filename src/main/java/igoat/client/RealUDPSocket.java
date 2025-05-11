@@ -8,6 +8,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 
 public class RealUDPSocket implements UDPSocket {
+
     private final DatagramSocket socket;
 
     public RealUDPSocket(DatagramSocket socket) {

@@ -5,8 +5,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.ArcTo;
 import javafx.scene.shape.ClosePath;
@@ -18,12 +18,13 @@ import javafx.scene.shape.Shape;
 import javafx.scene.transform.Scale;
 
 /**
- * Represents a camera system for the game world with fog of war effect.
- * The camera follows the player and manages the viewport, including zooming and fog of war effects.
- * The fog of war creates a visibility circle around the player's position, with the rest of the
- * game world obscured by a semi-transparent overlay.
+ * Represents a camera system for the game world with fog of war effect. The camera follows the
+ * player and manages the viewport, including zooming and fog of war effects. The fog of war creates
+ * a visibility circle around the player's position, with the rest of the game world obscured by a
+ * semi-transparent overlay.
  */
 public class Camera {
+
     private final Pane gamePane;
     private final Canvas fogCanvas;
     private final GraphicsContext fogGC;
@@ -40,17 +41,20 @@ public class Camera {
     private Canvas coneCanvas = null;
 
     /**
-     * Creates a new Camera with the specified viewport size and zoom level.
-     * Initializes the camera system including the viewport, zoom, and fog of war effect if this
-     * is a local player's camera.
+     * Creates a new Camera with the specified viewport size and zoom level. Initializes the camera
+     * system including the viewport, zoom, and fog of war effect if this is a local player's
+     * camera.
      *
-     * @param gamePane the main game pane to which all game elements are added
-     * @param viewportWidth the initial width of the viewport in pixels
+     * @param gamePane       the main game pane to which all game elements are added
+     * @param viewportWidth  the initial width of the viewport in pixels
      * @param viewportHeight the initial height of the viewport in pixels
-     * @param zoom the zoom level (1.0 = no zoom, &gt; 1.0 = zoom in, &lt; 1.0 = zoom out)
-     * @param isLocal true if this is a local player's camera (with fog of war), false otherwise
+     * @param zoom           the zoom level (1.0 = no zoom, &gt; 1.0 = zoom in, &lt; 1.0 = zoom
+     *                       out)
+     * @param isLocal        true if this is a local player's camera (with fog of war), false
+     *                       otherwise
      */
-    public Camera(Pane gamePane, double viewportWidth, double viewportHeight, double zoom, boolean isLocal) {
+    public Camera(Pane gamePane, double viewportWidth, double viewportHeight, double zoom,
+        boolean isLocal) {
         this.gamePane = gamePane;
         this.viewportWidth = viewportWidth;
         this.viewportHeight = viewportHeight;
@@ -75,10 +79,10 @@ public class Camera {
     }
 
     /**
-     * Updates the viewport size when the window is resized.
-     * Adjusts the clip rectangle and fog canvas to match the new dimensions.
+     * Updates the viewport size when the window is resized. Adjusts the clip rectangle and fog
+     * canvas to match the new dimensions.
      *
-     * @param newWidth the new width of the viewport in pixels
+     * @param newWidth  the new width of the viewport in pixels
      * @param newHeight the new height of the viewport in pixels
      */
     public void updateViewport(double newWidth, double newHeight) {
@@ -101,9 +105,9 @@ public class Camera {
     }
 
     /**
-     * Updates the camera position to center on the player.
-     * Calculates the appropriate translation to keep the player centered in the viewport
-     * and updates the fog of war effect position if this is a local player's camera.
+     * Updates the camera position to center on the player. Calculates the appropriate translation
+     * to keep the player centered in the viewport and updates the fog of war effect position if
+     * this is a local player's camera.
      *
      * @param playerX the player's x-coordinate in world space
      * @param playerY the player's y-coordinate in world space
@@ -133,9 +137,9 @@ public class Camera {
     }
 
     /**
-     * Draws the fog of war overlay with a transparent visibility circle around the player.
-     * Creates a radial gradient that transitions from fully transparent near the player
-     * to semi-transparent at the edges of the visibility circle.
+     * Draws the fog of war overlay with a transparent visibility circle around the player. Creates
+     * a radial gradient that transitions from fully transparent near the player to semi-transparent
+     * at the edges of the visibility circle.
      *
      * @param playerScreenX the player's x-coordinate in screen space
      * @param playerScreenY the player's y-coordinate in screen space
@@ -146,11 +150,11 @@ public class Camera {
         fogGC.fillRect(0, 0, fogCanvas.getWidth(), fogCanvas.getHeight());
 
         RadialGradient gradient = new RadialGradient(
-                0, 0, playerScreenX, playerScreenY, LIGHT_RADIUS,
-                false, CycleMethod.NO_CYCLE,
-                new Stop(0, Color.TRANSPARENT),   // Fully transparent at the center
-                new Stop(0.8, Color.TRANSPARENT), // Stays transparent up to 80% of the radius
-                new Stop(1, Color.rgb(0, 0, 0, FOG_OPACITY)) // Fog appears at the edge
+            0, 0, playerScreenX, playerScreenY, LIGHT_RADIUS,
+            false, CycleMethod.NO_CYCLE,
+            new Stop(0, Color.TRANSPARENT),   // Fully transparent at the center
+            new Stop(0.8, Color.TRANSPARENT), // Stays transparent up to 80% of the radius
+            new Stop(1, Color.rgb(0, 0, 0, FOG_OPACITY)) // Fog appears at the edge
         );
 
         // Apply the gradient to erase part of the fog
@@ -171,7 +175,8 @@ public class Camera {
         gc.setFill(Color.rgb(0, 0, 0, FOG_OPACITY));
         gc.fillRect(0, 0, viewportWidth, viewportHeight);
 
-        Path cone = getCone(viewportWidth / (2 * zoom), viewportHeight / (2 * zoom), 100.0, angle, true, false);
+        Path cone = getCone(viewportWidth / (2 * zoom), viewportHeight / (2 * zoom), 100.0, angle,
+            true, false);
         coneCanvas.setClip(cone);
 
         Rectangle rectangle = new Rectangle(0, 0, fogCanvas.getWidth(), fogCanvas.getHeight());
@@ -181,27 +186,31 @@ public class Camera {
 
     /**
      * Creates a cone / slice of a circle using JavaFX paths
-     * @param x x position
-     * @param y y position
-     * @param radius radius of the circle
-     * @param angle angle where the cone points in radians
+     *
+     * @param x        x position
+     * @param y        y position
+     * @param radius   radius of the circle
+     * @param angle    angle where the cone points in radians
      * @param largeArc see largeArcFlag property of JavaFX ArcTo
-     * @param sweep  see sweepFlag property of JavaFX ArcTO
+     * @param sweep    see sweepFlag property of JavaFX ArcTO
      */
-    public static Path getCone(double x, double y, double radius, double angle, boolean largeArc, boolean sweep) {
+    public static Path getCone(double x, double y, double radius, double angle, boolean largeArc,
+        boolean sweep) {
         Path cone = new Path();
         cone.getElements().add(new MoveTo(x, y));
-        cone.getElements().add(new LineTo(x + radius * Math.cos(angle - Math.PI / 4.0), y + radius * Math.sin(angle - Math.PI / 4.0)));
+        cone.getElements().add(new LineTo(x + radius * Math.cos(angle - Math.PI / 4.0),
+            y + radius * Math.sin(angle - Math.PI / 4.0)));
         cone.getElements().add(new ArcTo(radius, radius, 0,
-            x + radius * Math.cos(angle + Math.PI / 4.0), y + radius * Math.sin(angle + Math.PI / 4.0), largeArc, sweep));
+            x + radius * Math.cos(angle + Math.PI / 4.0),
+            y + radius * Math.sin(angle + Math.PI / 4.0), largeArc, sweep));
         cone.getElements().add(new ClosePath());
         cone.setFill(Color.BLACK);
 
         return cone;
     }
+
     /**
-     * Adds a JavaFX node to the game world.
-     * The node will be affected by camera movement and zoom.
+     * Adds a JavaFX node to the game world. The node will be affected by camera movement and zoom.
      *
      * @param node the JavaFX node to add to the game world
      */

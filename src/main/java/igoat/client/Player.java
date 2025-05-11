@@ -11,11 +11,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Represents a player in the game.
- * Manages the player's visual representation, position, collision detection,
- * and camera view. Can represent either the local player or a remote player.
+ * Represents a player in the game. Manages the player's visual representation, position, collision
+ * detection, and camera view. Can represent either the local player or a remote player.
  */
 public class Player {
+
     private static final Logger logger = LoggerFactory.getLogger(Player.class);
 
     private double x;
@@ -30,7 +30,7 @@ public class Player {
     private String username;
     private Role role = null;
     private boolean isDown;
-    private Pane gamePane;
+    private final Pane gamePane;
 
     /**
      * Creates a new player with the specified position and dimensions.
@@ -39,8 +39,8 @@ public class Player {
      * Creates a new player with the specified properties.
      *
      * @param gamePane The JavaFX pane where the player will be rendered
-     * @param x The initial X coordinate
-     * @param y The initial Y coordinate
+     * @param x        The initial X coordinate
+     * @param y        The initial Y coordinate
      * @param username The player's username
      */
     public Player(Pane gamePane, double x, double y, String username) {
@@ -52,18 +52,19 @@ public class Player {
 
         this.gamePane = gamePane;
 
-        this.animation = new SpriteSheetAnimation("/sprites/invisible_placeholder.png", 1, 1, 1, 1, 1);
+        this.animation = new SpriteSheetAnimation("/sprites/invisible_placeholder.png", 1, 1, 1, 1,
+            1);
         this.idle = new ImageView();
         this.down = null;
         this.visual = new Group();
-        
+
         this.usernameLabel = new Text(username);
         this.usernameLabel.setFont(Font.font("Jersey 10", 12));
         this.usernameLabel.setFill(Color.BLACK);
         this.usernameLabel.setStroke(Color.WHITE);
         this.usernameLabel.setStrokeWidth(0.2);
         updateUsernamePosition();
-        
+
         gamePane.getChildren().add(usernameLabel);
     }
 
@@ -97,8 +98,7 @@ public class Player {
         if (x - newX < 0) {
             idle.setScaleX(1);
             animation.getView().setScaleX(1);
-        }
-        else if (x - newX > 0) {
+        } else if (x - newX > 0) {
             idle.setScaleX(-1);
             animation.getView().setScaleX(-1);
         }
@@ -163,18 +163,19 @@ public class Player {
     /**
      * Tests if a potential position would collide with a wall.
      *
-     * @param testX The X coordinate to test
-     * @param testY The Y coordinate to test
-     * @param width player width
+     * @param testX  The X coordinate to test
+     * @param testY  The Y coordinate to test
+     * @param width  player width
      * @param height = player height
-     * @param wall The wall to check collision with
+     * @param wall   The wall to check collision with
      * @return true if the position would collide with the wall, false otherwise
      */
-    public static boolean collidesWithWall(double testX, double testY, double width, double height, Wall wall) {
+    public static boolean collidesWithWall(double testX, double testY, double width, double height,
+        Wall wall) {
         return testX < wall.x + wall.width &&
-               testX + width > wall.x &&
-               testY < wall.y + wall.height &&
-               testY + height > wall.y;
+            testX + width > wall.x &&
+            testY < wall.y + wall.height &&
+            testY + height > wall.y;
     }
 
     public boolean collidesWithWall(double testX, double testY, Wall wall) {
@@ -307,7 +308,7 @@ public class Player {
 
     /**
      * Checks if the player is down (unable to move).
-     * 
+     *
      * @return true if the player is down, false otherwise
      */
     public boolean isDown() {
@@ -316,7 +317,7 @@ public class Player {
 
     /**
      * Sets whether the player is down (unable to move).
-     * 
+     *
      * @param down true to mark the player as down, false otherwise
      */
     public void setDown(boolean down) {

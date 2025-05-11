@@ -2,46 +2,47 @@ package igoat.client;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Objects;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.Image;
-import javafx.scene.paint.ImagePattern;
-import java.util.Objects;
 
 /**
- * Represents a game map containing walls and their layout.
- * This class handles the creation and management of walls in the game.
+ * Represents a game map containing walls and their layout. This class handles the creation and
+ * management of walls in the game.
  */
 public class Map {
+
     private static final Logger logger = LoggerFactory.getLogger(Map.class);
 
     private final boolean noVisuals;
 
     private static final int WALL_THICKNESS = 20;
     private static final int DOOR_WIDTH = 60;
-    
+
     private static final int MAP_WIDTH = 1500;
     private static final int MAP_HEIGHT = 1600;
 
-    private List<Wall> collisionWalls;
-    private List<Terminal> terminalList;
-    private List<Wall> doorCollisions;
-    private List<Wall> windowCollisions;
-    private List<ImageView> decorItems;
+    private final List<Wall> collisionWalls;
+    private final List<Terminal> terminalList;
+    private final List<Wall> doorCollisions;
+    private final List<Wall> windowCollisions;
+    private final List<ImageView> decorItems;
 
     private List<Rectangle> visualWalls;
     private List<Rectangle> doorVisuals;
     private List<Rectangle> windowVisuals;
-    private List<IgoatStation> IgoatStationList;
+    private final List<IgoatStation> IgoatStationList;
 
     /**
      * Creates a new Map with the layout from the design.
+     *
      * @param noVisuals This determines whether the visual elements of the map are created, which
-     * are not necessary for the server side implementation
+     *                  are not necessary for the server side implementation
      */
     public Map(boolean noVisuals) {
         this.noVisuals = noVisuals;
@@ -67,7 +68,7 @@ public class Map {
 
 
     }
-    
+
     /**
      * Creates the map layout based on the design image.
      */
@@ -103,7 +104,7 @@ public class Map {
         createWall(1000, 1300, 500, WALL_THICKNESS);
         createWall(1100, 1300, WALL_THICKNESS, 100);
         createWall(1100, 1450, WALL_THICKNESS, 150);
-        createWall(700,1300, 250, WALL_THICKNESS);
+        createWall(700, 1300, 250, WALL_THICKNESS);
         createWall(800, 1300, WALL_THICKNESS, 300);
 
         //5
@@ -123,7 +124,7 @@ public class Map {
         createWall(300, 150, WALL_THICKNESS, 150);
         createWall(300, 150, 200, WALL_THICKNESS);
         createWall(0, 200, 150, WALL_THICKNESS);
-        createWall(130, 130,WALL_THICKNESS, 20);
+        createWall(130, 130, WALL_THICKNESS, 20);
         createWall(130, 190, WALL_THICKNESS, 10);
         createWall(130, -42, WALL_THICKNESS, 120);
 
@@ -146,7 +147,7 @@ public class Map {
         createWall(600, 1050, 100, WALL_THICKNESS);
         createWall(400, 550, 300, WALL_THICKNESS);
         createWall(400, 550, WALL_THICKNESS, 350);
-        createWall(400,950, WALL_THICKNESS, 150);
+        createWall(400, 950, WALL_THICKNESS, 150);
         createWall(400, 1050, 200, WALL_THICKNESS);
 
     }
@@ -154,7 +155,7 @@ public class Map {
     /**
      * adds terminals to the map
      */
-    private void createTerminals(){
+    private void createTerminals() {
         //create Terminals
         addTerminal(1454, 75, 56, 64, 0,
             "/sprites/terminal.png");
@@ -164,7 +165,7 @@ public class Map {
             "/sprites/terminal_behind.png");
         addTerminal(480, 1450, 52, 64, 3,
             "/sprites/terminal_side.png");
-        addTerminal(61, 735,56, 64, 4,
+        addTerminal(61, 735, 56, 64, 4,
             "/sprites/terminal.png");
         addTerminal(874, 50, 56, 64, 5,
             "/sprites/terminal.png");
@@ -178,8 +179,8 @@ public class Map {
      * adds the doors to the map
      */
     private void createDoor() {
-       addDoor(0, 500, 20, DOOR_WIDTH, "/sprites/door.png");
-       addDoor(1480, 500, 20, DOOR_WIDTH, "/sprites/door.png");
+        addDoor(0, 500, 20, DOOR_WIDTH, "/sprites/door.png");
+        addDoor(1480, 500, 20, DOOR_WIDTH, "/sprites/door.png");
     }
 
     /**
@@ -189,14 +190,13 @@ public class Map {
         addWindow(130, 150, 20, 40, "/sprites/window.png");
         addWindow(200, 1150, 20, 40, "/sprites/window.png");
         addWindow(900, 220, 20, 40, "/sprites/window.png");
-        addWindow(600, 780,20, 40, "/sprites/window.png");
+        addWindow(600, 780, 20, 40, "/sprites/window.png");
     }
 
     private void createIgoatStation() {
-        addIgoatStation(20,130,42,64, 0,"/sprites/igoat_station.png");
-        addIgoatStation(600,1418,42,64, 1, "/sprites/igoat_station.png");
+        addIgoatStation(20, 130, 42, 64, 0, "/sprites/igoat_station.png");
+        addIgoatStation(600, 1418, 42, 64, 1, "/sprites/igoat_station.png");
     }
-
 
 
     /**
@@ -218,14 +218,15 @@ public class Map {
             addDecorItem(decor);
         }
     }
-    
+
     /**
      * Adds a terminal to the map.
      */
     private void addTerminal(int x, int y, int width, int height, int id, String imagePath) {
         Terminal terminal = new Terminal(x, y, width, height, id);
         if (!noVisuals) {
-            Image image = new Image(Objects.requireNonNull(getClass().getResource(imagePath)).toExternalForm());
+            Image image = new Image(
+                Objects.requireNonNull(getClass().getResource(imagePath)).toExternalForm());
             terminal.setFill(new ImagePattern(image));
         }
         terminalList.add(terminal);
@@ -237,8 +238,9 @@ public class Map {
     private void addIgoatStation(int x, int y, int width, int height, int id, String imagePath) {
         IgoatStation station = new IgoatStation(x, y, width, height, id);
         if (!noVisuals) {
-            Image igoatStationImage = new Image(Objects.requireNonNull(getClass().getResource(imagePath)).toExternalForm());
-            ImagePattern imagePattern = new ImagePattern(igoatStationImage, x, y, 64, 64,false);
+            Image igoatStationImage = new Image(
+                Objects.requireNonNull(getClass().getResource(imagePath)).toExternalForm());
+            ImagePattern imagePattern = new ImagePattern(igoatStationImage, x, y, 64, 64, false);
             station.setFill(imagePattern);
 
             IgoatStationList.add(station);
@@ -256,7 +258,7 @@ public class Map {
             Rectangle doorVisual = new Rectangle(x, y, width, height);
 
             Image doorImage = new Image(imagePath);
-            ImagePattern imagePattern = new ImagePattern(doorImage, x, y, 42, 60,false);
+            ImagePattern imagePattern = new ImagePattern(doorImage, x, y, 42, 60, false);
             doorVisual.setFill(imagePattern);
 
             visualWalls.add(doorVisual);
@@ -277,7 +279,7 @@ public class Map {
             Rectangle windowVisual = new Rectangle(x, y, width, height);
 
             Image windowImage = new Image(imagePath);
-            ImagePattern imagePattern = new ImagePattern(windowImage, x, y, 40, 56,false);
+            ImagePattern imagePattern = new ImagePattern(windowImage, x, y, 40, 56, false);
             windowVisual.setFill(imagePattern);
 
             visualWalls.add(windowVisual);
@@ -313,6 +315,7 @@ public class Map {
 
     /**
      * Gets all visual elements including walls and special elements.
+     *
      * @return a list containing the elements
      */
     public List<Rectangle> getVisualWalls() {
@@ -321,9 +324,10 @@ public class Map {
         allElements.addAll(IgoatStationList);
         return allElements;
     }
-    
+
     /**
      * Gets the list of collision wall objects.
+     *
      * @return the list of walls
      */
     public List<Wall> getCollisionWalls() {
@@ -332,28 +336,31 @@ public class Map {
 
     /**
      * Gets the list of window collision objects.
+     *
      * @return the list of window collision boxes
      */
     public List<Wall> getWindowCollisions() {
         return windowCollisions;
     }
-    
+
     /**
      * Gets the width of the map.
+     *
      * @return map width
      */
     public int getWidth() {
         return MAP_WIDTH;
     }
-    
+
     /**
      * Gets the height of the map.
+     *
      * @return map width
      */
     public int getHeight() {
         return MAP_HEIGHT;
     }
-    
+
     /**
      * Clears all walls from the map.
      */
@@ -363,13 +370,13 @@ public class Map {
         terminalList.clear();
         IgoatStationList.clear();
     }
-    
+
     /**
      * Adds a new wall to the map.
      *
-     * @param x The x-coordinate of the wall
-     * @param y The y-coordinate of the wall
-     * @param width The width of the wall
+     * @param x      The x-coordinate of the wall
+     * @param y      The y-coordinate of the wall
+     * @param width  The width of the wall
      * @param height The height of the wall
      */
     public void addWall(int x, int y, int width, int height) {
@@ -387,7 +394,7 @@ public class Map {
         }
     }
 
-    public List<Terminal> getTerminalList(){
+    public List<Terminal> getTerminalList() {
         return terminalList;
     }
 
@@ -395,6 +402,8 @@ public class Map {
         return decorItems;
     }
 
-    public List<IgoatStation> getStationList() { return IgoatStationList; }
+    public List<IgoatStation> getStationList() {
+        return IgoatStationList;
+    }
 
 }

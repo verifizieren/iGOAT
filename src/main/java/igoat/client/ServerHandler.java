@@ -21,9 +21,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class handles the connection of the client to the server, including sockets for TCP and UDP.
+ * This class handles the connection of the client to the server, including sockets for TCP and
+ * UDP.
  */
 public class ServerHandler {
+
     private static final Logger logger = LoggerFactory.getLogger(ServerHandler.class);
 
     private static final int SERVER_UDP_LISTENING_PORT = 61001;
@@ -170,16 +172,13 @@ public class ServerHandler {
                 messageReceiver.start();
                 updateReceiver.start();
                 pingThread.start();
-                return;
             } catch (Exception e) {
                 logger.error("Failed to create UDP socket: ", e);
                 close();
-                return;
             }
         } catch (IOException e) {
             logger.error("Connection error: ", e);
             close();
-            return;
         }
     }
 
@@ -282,8 +281,6 @@ public class ServerHandler {
                 pingTimer = System.currentTimeMillis();
             } else if (msg.startsWith(NICKNAME_CONFIRM_PREFIX)) {
                 this.confirmedNickname = msg.substring(NICKNAME_CONFIRM_PREFIX.length());
-                logger.info("username {}", confirmedNickname);
-                logger.info("msg {}", msg);
                 sendUdpRegistrationPacket();
                 messageBuffer.add(msg);
             } else if (!msg.isEmpty()) {
@@ -317,7 +314,8 @@ public class ServerHandler {
                         DatagramPacket receivePacket = new DatagramPacket(receiveBuffer,
                             receiveBuffer.length);
                         ds.receive(receivePacket);
-                        String receivedMsg = new String(receivePacket.getData(), 0, receivePacket.getLength());
+                        String receivedMsg = new String(receivePacket.getData(), 0,
+                            receivePacket.getLength());
                         //logger.info("Received: {} from {}:{}", receivedMsg, receivePacket.getAddress(), receivePacket.getPort());
                         if (!receivedMsg.startsWith("udp_ack:")) {
                             lastUpdate = receivedMsg;
@@ -330,15 +328,16 @@ public class ServerHandler {
                 }
             }
         } catch (Exception e) {
-            if (connected && updateSocket instanceof RealUDPSocket real && !real.getSocket().isClosed()) {
+            if (connected && updateSocket instanceof RealUDPSocket real && !real.getSocket()
+                .isClosed()) {
                 logger.error("Receive error", e);
             }
         }
     }
 
     /**
-     * Sends the UDP registration packet to the server's known listening port.
-     * This should be called after the nickname is confirmed.
+     * Sends the UDP registration packet to the server's known listening port. This should be called
+     * after the nickname is confirmed.
      */
     private void sendUdpRegistrationPacket() {
         if (this.confirmedNickname == null || updateSocket == null) {
@@ -354,13 +353,13 @@ public class ServerHandler {
         }
         try {
             String registrationMsg = String.format("%s%s:%d",
-                                               UDP_REGISTRATION_PREFIX,
-                                               this.confirmedNickname,
-                                               localUdpPort);
+                UDP_REGISTRATION_PREFIX,
+                this.confirmedNickname,
+                localUdpPort);
             byte[] buffer = registrationMsg.getBytes();
             InetAddress serverAddress = InetAddress.getByName(host);
             DatagramPacket registrationPacket = new DatagramPacket(buffer, buffer.length,
-                                                                  serverAddress, SERVER_UDP_LISTENING_PORT);
+                serverAddress, SERVER_UDP_LISTENING_PORT);
             updateSocket.send(registrationPacket);
         } catch (IOException e) {
             logger.error("Registration error: " + e.getMessage());

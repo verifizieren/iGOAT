@@ -10,14 +10,15 @@ import org.slf4j.LoggerFactory;
  * Contains the game state
  */
 public class GameState {
+
     private static final Logger logger = LoggerFactory.getLogger(GameState.class);
 
-    private boolean[] terminals;
+    private final boolean[] terminals;
     private boolean[] stations = new boolean[]{false, false};
-    private int[] ids;
+    private final int[] ids;
     private final List<ClientHandler> players;
     private final List<String> eventLog;
-    private boolean doorsOpen = false;
+    private final boolean doorsOpen = false;
 
     public boolean gameOver = false;
 
@@ -39,6 +40,7 @@ public class GameState {
 
     /**
      * Checks if all (i)goats are caught
+     *
      * @return True if all are caught, false otherwise
      */
     public boolean isGuardWin() {
@@ -63,6 +65,7 @@ public class GameState {
 
     /**
      * Checks if the conditions are met for the doors to open
+     *
      * @return True if the correct terminals are active, false otherwise
      */
     public boolean isDoorOpen() {
@@ -96,6 +99,7 @@ public class GameState {
 
     /**
      * Sets an igoat station to active
+     *
      * @param id The id of the station
      * @return true if successful, false otherwise
      */
@@ -116,7 +120,9 @@ public class GameState {
     }
 
     /**
-     * Should be called when a terminal is activated. Depending on the terminal and player state, it will return the resulting terminal state
+     * Should be called when a terminal is activated. Depending on the terminal and player state, it
+     * will return the resulting terminal state
+     *
      * @return true if terminal was activated, false if not
      */
     public boolean activateTerminal(int id) {
@@ -153,6 +159,7 @@ public class GameState {
 
     /**
      * Gets the list of all events that happened until now
+     *
      * @return List containing the protocol commands for each event
      */
     public List<String> getEventLog() {

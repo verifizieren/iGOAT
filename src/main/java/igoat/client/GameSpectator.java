@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
  * Spectator mode for iGoat: allows joining an existing game as a spectator.
  */
 public class GameSpectator extends Application {
+
     private static final Logger logger = LoggerFactory.getLogger(GameSpectator.class);
     private static final double CAMERA_ZOOM = 3;
     private final String style = getClass().getResource("/CSS/UI.css").toExternalForm();
@@ -54,16 +55,17 @@ public class GameSpectator extends Application {
     private Stage stage;
     private double windowWidth;
     private double windowHeight;
-    private LobbyGUI lobby;
+    private final LobbyGUI lobby;
     private igoat.client.Map gameMap;
     private Camera camera;
     private ServerHandler serverHandler;
     private String lobbyCode;
     private boolean gameStarted = false;
     private final LinkedHashMap<String, Player> otherPlayers = new LinkedHashMap<>();
-    private final HashMapCycler<String, Player> spectatingPlayer = new HashMapCycler<>(otherPlayers);
+    private final HashMapCycler<String, Player> spectatingPlayer = new HashMapCycler<>(
+        otherPlayers);
     private final Map<String, Role> pendingRoles = new ConcurrentHashMap<>();
-    private Timer timer = new Timer();
+    private final Timer timer = new Timer();
     private String time = "";
     private Text timeText;
     private Banner caughtBanner;
@@ -76,19 +78,23 @@ public class GameSpectator extends Application {
     private VBox playerInfoBox;
 
     private static class InterpolatedPosition {
+
         double lastX, lastY, targetX, targetY;
         long lastUpdateTime, targetTime;
+
         InterpolatedPosition(double x, double y) {
             lastX = targetX = x;
             lastY = targetY = y;
             lastUpdateTime = targetTime = System.currentTimeMillis();
         }
     }
+
     private final Map<String, InterpolatedPosition> playerPositions = new ConcurrentHashMap<>();
     private final SoundManager sound = SoundManager.getInstance();
 
     /**
      * Constructs a new GameSpectator instance.
+     *
      * @param lobby The LobbyGUI instance to return to when exiting spectator mode.
      */
     public GameSpectator(LobbyGUI lobby) {
@@ -96,10 +102,11 @@ public class GameSpectator extends Application {
     }
 
     /**
-     * Initializes the spectator mode with server connection and lobby code.
-     * Starts background threads for message and UDP update processing.
+     * Initializes the spectator mode with server connection and lobby code. Starts background
+     * threads for message and UDP update processing.
+     *
      * @param handler The ServerHandler for communication with the server.
-     * @param code The lobby code being spectated.
+     * @param code    The lobby code being spectated.
      */
     public void initialize(ServerHandler handler, String code) {
         this.serverHandler = handler;
@@ -113,16 +120,17 @@ public class GameSpectator extends Application {
     }
 
     /**
-     * Starts the JavaFX application for spectator mode.
-     * Sets up the UI overlays, camera, and event handlers.
+     * Starts the JavaFX application for spectator mode. Sets up the UI overlays, camera, and event
+     * handlers.
+     *
      * @param primaryStage The primary stage for this spectator window.
      */
     @SuppressWarnings("incomplete-switch")
-	@Override
+    @Override
     public void start(Stage primaryStage) {
         try {
             sound.playSoundtrack();
-            
+
             translations = ResourceBundle.getBundle("lang.text");
             stage = primaryStage;
             stage.getIcons().add(MainMenuGUI.icon);
@@ -148,7 +156,7 @@ public class GameSpectator extends Application {
             Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
             double screenWidth = screenBounds.getWidth() * 0.8;
             double screenHeight = screenBounds.getHeight() * 0.8;
-            double mapAspectRatio = (double)gameMap.getWidth() / gameMap.getHeight();
+            double mapAspectRatio = (double) gameMap.getWidth() / gameMap.getHeight();
             if (screenWidth / screenHeight > mapAspectRatio) {
                 windowHeight = screenHeight;
                 windowWidth = screenHeight * mapAspectRatio;
@@ -176,7 +184,8 @@ public class GameSpectator extends Application {
             container.getChildren().add(timeText);
             playerListBox = new VBox(10);
             playerListBox.setPadding(new Insets(20, 10, 20, 10));
-            playerListBox.setStyle("-fx-background-color: rgba(0,0,0,0.5); -fx-background-radius: 10;");
+            playerListBox.setStyle(
+                "-fx-background-color: rgba(0,0,0,0.5); -fx-background-radius: 10;");
             playerListBox.setPrefWidth(180);
             playerListBox.setAlignment(Pos.TOP_LEFT);
             playerListBox.setLayoutX(10);
@@ -184,17 +193,20 @@ public class GameSpectator extends Application {
             uiOverlay.getChildren().add(playerListBox);
             playerInfoBox = new VBox(15);
             playerInfoBox.setPadding(new Insets(20, 10, 20, 10));
-            playerInfoBox.setStyle("-fx-background-color: rgba(0,0,0,0.5); -fx-background-radius: 10;");
+            playerInfoBox.setStyle(
+                "-fx-background-color: rgba(0,0,0,0.5); -fx-background-radius: 10;");
             playerInfoBox.setPrefWidth(220);
             playerInfoBox.setAlignment(Pos.TOP_RIGHT);
             playerInfoBox.layoutYProperty().bind(uiOverlay.heightProperty().multiply(0.15));
-            playerInfoBox.layoutXProperty().bind(uiOverlay.widthProperty().subtract(playerInfoBox.getPrefWidth()).subtract(10));
+            playerInfoBox.layoutXProperty().bind(
+                uiOverlay.widthProperty().subtract(playerInfoBox.getPrefWidth()).subtract(10));
             uiOverlay.getChildren().add(playerInfoBox);
             spectatorInfoBar = new HBox();
             spectatorInfoBar.setAlignment(Pos.CENTER);
             spectatorInfoBar.setSpacing(20);
             spectatorInfoBar.setPadding(new Insets(10));
-            spectatorInfoBar.setStyle("-fx-background-color: rgba(0,0,0,0.85); -fx-border-radius: 10; -fx-background-radius: 10;");
+            spectatorInfoBar.setStyle(
+                "-fx-background-color: rgba(0,0,0,0.85); -fx-border-radius: 10; -fx-background-radius: 10;");
             spectatorInfoBar.prefWidthProperty().bind(stage.widthProperty());
             spectatorInfoBar.setPrefHeight(40);
             spectatorInfoBar.setMouseTransparent(true);
@@ -211,10 +223,12 @@ public class GameSpectator extends Application {
             for (ImageView decor : gameMap.getDecorItems()) {
                 gamePane.getChildren().add(decor);
             }
-            camera = new Camera(gamePane, primaryStage.getWidth(), primaryStage.getHeight(), CAMERA_ZOOM, false);
+            camera = new Camera(gamePane, primaryStage.getWidth(), primaryStage.getHeight(),
+                CAMERA_ZOOM, false);
             Scene scene = new Scene(container);
             scene.setFill(Color.BLACK);
-            String windowTitle = String.format(translations.getString("spectator.title"), lobbyCode);
+            String windowTitle = String.format(translations.getString("spectator.title"),
+                lobbyCode);
             primaryStage.setTitle(windowTitle);
             primaryStage.setScene(scene);
             primaryStage.show();
@@ -261,6 +275,7 @@ public class GameSpectator extends Application {
 
     /**
      * Rotates the spectator view to the next or previous player.
+     *
      * @param direction +1 for next, -1 for previous
      */
     private void rotateSpectator(int direction) {
@@ -279,7 +294,9 @@ public class GameSpectator extends Application {
                 spectatingPlayer.nextValue();
             } while (spectatingPlayer.getCurrentValue() == null);
         }
-        logger.info("Now spectating: {}", spectatingPlayer.getCurrentValue() != null ? spectatingPlayer.getCurrentValue().getUsername() : "null");
+        logger.info("Now spectating: {}",
+            spectatingPlayer.getCurrentValue() != null ? spectatingPlayer.getCurrentValue()
+                .getUsername() : "null");
         updateVisuals();
     }
 
@@ -293,22 +310,27 @@ public class GameSpectator extends Application {
             Label info = new Label(translations.getString("spectator.noPlayers"));
             info.setTextFill(Color.WHITE);
             info.setFont(Font.font("Jersey 10", FontWeight.BOLD, 18));
-            info.setStyle("-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: white !important;");
+            info.setStyle(
+                "-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: white !important;");
             spectatorInfoBar.getChildren().add(info);
             updatePlayerListBox();
             updatePlayerInfoBox(null);
             return;
         }
         String name = spectated.getUsername();
-        String role = spectated.getRole() != null ? spectated.getRole().name() : translations.getString("spectator.unknown");
-        Label info = new Label(String.format(translations.getString("spectator.spectating"), name, role));
+        String role = spectated.getRole() != null ? spectated.getRole().name()
+            : translations.getString("spectator.unknown");
+        Label info = new Label(
+            String.format(translations.getString("spectator.spectating"), name, role));
         info.setTextFill(Color.WHITE);
         info.setFont(Font.font("Jersey 10", FontWeight.BOLD, 18));
-        info.setStyle("-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: white !important;");
+        info.setStyle(
+            "-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: white !important;");
         Label hint = new Label(translations.getString("spectator.switchHint"));
         hint.setTextFill(Color.LIGHTGRAY);
         hint.setFont(Font.font("Jersey 10", 14));
-        hint.setStyle("-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: #cccccc !important;");
+        hint.setStyle(
+            "-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: #cccccc !important;");
         spectatorInfoBar.getChildren().addAll(info, hint);
         updatePlayerListBox();
         updatePlayerInfoBox(spectated);
@@ -325,10 +347,12 @@ public class GameSpectator extends Application {
             label.setFont(Font.font("Jersey 10", FontWeight.BOLD, 16));
             if (spectated != null && p.getUsername().equals(spectated.getUsername())) {
                 label.setTextFill(Color.YELLOW);
-                label.setStyle("-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-background-color: #333333; -fx-border-color: yellow; -fx-border-width: 2; -fx-background-radius: 8; -fx-border-radius: 8; -fx-text-fill: yellow !important;");
+                label.setStyle(
+                    "-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-background-color: #333333; -fx-border-color: yellow; -fx-border-width: 2; -fx-background-radius: 8; -fx-border-radius: 8; -fx-text-fill: yellow !important;");
             } else {
                 label.setTextFill(Color.WHITE);
-                label.setStyle("-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-background-color: transparent; -fx-text-fill: white !important;");
+                label.setStyle(
+                    "-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-background-color: transparent; -fx-text-fill: white !important;");
             }
             playerListBox.getChildren().add(label);
         }
@@ -336,28 +360,39 @@ public class GameSpectator extends Application {
 
     /**
      * Updates the player info overlay on the right for the currently spectated player.
+     *
      * @param spectated The player being spectated, or null.
      */
     private void updatePlayerInfoBox(Player spectated) {
         playerInfoBox.getChildren().clear();
-        if (spectated == null) return;
-        Label name = new Label(String.format(translations.getString("spectator.name"), spectated.getUsername()));
+        if (spectated == null) {
+            return;
+        }
+        Label name = new Label(
+            String.format(translations.getString("spectator.name"), spectated.getUsername()));
         name.setFont(Font.font("Jersey 10", FontWeight.BOLD, 18));
-        name.setStyle("-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: white !important;");
-        String roleStr = spectated.getRole() != null ? spectated.getRole().name() : translations.getString("spectator.unknown");
+        name.setStyle(
+            "-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: white !important;");
+        String roleStr = spectated.getRole() != null ? spectated.getRole().name()
+            : translations.getString("spectator.unknown");
         Label role = new Label(String.format(translations.getString("spectator.role"), roleStr));
         role.setFont(Font.font("Jersey 10", FontWeight.BOLD, 16));
-        role.setStyle("-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: #ffffcc !important;");
-        String statusStr = spectated.isDown() ? translations.getString("spectator.caught") : translations.getString("spectator.active");
-        Label status = new Label(String.format(translations.getString("spectator.status"), statusStr));
+        role.setStyle(
+            "-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: #ffffcc !important;");
+        String statusStr = spectated.isDown() ? translations.getString("spectator.caught")
+            : translations.getString("spectator.active");
+        Label status = new Label(
+            String.format(translations.getString("spectator.status"), statusStr));
         status.setFont(Font.font("Jersey 10", FontWeight.BOLD, 16));
-        status.setStyle(spectated.isDown() ? "-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: #ff4444 !important;" : "-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: #00ff00 !important;");
+        status.setStyle(spectated.isDown()
+            ? "-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: #ff4444 !important;"
+            : "-fx-font-family: 'Jersey 10', 'Courier New', monospace; -fx-text-fill: #00ff00 !important;");
         playerInfoBox.getChildren().addAll(name, role, status);
     }
 
     /**
-     * Updates all visuals, including interpolated player positions, overlays, and camera.
-     * Called on every animation frame.
+     * Updates all visuals, including interpolated player positions, overlays, and camera. Called on
+     * every animation frame.
      */
     private void updateVisuals() {
         Player spectated = spectatingPlayer.getCurrentValue();
@@ -373,7 +408,8 @@ public class GameSpectator extends Application {
             Player p = entry.getValue();
             InterpolatedPosition interp = playerPositions.get(name);
             if (interp != null) {
-                double t = Math.min(1.0, (now - interp.lastUpdateTime) / (double)(interp.targetTime - interp.lastUpdateTime));
+                double t = Math.min(1.0, (now - interp.lastUpdateTime) / (double) (interp.targetTime
+                    - interp.lastUpdateTime));
                 double ix = interp.lastX + (interp.targetX - interp.lastX) * t;
                 double iy = interp.lastY + (interp.targetY - interp.lastY) * t;
                 p.updatePosition(ix, iy);
@@ -443,7 +479,9 @@ public class GameSpectator extends Application {
      * Starts a background thread to process TCP messages from the server.
      */
     private void startMessageProcessor() {
-        if (serverHandler == null) return;
+        if (serverHandler == null) {
+            return;
+        }
         Thread messageProcessor = new Thread(() -> {
             while (gameStarted && serverHandler.isConnected()) {
                 try {
@@ -467,8 +505,8 @@ public class GameSpectator extends Application {
     }
 
     /**
-     * Processes a single TCP message from the server.
-     * Handles player list, chat, game events, etc.
+     * Processes a single TCP message from the server. Handles player list, chat, game events, etc.
+     *
      * @param message The message from the server
      */
     private void processServerMessage(String message) {
@@ -590,6 +628,7 @@ public class GameSpectator extends Application {
 
     /**
      * Ends the game and shows the win/loss screen.
+     *
      * @param result true if guard won, false otherwise
      */
     private void endGame(boolean result) {
@@ -599,6 +638,7 @@ public class GameSpectator extends Application {
 
     /**
      * Shows the win/loss screen with a scoreboard for all players.
+     *
      * @param guardWon true if guard won, false otherwise
      */
     private void showWinLossScreen(boolean guardWon) {
@@ -612,13 +652,16 @@ public class GameSpectator extends Application {
             grid.setVgap(10);
             Label headerName = new Label(translations.getString("hs.player"));
             headerName.setFont(Font.font("Jersey 10", FontWeight.BOLD, 14));
-            headerName.setStyle("-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
+            headerName.setStyle(
+                "-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
             Label headerRole = new Label(translations.getString("hs.role"));
             headerRole.setFont(Font.font("Jersey 10", FontWeight.BOLD, 14));
-            headerRole.setStyle("-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
+            headerRole.setStyle(
+                "-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
             Label headerResult = new Label(translations.getString("hs.outcome"));
             headerResult.setFont(Font.font("Jersey 10", FontWeight.BOLD, 14));
-            headerResult.setStyle("-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
+            headerResult.setStyle(
+                "-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
             grid.add(headerName, 0, 0);
             grid.add(headerRole, 1, 0);
             grid.add(headerResult, 2, 0);
@@ -626,11 +669,15 @@ public class GameSpectator extends Application {
             allPlayers.sort(Comparator.comparing(Player::getUsername));
             for (int i = 0; i < allPlayers.size(); i++) {
                 Player p = allPlayers.get(i);
-                if (p.getRole() == null) continue;
-                boolean isWinner = (guardWon && p.getRole() == Role.GUARD) || (!guardWon && p.getRole() != Role.GUARD);
+                if (p.getRole() == null) {
+                    continue;
+                }
+                boolean isWinner = (guardWon && p.getRole() == Role.GUARD) || (!guardWon
+                    && p.getRole() != Role.GUARD);
                 Label nameLabel = new Label(p.getUsername());
                 Label roleLabel = new Label(p.getRole().name());
-                Label resultLabel = new Label(isWinner ? translations.getString("hs.won") : translations.getString("hs.lost"));
+                Label resultLabel = new Label(isWinner ? translations.getString("hs.won")
+                    : translations.getString("hs.lost"));
                 String rowStyle = isWinner
                     ? "-fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-padding: 5;"
                     : "-fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-padding: 5;";
@@ -641,7 +688,8 @@ public class GameSpectator extends Application {
                 grid.add(roleLabel, 1, i + 1);
                 grid.add(resultLabel, 2, i + 1);
             }
-            SoundButton exitButton = new SoundButton(translations.getString("spectator.exitSpectator"));
+            SoundButton exitButton = new SoundButton(
+                translations.getString("spectator.exitSpectator"));
             exitButton.setOnAction(e -> returnToLobby());
             VBox layout = new VBox(20, title, grid, exitButton);
             layout.setAlignment(Pos.CENTER);
@@ -668,7 +716,9 @@ public class GameSpectator extends Application {
      * Starts a background thread to process UDP updates from the server.
      */
     private void startUdpUpdateProcessor() {
-        if (serverHandler == null) return;
+        if (serverHandler == null) {
+            return;
+        }
         Thread updateProcessor = new Thread(() -> {
             while (gameStarted && serverHandler.isConnected()) {
                 try {
@@ -691,6 +741,7 @@ public class GameSpectator extends Application {
 
     /**
      * Processes a single UDP update from the server (e.g., player position).
+     *
      * @param update The UDP update message
      */
     private void processUdpUpdate(String update) {
@@ -719,15 +770,17 @@ public class GameSpectator extends Application {
 
     /**
      * Updates the interpolated position for a remote player.
+     *
      * @param playerName The player's username
-     * @param x The new x coordinate
-     * @param y The new y coordinate
+     * @param x          The new x coordinate
+     * @param y          The new y coordinate
      */
     private void updateRemotePlayerPosition(String playerName, int x, int y) {
         if (otherPlayers.containsKey(playerName)) {
             Player remotePlayer = otherPlayers.get(playerName);
             // Interpolate movement
-            InterpolatedPosition interp = playerPositions.computeIfAbsent(playerName, k -> new InterpolatedPosition(x, y));
+            InterpolatedPosition interp = playerPositions.computeIfAbsent(playerName,
+                k -> new InterpolatedPosition(x, y));
             interp.lastX = remotePlayer.getX();
             interp.lastY = remotePlayer.getY();
             interp.targetX = x;
@@ -741,9 +794,10 @@ public class GameSpectator extends Application {
 
     /**
      * Creates a visual for a remote player if not already present.
+     *
      * @param playerName The player's username
-     * @param x The x coordinate
-     * @param y The y coordinate
+     * @param x          The x coordinate
+     * @param y          The y coordinate
      */
     private void createVisualForRemotePlayer(String playerName, int x, int y) {
         logger.info("createVisualForRemotePlayer: {} at {},{}", playerName, x, y);
@@ -778,6 +832,7 @@ public class GameSpectator extends Application {
 
     /**
      * Activates a terminal and shows a banner.
+     *
      * @param id The terminal ID
      */
     private void activateTerminal(int id) {
@@ -797,6 +852,7 @@ public class GameSpectator extends Application {
 
     /**
      * Activates a station and shows a banner.
+     *
      * @param id The station ID
      */
     private void activateStation(int id) {
@@ -810,6 +866,7 @@ public class GameSpectator extends Application {
 
     /**
      * Removes a remote player from the view and cleans up their state.
+     *
      * @param remotePlayerName The player's username
      */
     private void removeRemotePlayer(String remotePlayerName) {
@@ -818,7 +875,8 @@ public class GameSpectator extends Application {
             p.setIdle();
             otherPlayers.remove(remotePlayerName);
             playerPositions.remove(remotePlayerName);
-            if (spectatingPlayer.getCurrentValue() == null || spectatingPlayer.getCurrentValue().getUsername().equals(remotePlayerName)) {
+            if (spectatingPlayer.getCurrentValue() == null || spectatingPlayer.getCurrentValue()
+                .getUsername().equals(remotePlayerName)) {
                 spectatingPlayer.nextValue();
             }
             updateSpectatorInfoBar();
@@ -827,10 +885,12 @@ public class GameSpectator extends Application {
 
     /**
      * Main entry point for launching the spectator mode directly (for testing).
+     *
      * @param args Command-line arguments
      */
     public static void main(String[] args) {
-        logger.warn("Warning: Launching GameSpectator directly via main() requires manual initialization setup.");
+        logger.warn(
+            "Warning: Launching GameSpectator directly via main() requires manual initialization setup.");
         launch(args);
     }
 

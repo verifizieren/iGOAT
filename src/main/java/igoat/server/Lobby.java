@@ -5,21 +5,21 @@ import igoat.Timer;
 import igoat.client.Map;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.Collections;
-import java.util.Random;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Represents a game lobby that manages players and game state.
- * A lobby can contain up to MAX_PLAYERS players and transitions through different states
- * (OPEN, FULL, READY, IN_GAME) based on player count and game progression.
+ * Represents a game lobby that manages players and game state. A lobby can contain up to
+ * MAX_PLAYERS players and transitions through different states (OPEN, FULL, READY, IN_GAME) based
+ * on player count and game progression.
  */
 public class Lobby {
+
     public static final long GAME_OVER_TIME = 1000 * 300; // 5 minutes
     private static final Logger logger = LoggerFactory.getLogger(Lobby.class);
     // roles
@@ -74,6 +74,7 @@ public class Lobby {
     public void lockCheats() {
         this.cheatLocked = true;
     }
+
     private GameState gameState;
 
     /**
@@ -97,6 +98,7 @@ public class Lobby {
 
     /**
      * This method ensures that roles are correctly distributed
+     *
      * @return Role for a player
      */
     private Role assignRole() {
@@ -226,6 +228,7 @@ public class Lobby {
 
     /**
      * Gets the list of player names that were in the lobby when the game was started
+     *
      * @return List of player names in the game
      */
     public List<Player> getPlayerList() {
@@ -277,7 +280,8 @@ public class Lobby {
     public void startGame() {
         // new gamestate
         cheatLocked = false;
-        gameState = new GameState(map.getTerminalList().size(), generateRandomTerminalIDs(), members);
+        gameState = new GameState(map.getTerminalList().size(), generateRandomTerminalIDs(),
+            members);
         for (ClientHandler client : members) {
             Player player = new Player(200, 80, client.getNickname(), this);
             playerList.add(player);
@@ -317,8 +321,8 @@ public class Lobby {
     }
 
     /**
-     * Broadcasts a TCP message to all players and spectators in the lobby.
-     * Used for reliable communication like chat messages and game state updates.
+     * Broadcasts a TCP message to all players and spectators in the lobby. Used for reliable
+     * communication like chat messages and game state updates.
      *
      * @param message The message to broadcast to all lobby members and spectators
      */

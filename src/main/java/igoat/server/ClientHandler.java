@@ -17,32 +17,33 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Handles individual client connections in the game server.
- * Each instance manages one client's TCP connection and UDP communication,
- * handling game state updates, chat messages, and player actions.
+ * Handles individual client connections in the game server. Each instance manages one client's TCP
+ * connection and UDP communication, handling game state updates, chat messages, and player actions.
  * Implements Runnable to run in its own thread.
  */
 public class ClientHandler implements Runnable {
+
     private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
     private static final LanguageManager lang = LanguageManager.getInstance();
 
     // Constants for UDP Auto-Registration
-    /** Fixed port that the server listens on for UDP client registration */
+    /**
+     * Fixed port that the server listens on for UDP client registration
+     */
     public static final int SERVER_UDP_LISTENING_PORT = 61001;
     private static final String UDP_REGISTRATION_PREFIX = "register_udp:";
     private static final int UDP_BUFFER_SIZE = 512;
@@ -86,8 +87,8 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     * Starts the static UDP listener thread if it's not already running.
-     * Should be called once during server initialization.
+     * Starts the static UDP listener thread if it's not already running. Should be called once
+     * during server initialization.
      */
     public static synchronized void startUdpListener() {
         if (udpListenerRunning || udpListenerThread != null) {
@@ -112,8 +113,7 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     * Stops the static UDP listener thread.
-     * Should be called once during server shutdown.
+     * Stops the static UDP listener thread. Should be called once during server shutdown.
      */
     public static synchronized void stopUdpListener() {
         if (!udpListenerRunning) {
@@ -137,8 +137,8 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     * Static method to run a UDP listener loop for position updates.
-     * This is run in its own thread.
+     * Static method to run a UDP listener loop for position updates. This is run in its own
+     * thread.
      */
     private static void runUdpListenerLoop() {
         if (serverUpdateSocket == null) {
@@ -202,8 +202,7 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     * Handles a position update from a client.
-     * Format: position:playerName:lobbyCode:x:y
+     * Handles a position update from a client. Format: position:playerName:lobbyCode:x:y
      *
      * @param message The position update message
      */
@@ -250,28 +249,31 @@ public class ClientHandler implements Runnable {
                 if (x == sender.getPlayer().getX() && y == sender.getPlayer().getY()) {
                     sender.getPlayer().setPositionWasSet(true);
                 } else {
-                    x = (int)sender.getPlayer().getX();
-                    y = (int)sender.getPlayer().getY();
-                    sender.currentLobby.broadcastUpdateToLobby("player_position:"+senderName+":"+x+":"+y, null);
+                    x = (int) sender.getPlayer().getX();
+                    y = (int) sender.getPlayer().getY();
+                    sender.currentLobby.broadcastUpdateToLobby(
+                        "player_position:" + senderName + ":" + x + ":" + y, null);
                 }
             }
 
             // if there is a collision, we return the current coordinates
             if (sender.currentLobby.getMap() != null &&
-                    checkCollision(x, y, sender.getPlayer().getWidth(), sender.getPlayer().getHeight(), sender.currentLobby.getMap(), sender.getPlayer()
+                checkCollision(x, y, sender.getPlayer().getWidth(), sender.getPlayer().getHeight(),
+                    sender.currentLobby.getMap(), sender.getPlayer()
                         .getRole() == Role.GOAT)) {
-                x = (int)sender.getPlayer().getX();
-                y = (int)sender.getPlayer().getY();
+                x = (int) sender.getPlayer().getX();
+                y = (int) sender.getPlayer().getY();
                 logger.info("collision prevented");
-                sender.currentLobby.broadcastUpdateToLobby("player_position:"+senderName+":"+x+":"+y, null);
-            }
-            else {
+                sender.currentLobby.broadcastUpdateToLobby(
+                    "player_position:" + senderName + ":" + x + ":" + y, null);
+            } else {
                 sender.getPlayer().setX(x);
                 sender.getPlayer().setY(y);
             }
 
             if (sender.getPlayer().getRole() == Role.GOAT &&
-                !sender.currentLobby.getGameState().gameOver && sender.currentLobby.getGameState().isDoorOpen() &&
+                !sender.currentLobby.getGameState().gameOver && sender.currentLobby.getGameState()
+                .isDoorOpen() &&
                 (sender.getPlayer().getX() < 0 || sender.getPlayer().getX() > 1500)) {
                 logger.info("{} escaped, ending game", sender.getNickname());
                 sender.endGame(false);
@@ -290,7 +292,8 @@ public class ClientHandler implements Runnable {
     /**
      * checks for a collision with a wall
      */
-    private static boolean checkCollision(int x, int y, double playerWidth, double playerHeight, Map map, boolean ignoreWindows) {
+    private static boolean checkCollision(int x, int y, double playerWidth, double playerHeight,
+        Map map, boolean ignoreWindows) {
         for (Wall wall : map.getCollisionWalls()) {
             if (igoat.client.Player.collidesWithWall(x, y, playerWidth, playerHeight, wall)) {
                 return true;
@@ -310,11 +313,13 @@ public class ClientHandler implements Runnable {
     /**
      * Finds the ClientHandler associated with the given IP and nickname and updates its UDP port.
      *
-     * @param clientIp The IP address of the client.
-     * @param nickname The nickname reported by the client.
-     * @param clientListeningPort The actual UDP port the client is listening on (from the message).
+     * @param clientIp            The IP address of the client.
+     * @param nickname            The nickname reported by the client.
+     * @param clientListeningPort The actual UDP port the client is listening on (from the
+     *                            message).
      */
-    private static void registerClientUdpPort(InetAddress clientIp, String nickname, int clientListeningPort) {
+    private static void registerClientUdpPort(InetAddress clientIp, String nickname,
+        int clientListeningPort) {
         boolean found = false;
         for (ClientHandler handler : clientList) {
             if (handler.nickname.equals(nickname)) {
@@ -326,7 +331,8 @@ public class ClientHandler implements Runnable {
                     try {
                         String ackMsg = "udp_ack:";
                         byte[] ackBuf = ackMsg.getBytes();
-                        DatagramPacket ackPacket = new DatagramPacket(ackBuf, ackBuf.length, clientIp, clientListeningPort);
+                        DatagramPacket ackPacket = new DatagramPacket(ackBuf, ackBuf.length,
+                            clientIp, clientListeningPort);
                         serverUpdateSocket.send(ackPacket);
                     } catch (IOException e) {
                         logger.error("Failed to send UDP ACK to {}", nickname, e);
@@ -336,7 +342,8 @@ public class ClientHandler implements Runnable {
             }
         }
         if (!found) {
-            logger.error("UDP registration failed for {} (Handler not found or IP/name mismatch)", nickname);
+            logger.error("UDP registration failed for {} (Handler not found or IP/name mismatch)",
+                nickname);
         }
     }
 
@@ -372,8 +379,7 @@ public class ClientHandler implements Runnable {
                 if (message.equals("pong")) {
                     handlePong();
                     continue;
-                }
-                else if (message.equals("exit")) {
+                } else if (message.equals("exit")) {
                     running = false;
                     break;
                 }
@@ -536,7 +542,7 @@ public class ClientHandler implements Runnable {
                     sendError("Unknown command: " + command);
             }
         } catch (Exception e) {
-            sendError(lang.get("server.commError") +": " + e.getMessage());
+            sendError(lang.get("server.commError") + ": " + e.getMessage());
             logger.error("Error when processing command {} : {}", message, e);
         }
     }
@@ -576,7 +582,8 @@ public class ClientHandler implements Runnable {
         int stationId = Integer.parseInt(params);
 
         for (ClientHandler client : currentLobby.getMembers()) {
-            if (client.getPlayer().getRole() == Role.IGOAT && client.getPlayer().isCaught() && currentLobby.getGameState().activateStation(stationId)) {
+            if (client.getPlayer().getRole() == Role.IGOAT && client.getPlayer().isCaught()
+                && currentLobby.getGameState().activateStation(stationId)) {
                 client.getPlayer().revive();
                 client.getPlayer().teleport(tx + 20, ty + 40);
                 currentLobby.broadcastToLobby("revive:" + client.getNickname());
@@ -641,7 +648,9 @@ public class ClientHandler implements Runnable {
         }
 
         // cut off if too long
-        requestedNickname = requestedNickname.length() > MAX_NAME_LENGTH ? requestedNickname.substring(0, MAX_NAME_LENGTH) : requestedNickname;
+        requestedNickname =
+            requestedNickname.length() > MAX_NAME_LENGTH ? requestedNickname.substring(0,
+                MAX_NAME_LENGTH) : requestedNickname;
 
         this.nickname = generateUniqueNickname(requestedNickname);
 
@@ -718,6 +727,7 @@ public class ClientHandler implements Runnable {
 
         logger.info("sent event log ({} items)", counter);
     }
+
     /**
      * Processes a chat message.
      *
@@ -732,7 +742,9 @@ public class ClientHandler implements Runnable {
             sendError(lang.get("server.noMSG"));
             return;
         }
-        if (handleCheatCode(params[0])) return;
+        if (handleCheatCode(params[0])) {
+            return;
+        }
 
         broadcast("chat:" + this.nickname + ":" + params[0]);
     }
@@ -794,14 +806,14 @@ public class ClientHandler implements Runnable {
     private void randomCatchCheat() {
         if (currentLobby != null && currentLobby.getGameState() != null) {
             List<ClientHandler> candidates = currentLobby.getMembers().stream()
-                    .filter(c -> {
-                        Role r = c.getPlayer().getRole();
-                        return (r == Role.GOAT || r == Role.IGOAT) && !c.getPlayer().isCaught();
-                    })
-                    .toList();
+                .filter(c -> {
+                    Role r = c.getPlayer().getRole();
+                    return (r == Role.GOAT || r == Role.IGOAT) && !c.getPlayer().isCaught();
+                })
+                .toList();
 
             if (!candidates.isEmpty()) {
-                ClientHandler target = candidates.get((int)(Math.random() * candidates.size()));
+                ClientHandler target = candidates.get((int) (Math.random() * candidates.size()));
                 Role role = target.getPlayer().getRole();
 
                 if (role == Role.GOAT) {
@@ -816,9 +828,11 @@ public class ClientHandler implements Runnable {
                 target.getPlayer().catchPlayer();
                 currentLobby.broadcastToLobby("catch:" + target.getNickname());
 
-                broadcast("chat:" + String.format(lang.get("server.doorsCheatFail"), target.getNickname()));
+                broadcast("chat:" + String.format(lang.get("server.doorsCheatFail"),
+                    target.getNickname()));
 
-                if (currentLobby.getGameState().isGuardWin() && !currentLobby.getGameState().gameOver) {
+                if (currentLobby.getGameState().isGuardWin()
+                    && !currentLobby.getGameState().gameOver) {
                     endGame(true);
                 }
             }
@@ -844,23 +858,27 @@ public class ClientHandler implements Runnable {
             return;
         }
 
-        requestedNickname = requestedNickname.length() > MAX_NAME_LENGTH ? requestedNickname.substring(0, MAX_NAME_LENGTH) : requestedNickname;
+        requestedNickname =
+            requestedNickname.length() > MAX_NAME_LENGTH ? requestedNickname.substring(0,
+                MAX_NAME_LENGTH) : requestedNickname;
 
         String newNickname = generateUniqueNickname(requestedNickname);
 
         if (!requestedNickname.equals(newNickname)) {
             sendMessage(
-                    "chat:" + lang.get("server.nicknameChosen")
-                            + newNickname);
+                "chat:" + lang.get("server.nicknameChosen")
+                    + newNickname);
         }
 
         this.nickname = newNickname;
         sendMessage("confirm:" + this.nickname);
         broadcast(
-                "chat:" + String.format(lang.get("server.nameChange"), oldNickname, newNickname));
+            "chat:" + String.format(lang.get("server.nameChange"), oldNickname, newNickname));
         logger.info("User nickname changed");
         broadcastGlobalPlayerList();
-        if (currentLobby != null) broadcastLobbyPlayerList();
+        if (currentLobby != null) {
+            broadcastLobbyPlayerList();
+        }
     }
 
     /**
@@ -876,9 +894,9 @@ public class ClientHandler implements Runnable {
         }
 
         int code;
-        try{
+        try {
             code = Integer.parseInt(params[0]);
-        } catch(NumberFormatException e){
+        } catch (NumberFormatException e) {
             sendError(lang.get("server.codeError"));
             sendMessage("lobby:0");
             return;
@@ -909,7 +927,8 @@ public class ClientHandler implements Runnable {
             return;
         }
 
-        if (lobbyToJoin.getState() == LobbyState.IN_GAME || lobbyToJoin.getState() == LobbyState.FINISHED) {
+        if (lobbyToJoin.getState() == LobbyState.IN_GAME
+            || lobbyToJoin.getState() == LobbyState.FINISHED) {
             sendError(lang.get("server.inProgressError"));
             return;
         }
@@ -936,7 +955,8 @@ public class ClientHandler implements Runnable {
         int code = nextLobbyCode++;
         Lobby newLobby = new Lobby(code);
         lobbyList.add(newLobby);
-        newLobby.broadcastChatToLobby(String.format(lang.get("server.createdLobby"), nickname, code));
+        newLobby.broadcastChatToLobby(
+            String.format(lang.get("server.createdLobby"), nickname, code));
         joinLobby(newLobby);
     }
 
@@ -947,7 +967,8 @@ public class ClientHandler implements Runnable {
         currentLobby.addMember(this);
 
         sendMessage("lobby:" + lobby.getCode());
-        currentLobby.broadcastChatToLobby(String.format(lang.get("server.joinedLobby"), nickname, lobby.getCode()));
+        currentLobby.broadcastChatToLobby(
+            String.format(lang.get("server.joinedLobby"), nickname, lobby.getCode()));
 
         broadcastGetLobbiesToAll();
         broadcastLobbyPlayerList();
@@ -956,7 +977,8 @@ public class ClientHandler implements Runnable {
     private void leaveCurrentLobby() {
         if (currentLobby != null) {
             currentLobby.removeMember(this);
-            currentLobby.broadcastChatToLobby(String.format(lang.get("server.leftLobby"), nickname));
+            currentLobby.broadcastChatToLobby(
+                String.format(lang.get("server.leftLobby"), nickname));
 
             if (currentLobby.getMembers().isEmpty()) {
                 lobbyList.remove(currentLobby);
@@ -985,12 +1007,11 @@ public class ClientHandler implements Runnable {
                 .append("],");
         }
 
-
         if (sb.length() > 0) {
             sb.setLength(sb.length() - 1);
         }
 
-        sendMessage("getlobbies:" + sb.toString());
+        sendMessage("getlobbies:" + sb);
     }
 
     private void handleGetPlayers() {
@@ -1014,7 +1035,9 @@ public class ClientHandler implements Runnable {
         for (ClientHandler member : currentLobby.getMembers()) {
             sb.append(member.nickname).append(",");
         }
-        if (sb.length() > 0) sb.setLength(sb.length() - 1);
+        if (sb.length() > 0) {
+            sb.setLength(sb.length() - 1);
+        }
 
         String update = "getlobbyplayers:" + sb;
         for (ClientHandler member : currentLobby.getMembers()) {
@@ -1069,9 +1092,10 @@ public class ClientHandler implements Runnable {
             this.getPlayer().setRole(parsedRole);
             Lobby.roleMap.put(nickname, parsedRole);
             logger.info("role confirmed");
-            appendToLobbyChat(String.format(lang.get("server.roleAssigned"), nickname, player.getRole()), false);
+            appendToLobbyChat(
+                String.format(lang.get("server.roleAssigned"), nickname, player.getRole()), false);
         } catch (NumberFormatException e) {
-            logger.error("Invalid Role {}",roleString ,e);
+            logger.error("Invalid Role {}", roleString, e);
             sendError("Invalid role");
             handleGetRoles();
         }
@@ -1167,20 +1191,18 @@ public class ClientHandler implements Runnable {
      */
     public void sendUpdate(String message) {
         // Skip sending if prerequisites aren't met
-        if (serverUpdateSocket == null || udpPort == -1 || 
+        if (serverUpdateSocket == null || udpPort == -1 ||
             clientSocket == null || clientSocket.isClosed()) {
             return;
         }
-        
+
         try {
             byte[] buffer = message.getBytes();
             InetAddress clientAddress = clientSocket.getInetAddress();
             DatagramPacket packet = new DatagramPacket(
-                buffer, buffer.length, 
+                buffer, buffer.length,
                 clientAddress, udpPort
             );
-
-            //logger.info("Sending: {} to {} at {}:{}", message, nickname, clientAddress.getHostAddress(), udpPort);
 
             serverUpdateSocket.send(packet);
         } catch (IOException e) {
@@ -1190,12 +1212,10 @@ public class ClientHandler implements Runnable {
 
     public void setPlayer(Player player) {
         this.player = player;
-        logger.info("player set");
     }
 
     /**
-     * Handles the start game command from a client.
-     * Only the lobby creator can start the game.
+     * Handles the start game command from a client. Only the lobby creator can start the game.
      */
     private void handleStartGame() {
         if (currentLobby == null) {
@@ -1208,7 +1228,7 @@ public class ClientHandler implements Runnable {
             logger.warn("Lobby not full, can't start game in {}", currentLobby.getCode());
             return;
         } else {
-             for (ClientHandler member : currentLobby.getMembers()) {
+            for (ClientHandler member : currentLobby.getMembers()) {
                 if (!member.isReady()) {
                     allReadyCheck = false;
                     break;
@@ -1222,8 +1242,9 @@ public class ClientHandler implements Runnable {
         }
 
         if (!allReadyCheck) {
-             sendError(lang.get("server.notAllReady"));
-            logger.info("Start game requested for lobby {} but not all players are ready.", currentLobby.getCode());
+            sendError(lang.get("server.notAllReady"));
+            logger.info("Start game requested for lobby {} but not all players are ready.",
+                currentLobby.getCode());
             return;
         }
 
@@ -1235,7 +1256,8 @@ public class ClientHandler implements Runnable {
             member.setReady(false);
         }
 
-        logger.info("Starting game in lobby {} (Initiated by creator: {})", currentLobby.getCode(), nickname);
+        logger.info("Starting game in lobby {} (Initiated by creator: {})", currentLobby.getCode(),
+            nickname);
 
         currentLobby.startGame();
         player.getSpawnProtection().reset();
@@ -1248,7 +1270,7 @@ public class ClientHandler implements Runnable {
 
     /**
      * Helper method to find a ClientHandler by nickname.
-     * 
+     *
      * @param nickname The nickname to search for
      * @return The ClientHandler with the matching nickname, or null if not found
      */
@@ -1263,7 +1285,7 @@ public class ClientHandler implements Runnable {
 
     /**
      * Gets the UDP port for this client.
-     * 
+     *
      * @return The UDP port registered for this client.
      */
     public int getUdpPort() {
@@ -1283,7 +1305,7 @@ public class ClientHandler implements Runnable {
             for (String line : lines) {
                 sb.append(line).append("\n");
             }
-            sendMessage("results:" + sb.toString());
+            sendMessage("results:" + sb);
         } catch (IOException e) {
             logger.error("Failed to read finished games", e);
             sendMessage("results:Error reading past results.");
@@ -1296,11 +1318,11 @@ public class ClientHandler implements Runnable {
     private void handleGetHighscores() {
         try {
             HighscoreManager.initialize();
-            
+
             String highscores = HighscoreManager.getHighscores();
-            
+
             String formattedHighscores = highscores.replace("\n", "<br>");
-            
+
             sendMessage("highscores:" + formattedHighscores);
             logger.info("Sent highscores to client");
         } catch (Exception e) {
@@ -1311,6 +1333,7 @@ public class ClientHandler implements Runnable {
 
     /**
      * ends the game and broadcasts the result
+     *
      * @param result true if the guard won, false otherwise
      */
     void endGame(boolean result) {
@@ -1324,12 +1347,12 @@ public class ClientHandler implements Runnable {
             long gameTime = currentLobby.getTimer().getTime();
             logger.info("Game time: {} ms", gameTime);
             logger.info("Game finished in {}", currentLobby.getTimer().toString());
-            
+
             try {
                 HighscoreManager.initialize();
-                
+
                 logger.info("Saving highscore with game time: {} ms", gameTime);
-                
+
                 if (result) {
                     for (ClientHandler m : currentLobby.getMembers()) {
                         if (m.getPlayer().getRole() == Role.GUARD) {
@@ -1341,14 +1364,15 @@ public class ClientHandler implements Runnable {
                 } else {
                     StringBuilder goatNames = new StringBuilder();
                     for (ClientHandler m : currentLobby.getMembers()) {
-                        if (m.getPlayer().getRole() == Role.GOAT || m.getPlayer().getRole() == Role.IGOAT) {
+                        if (m.getPlayer().getRole() == Role.GOAT
+                            || m.getPlayer().getRole() == Role.IGOAT) {
                             if (!goatNames.isEmpty()) {
                                 goatNames.append(", ");
                             }
                             goatNames.append(m.nickname);
                         }
                     }
-                    logger.info("Adding goat highscore for players: {}", goatNames.toString());
+                    logger.info("Adding goat highscore for players: {}", goatNames);
                     HighscoreManager.addGoatHighscore(goatNames.toString(), gameTime);
                 }
             } catch (Exception e) {
@@ -1365,14 +1389,18 @@ public class ClientHandler implements Runnable {
                 sb.append("\"result\":").append(result).append(',');
                 sb.append("\"players\":[");
                 for (ClientHandler m : currentLobby.getMembers()) {
-                    boolean win = (result && m.getPlayer().getRole() == Role.GUARD) || (!result && m.getPlayer().getRole() != Role.GUARD);
+                    boolean win = (result && m.getPlayer().getRole() == Role.GUARD) || (!result
+                        && m.getPlayer().getRole() != Role.GUARD);
                     sb.append("{\"name\":\"").append(m.nickname).append("\",")
-                      .append("\"role\":\"").append(m.getPlayer().getRole()).append("\",")
-                      .append("\"outcome\":\"").append(win?"Won":"Lost").append("\"},");
+                        .append("\"role\":\"").append(m.getPlayer().getRole()).append("\",")
+                        .append("\"outcome\":\"").append(win ? "Won" : "Lost").append("\"},");
                 }
-                if (sb.charAt(sb.length()-1) == ',') sb.setLength(sb.length()-1);
+                if (sb.charAt(sb.length() - 1) == ',') {
+                    sb.setLength(sb.length() - 1);
+                }
                 sb.append("]}\n");
-                Files.write(logPath, sb.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                Files.write(logPath, sb.toString().getBytes(StandardCharsets.UTF_8),
+                    StandardOpenOption.CREATE, StandardOpenOption.APPEND);
             } catch (IOException e) {
                 logger.error("Failed to write finished game", e);
             }
@@ -1381,6 +1409,7 @@ public class ClientHandler implements Runnable {
 
     /**
      * Handles terminal activation request from client.
+     *
      * @param params terminal id as string
      */
     private void handleTerminalActivation(String params) {
@@ -1402,7 +1431,8 @@ public class ClientHandler implements Runnable {
             if (activated) {
                 currentLobby.broadcastToAll("terminal:" + terminalId);
                 for (ClientHandler player : currentLobby.getMembers()) {
-                    if (player.getPlayer().getRole() == Role.GOAT && player.getPlayer().isCaught()) {
+                    if (player.getPlayer().getRole() == Role.GOAT && player.getPlayer()
+                        .isCaught()) {
                         player.getPlayer().revive();
                         player.getPlayer().teleport(920, 230);
                         currentLobby.broadcastToAll("revive:" + player.getNickname());
@@ -1456,16 +1486,18 @@ public class ClientHandler implements Runnable {
         StringBuilder sb = new StringBuilder();
         for (Lobby lobby : lobbyList) {
             sb.append(lobby.getCode())
-              .append("=")
-              .append(lobby.getMembers().size())
-              .append("/")
-              .append(Lobby.MAX_PLAYERS)
-              .append(" [")
-              .append(lobby.getState().toString().toLowerCase())
-              .append("],");
+                .append("=")
+                .append(lobby.getMembers().size())
+                .append("/")
+                .append(Lobby.MAX_PLAYERS)
+                .append(" [")
+                .append(lobby.getState().toString().toLowerCase())
+                .append("],");
         }
-        if (sb.length() > 0) sb.setLength(sb.length() - 1);
-        String msg = "getlobbies:" + sb.toString();
+        if (sb.length() > 0) {
+            sb.setLength(sb.length() - 1);
+        }
+        String msg = "getlobbies:" + sb;
         for (ClientHandler client : clientList) {
             client.sendMessage(msg);
         }
@@ -1482,7 +1514,7 @@ public class ClientHandler implements Runnable {
         if (sb.length() > 0) {
             sb.setLength(sb.length() - 1);
         }
-        String update = "getplayers:" + sb.toString();
+        String update = "getplayers:" + sb;
         for (ClientHandler client : clientList) {
             client.sendMessage(update);
         }
@@ -1492,13 +1524,17 @@ public class ClientHandler implements Runnable {
      * Broadcasts the list of players in the current lobby to its members.
      */
     private void broadcastLobbyPlayerList() {
-        if (currentLobby == null) return;
+        if (currentLobby == null) {
+            return;
+        }
         StringBuilder sb = new StringBuilder();
         for (ClientHandler member : currentLobby.getMembers()) {
             sb.append(member.getNickname()).append(",");
         }
-        if (sb.length() > 0) sb.setLength(sb.length() - 1);
-        String update = "getlobbyplayers:" + sb.toString();
+        if (sb.length() > 0) {
+            sb.setLength(sb.length() - 1);
+        }
+        String update = "getlobbyplayers:" + sb;
         for (ClientHandler member : currentLobby.getMembers()) {
             member.sendMessage(update);
         }
@@ -1597,7 +1633,7 @@ public class ClientHandler implements Runnable {
         if (sb.length() > 0) {
             sb.setLength(sb.length() - 1);
         }
-        sendMessage("roles:" + sb.toString());
+        sendMessage("roles:" + sb);
     }
 
     private void handleSpectate(String[] params) {

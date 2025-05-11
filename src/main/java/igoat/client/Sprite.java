@@ -25,6 +25,7 @@ public class Sprite extends Image {
 
     /**
      * Creates a repeating background pattern
+     *
      * @return Repeating background using the image specified in the constructor
      */
     public Background getBackground() {
@@ -32,11 +33,11 @@ public class Sprite extends Image {
             false, false, false, false);
 
         BackgroundImage backgroundImage = new BackgroundImage(
-                resample(this, 4),
-        BackgroundRepeat.REPEAT, // repeat horizontally
-        BackgroundRepeat.REPEAT, // repeat vertically
-        BackgroundPosition.CENTER,
-        size
+            resample(this, 4),
+            BackgroundRepeat.REPEAT, // repeat horizontally
+            BackgroundRepeat.REPEAT, // repeat vertically
+            BackgroundPosition.CENTER,
+            size
         );
 
         return new Background(backgroundImage);
@@ -48,8 +49,8 @@ public class Sprite extends Image {
         final int S = scaleFactor;
 
         WritableImage output = new WritableImage(
-                W * S,
-                H * S
+            W * S,
+            H * S
         );
 
         PixelReader reader = input.getPixelReader();

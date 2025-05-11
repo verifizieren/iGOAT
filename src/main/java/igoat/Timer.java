@@ -4,6 +4,7 @@ package igoat;
  * A class for tracking time
  */
 public class Timer {
+
     private long sysTime;
     private long elapsedTime;
     private long time;
@@ -19,6 +20,7 @@ public class Timer {
 
     /**
      * Starts/resets the timer with a certain starting time
+     *
      * @param time The starting time in milliseconds
      */
     public void reset(long time) {
@@ -26,9 +28,10 @@ public class Timer {
         elapsedTime = 0;
         this.time = time;
     }
+
     /**
-     * Updates the timer to the current system time. This should be called before using getTimeElapsed
-     * or getTime
+     * Updates the timer to the current system time. This should be called before using
+     * getTimeElapsed or getTime
      */
     public void update() {
         long now = getSystemTime();
@@ -39,6 +42,7 @@ public class Timer {
 
     /**
      * Gets the time interval since the last time this function was called
+     *
      * @return The elapsed time in ms
      */
     public long getTimeElapsed() {
@@ -51,6 +55,7 @@ public class Timer {
 
     /**
      * Gets the current system time
+     *
      * @return Current time in ms
      */
     public static long getSystemTime() {
@@ -58,8 +63,8 @@ public class Timer {
     }
 
     /**
-     * Converts the provided time into min:sec format.
-     * (Example: 90000 -> 1:30)
+     * Converts the provided time into min:sec format. (Example: 90000 -> 1:30)
+     *
      * @param time to be converted in milliseconds
      * @return index [0] contains minutes, [1] contains seconds.
      */
@@ -75,6 +80,7 @@ public class Timer {
 
     /**
      * Gets the time as a string
+     *
      * @return current time (not system time) as a string
      */
     @Override

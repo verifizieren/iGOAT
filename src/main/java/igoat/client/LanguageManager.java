@@ -3,13 +3,14 @@ package igoat.client;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class for loading text in different languages
  */
 public class LanguageManager {
+
     private static final Logger logger = LoggerFactory.getLogger(LanguageManager.class);
     private static volatile LanguageManager instance;
     private final ResourceBundle bundle;
@@ -26,8 +27,8 @@ public class LanguageManager {
     }
 
     /**
-     * Initializes the singleton instance. Can only be called once.
-     * Subsequent calls will return the already-initialized instance.
+     * Initializes the singleton instance. Can only be called once. Subsequent calls will return the
+     * already-initialized instance.
      */
     public static LanguageManager init(String baseName, Locale locale) {
         if (instance == null) {
@@ -41,8 +42,7 @@ public class LanguageManager {
     }
 
     /**
-     * Returns the initialized singleton instance.
-     * Throws if called before initialization.
+     * Returns the initialized singleton instance. Throws if called before initialization.
      */
     public static LanguageManager getInstance() {
         if (instance == null) {
@@ -52,8 +52,8 @@ public class LanguageManager {
     }
 
     /**
-     * Returns the localized string for the given key.
-     * Returns the key itself if not found or bundle not loaded.
+     * Returns the localized string for the given key. Returns the key itself if not found or bundle
+     * not loaded.
      */
     public String get(String key) {
         if (bundle == null) {

@@ -3,36 +3,25 @@ package igoat.client;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 
+import igoat.Role;
 import igoat.Timer;
 import igoat.client.GUI.Banner;
+import igoat.client.GUI.LobbyGUI;
 import igoat.client.GUI.MainMenuGUI;
 import igoat.client.GUI.SettingsWindow;
 import igoat.client.GUI.SoundButton;
 import java.time.LocalTime;
-
-import java.util.LinkedHashMap;
-import javafx.geometry.Pos;
-import javafx.scene.control.Label;
-import javafx.scene.input.KeyCombination;
-import javafx.scene.layout.GridPane;
-import javafx.scene.text.FontWeight;
-import java.util.Comparator;
 import java.util.ArrayList;
-import igoat.Role;
-
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
-import javafx.scene.image.ImageView;
-import javafx.scene.shape.Shape;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import igoat.client.GUI.LobbyGUI;
 import javafx.animation.AnimationTimer;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
@@ -41,40 +30,46 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextFormatter;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Main game class that handles the core game logic, rendering, and networking.
- * This class manages:
- * - Player movement and collision detection
- * - Camera and viewport management
- * - Network communication (TCP for game state, UDP for position updates)
- * - Remote player synchronization
- * - Game state and visual updates
- * The game uses a client-server architecture where each client sends position updates
- * via UDP and receives game state updates via TCP.
+ * Main game class that handles the core game logic, rendering, and networking. This class manages:
+ * - Player movement and collision detection - Camera and viewport management - Network
+ * communication (TCP for game state, UDP for position updates) - Remote player synchronization -
+ * Game state and visual updates The game uses a client-server architecture where each client sends
+ * position updates via UDP and receives game state updates via TCP.
  */
 public class Game extends Application {
+
     private static final Logger logger = LoggerFactory.getLogger(Game.class);
     private static final LanguageManager lang = LanguageManager.getInstance();
 
@@ -101,13 +96,14 @@ public class Game extends Application {
     private String playerName;
     private String lobbyCode;
     private String username;
-    private Timer timer = new Timer();
+    private final Timer timer = new Timer();
     private String time = "";
 
     private boolean gameStarted = false;
 
     private final LinkedHashMap<String, Player> otherPlayers = new LinkedHashMap<>();
-    private final HashMapCycler<String, Player> spectatingPlayer = new HashMapCycler<>(otherPlayers);
+    private final HashMapCycler<String, Player> spectatingPlayer = new HashMapCycler<>(
+        otherPlayers);
     private final Map<String, Role> pendingRoles = new ConcurrentHashMap<>();
     private boolean pressedE = false;
     private double mouseX;
@@ -119,21 +115,24 @@ public class Game extends Application {
     private boolean initializedViewport = false;
 
     private static class InterpolatedPosition {
+
         double lastX, lastY, targetX, targetY;
         long lastUpdateTime, targetTime;
+
         InterpolatedPosition(double x, double y) {
             lastX = targetX = x;
             lastY = targetY = y;
             lastUpdateTime = targetTime = System.currentTimeMillis();
         }
     }
+
     private final Map<String, InterpolatedPosition> playerPositions = new ConcurrentHashMap<>();
 
     /**
-     * Enum for defining the chat modes available in the game.
-     * This enum provides a way to manage different chat modes within the game. It includes three modes:
-     * GLOBAL and LOBBY. Each mode has a display name associated with it, which is used to identify
-     * the mode in the game's user interface.
+     * Enum for defining the chat modes available in the game. This enum provides a way to manage
+     * different chat modes within the game. It includes three modes: GLOBAL and LOBBY. Each mode
+     * has a display name associated with it, which is used to identify the mode in the game's user
+     * interface.
      */
     private enum ChatMode {
         GLOBAL(lang.get("lobby.globalChat")),
@@ -179,7 +178,9 @@ public class Game extends Application {
 
     /**
      * Constructor for Game
-     * @param lobby The Lobby GUI. This is used to call the lobby exit method after the game window closes.
+     *
+     * @param lobby The Lobby GUI. This is used to call the lobby exit method after the game window
+     *              closes.
      */
     public Game(LobbyGUI lobby) {
         this.lobby = lobby;
@@ -189,8 +190,8 @@ public class Game extends Application {
      * Initializes the game with necessary data from the lobby.
      *
      * @param handler The active ServerHandler.
-     * @param name The player's confirmed name.
-     * @param code The lobby code.
+     * @param name    The player's confirmed name.
+     * @param code    The lobby code.
      */
     public void initialize(ServerHandler handler, String name, String code) {
         this.serverHandler = handler;
@@ -217,10 +218,9 @@ public class Game extends Application {
     }
 
     /**
-     * Initializes and starts the game VIEW.
-     * Assumes initialize() has been called previously.
-     * Sets up the game window, player visuals, map, and input handling.
-     * Also initializes the game loop using AnimationTimer.
+     * Initializes and starts the game VIEW. Assumes initialize() has been called previously. Sets
+     * up the game window, player visuals, map, and input handling. Also initializes the game loop
+     * using AnimationTimer.
      *
      * @param primaryStage The primary stage of the JavaFX application
      */
@@ -265,7 +265,7 @@ public class Game extends Application {
             double screenWidth = screenBounds.getWidth() * 0.8;
             double screenHeight = screenBounds.getHeight() * 0.8;
 
-            double mapAspectRatio = (double)gameMap.getWidth() / gameMap.getHeight();
+            double mapAspectRatio = (double) gameMap.getWidth() / gameMap.getHeight();
 
             if (screenWidth / screenHeight > mapAspectRatio) {
                 windowHeight = screenHeight;
@@ -307,7 +307,9 @@ public class Game extends Application {
                 updateVisuals();
             });
 
-            String windowTitle = "iGoat - " + lang.get("game.lobby") + " " + lobbyCode + " - " + lang.get("hs.player") + ": " + confirmedNickname;
+            String windowTitle =
+                "iGoat - " + lang.get("game.lobby") + " " + lobbyCode + " - " + lang.get(
+                    "hs.player") + ": " + confirmedNickname;
             primaryStage.setTitle(windowTitle);
 
             primaryStage.setScene(scene);
@@ -332,7 +334,8 @@ public class Game extends Application {
 
             player = new Player(gamePane, initialX, initialY, confirmedNickname);
 
-            camera = new Camera(gamePane, primaryStage.getWidth(), primaryStage.getHeight(), CAMERA_ZOOM, true);
+            camera = new Camera(gamePane, primaryStage.getWidth(), primaryStage.getHeight(),
+                CAMERA_ZOOM, true);
 
             scene.widthProperty().addListener((obs, oldVal, newVal) -> {
                 camera.updateViewport(newVal.doubleValue(), scene.getHeight());
@@ -381,7 +384,8 @@ public class Game extends Application {
     }
 
     /**
-     * Exit routine for the Game instance. This will close the game window and return to the lobby screen.
+     * Exit routine for the Game instance. This will close the game window and return to the lobby
+     * screen.
      */
 
     private void returnToLobby() {
@@ -403,10 +407,10 @@ public class Game extends Application {
     }
 
     /**
-     * Shows an error dialog to the user.
-     * This method is thread-safe and will run on the JavaFX Application Thread.
+     * Shows an error dialog to the user. This method is thread-safe and will run on the JavaFX
+     * Application Thread.
      *
-     * @param title the title of the error dialog
+     * @param title   the title of the error dialog
      * @param content the error message to display
      */
     private void showError(String title, String content) {
@@ -420,12 +424,14 @@ public class Game extends Application {
     }
 
     /**
-     * Starts a background thread that processes TCP messages from the server.
-     * Handles game state updates, chat messages, and player events.
-     * The thread runs continuously until the game ends or the connection is lost.
+     * Starts a background thread that processes TCP messages from the server. Handles game state
+     * updates, chat messages, and player events. The thread runs continuously until the game ends
+     * or the connection is lost.
      */
     private void startMessageProcessor() {
-        if (serverHandler == null) return;
+        if (serverHandler == null) {
+            return;
+        }
 
         Thread messageProcessor = new Thread(() -> {
             while (gameStarted && serverHandler.isConnected()) {
@@ -450,12 +456,9 @@ public class Game extends Application {
     }
 
     /**
-     * Processes TCP messages received from the server.
-     * Handles various message types including:
-     * - Lobby player updates
-     * - Chat messages
-     * - Game state changes
-     * - Player events (catch, revive, leave)
+     * Processes TCP messages received from the server. Handles various message types including: -
+     * Lobby player updates - Chat messages - Game state changes - Player events (catch, revive,
+     * leave)
      *
      * @param message the message received from the server
      */
@@ -494,7 +497,9 @@ public class Game extends Application {
             }
 
             String[] parts = data.split(":", 2);
-            if (parts.length == 2) return parts;
+            if (parts.length == 2) {
+                return parts;
+            }
 
             int firstSpaceIndex = data.indexOf(' ');
             if (firstSpaceIndex != -1) {
@@ -504,7 +509,7 @@ public class Game extends Application {
             }
 
             logger.warn("Could not parse sender from message using known patterns: {}", msg);
-            return new String[]{ "System", data };
+            return new String[]{"System", data};
         };
 
         if (message.startsWith("error:")) {
@@ -562,9 +567,11 @@ public class Game extends Application {
                         if (other != null) {
                             other.setDown(true);
                             if (other.getRole() == Role.IGOAT) {
-                                sound.igoatCatch.play(other.getX(), other.getY(), player.getX(), player.getY(), 300);
+                                sound.igoatCatch.play(other.getX(), other.getY(), player.getX(),
+                                    player.getY(), 300);
                             } else if (player.getRole() == Role.GOAT) {
-                                sound.goat.play(other.getX(), other.getY(), player.getX(), player.getY(), 300);
+                                sound.goat.play(other.getX(), other.getY(), player.getX(),
+                                    player.getY(), 300);
                             }
                         }
                     }
@@ -572,7 +579,8 @@ public class Game extends Application {
             } else if (message.startsWith("revive:")) {
                 String revivedPlayerName = message.substring("revive:".length());
                 logger.info("{} was revived!", revivedPlayerName);
-                reviveBanner.showAnimation(String.format(lang.get("game.revive"), revivedPlayerName), 2);
+                reviveBanner.showAnimation(
+                    String.format(lang.get("game.revive"), revivedPlayerName), 2);
 
                 Platform.runLater(() -> {
                     if (player != null && revivedPlayerName.equals(player.getUsername())) {
@@ -585,7 +593,8 @@ public class Game extends Application {
                         if (other != null) {
                             other.setDown(false);
                             if (other.getRole() == Role.GOAT) {
-                                sound.goat.play(other.getX(), other.getY(), player.getX(), player.getY(), 300);
+                                sound.goat.play(other.getX(), other.getY(), player.getX(),
+                                    player.getY(), 300);
                             }
                         }
                     }
@@ -622,7 +631,9 @@ public class Game extends Application {
                                     other.setRole(role);
                                 } else {
                                     pendingRoles.put(playerName, role);
-                                    logger.warn("[role] Received role for unknown player {}. Storing temporarily.", playerName);
+                                    logger.warn(
+                                        "[role] Received role for unknown player {}. Storing temporarily.",
+                                        playerName);
                                 }
                             }
                         });
@@ -656,12 +667,15 @@ public class Game extends Application {
                                             rolesToApply.put(playerName, role);
                                         } else {
                                             rolesToPend.put(playerName, role);
-                                            logger.warn("[roles] Received role for unknown player {}. Storing temporarily.", playerName);
+                                            logger.warn(
+                                                "[roles] Received role for unknown player {}. Storing temporarily.",
+                                                playerName);
                                         }
                                     }
                                 });
                             } catch (IllegalArgumentException e) {
-                                logger.error("Invalid role value in roles message entry: {}", entry);
+                                logger.error("Invalid role value in roles message entry: {}",
+                                    entry);
                             }
                         }
                     }
@@ -676,7 +690,9 @@ public class Game extends Application {
                                 rolesToPend.remove(playerName);
                             } else {
                                 pendingRoles.put(playerName, role);
-                                logger.warn("[roles] Received role for unknown player {}. Storing temporarily.", playerName);
+                                logger.warn(
+                                    "[roles] Received role for unknown player {}. Storing temporarily.",
+                                    playerName);
                             }
                         }
                         pendingRoles.putAll(rolesToPend);
@@ -719,7 +735,9 @@ public class Game extends Application {
                     logger.info("Received whisper from {}: {}", sender, whisperContent);
                     addChatMessage(sender, null, whisperContent, null);
                 } else {
-                    logger.debug("Ignoring whisper not intended for this client (target: {}, local: {})", targetUser, localNickname);
+                    logger.debug(
+                        "Ignoring whisper not intended for this client (target: {}, local: {})",
+                        targetUser, localNickname);
                 }
                 return;
             }
@@ -748,7 +766,9 @@ public class Game extends Application {
     }
 
     /**
-     * shows the victory or loss screen to the player according to their role and the result from the server
+     * shows the victory or loss screen to the player according to their role and the result from
+     * the server
+     *
      * @param result true if the guard has won, false otherwise
      */
     private void endGame(boolean result) {
@@ -761,7 +781,8 @@ public class Game extends Application {
         boolean isGuard = player.getRole() == Role.GUARD;
         boolean localWon = (isGuard && guardWon) || (!isGuard && !guardWon);
 
-        String message = localWon ? "🎉 " + lang.get("game.winMSG") + " 🎉" : "💀 " + lang.get("game.lostMSG") + " 💀";
+        String message = localWon ? "🎉 " + lang.get("game.winMSG") + " 🎉"
+            : "💀 " + lang.get("game.lostMSG") + " 💀";
         Color color = localWon ? Color.GREEN : Color.RED;
 
         Platform.runLater(() -> {
@@ -777,20 +798,25 @@ public class Game extends Application {
 
             Label headerName = new Label(lang.get("hs.player"));
             headerName.setFont(Font.font("Jersey 10", FontWeight.BOLD, 14));
-            headerName.setStyle("-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
+            headerName.setStyle(
+                "-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
             Label headerRole = new Label(lang.get("hs.role"));
             headerRole.setFont(Font.font("Jersey 10", FontWeight.BOLD, 14));
-            headerRole.setStyle("-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
+            headerRole.setStyle(
+                "-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
             Label headerResult = new Label(lang.get("hs.outcome"));
             headerResult.setFont(Font.font("Jersey 10", FontWeight.BOLD, 14));
-            headerResult.setStyle("-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
+            headerResult.setStyle(
+                "-fx-background-color: #343a40; -fx-text-fill: white; -fx-padding: 5;");
             grid.add(headerName, 0, 0);
             grid.add(headerRole, 1, 0);
             grid.add(headerResult, 2, 0);
 
             List<Player> allPlayers = new ArrayList<>(otherPlayers.values());
             allPlayers.add(player);
-            allPlayers.sort(Comparator.comparingInt(p -> ((guardWon && p.getRole()==Role.GUARD) || (!guardWon && p.getRole()!=Role.GUARD)) ? 0 : 1));
+            allPlayers.sort(Comparator.comparingInt(p ->
+                ((guardWon && p.getRole() == Role.GUARD) || (!guardWon
+                    && p.getRole() != Role.GUARD)) ? 0 : 1));
 
             for (int i = 0; i < allPlayers.size(); i++) {
                 Player p = allPlayers.get(i);
@@ -798,7 +824,8 @@ public class Game extends Application {
                     continue;
                 }
 
-                boolean isWinner = (guardWon && p.getRole()==Role.GUARD) || (!guardWon && p.getRole()!=Role.GUARD);
+                boolean isWinner = (guardWon && p.getRole() == Role.GUARD) || (!guardWon
+                    && p.getRole() != Role.GUARD);
                 Label nameLabel = new Label(p.getUsername());
 
                 Label roleLabel = new Label(p.getRole().name());
@@ -843,13 +870,14 @@ public class Game extends Application {
     }
 
     /**
-     * Starts a background thread that processes UDP position updates from the server.
-     * This thread runs at a higher frequency than the TCP message processor to ensure
-     * smooth player movement updates. Also initiates the first position update for
-     * the local player.
+     * Starts a background thread that processes UDP position updates from the server. This thread
+     * runs at a higher frequency than the TCP message processor to ensure smooth player movement
+     * updates. Also initiates the first position update for the local player.
      */
     private void startUdpUpdateProcessor() {
-        if (serverHandler == null) return;
+        if (serverHandler == null) {
+            return;
+        }
 
         sendPlayerPositionUpdate();
 
@@ -927,14 +955,15 @@ public class Game extends Application {
      * Updates the position of a remote player.
      *
      * @param playerName The name of the remote player
-     * @param x The new x-coordinate
-     * @param y The new y-coordinate
+     * @param x          The new x-coordinate
+     * @param y          The new y-coordinate
      */
     private void updateRemotePlayerPosition(String playerName, int x, int y) {
         if (otherPlayers.containsKey(playerName)) {
             Player remotePlayer = otherPlayers.get(playerName);
             // Interpolate movement
-            InterpolatedPosition interp = playerPositions.computeIfAbsent(playerName, k -> new InterpolatedPosition(x, y));
+            InterpolatedPosition interp = playerPositions.computeIfAbsent(playerName,
+                k -> new InterpolatedPosition(x, y));
             interp.lastX = remotePlayer.getX();
             interp.lastY = remotePlayer.getY();
             interp.targetX = x;
@@ -948,14 +977,13 @@ public class Game extends Application {
     }
 
     /**
-     * Creates a visual representation for a remote player.
-     * If the player object already exists (placeholder from role message), adds visuals.
-     * Otherwise, creates a new player object and adds visuals.
-     * Applies any pending role after creation/visual addition.
+     * Creates a visual representation for a remote player. If the player object already exists
+     * (placeholder from role message), adds visuals. Otherwise, creates a new player object and
+     * adds visuals. Applies any pending role after creation/visual addition.
      *
      * @param playerName The name of the remote player
-     * @param x The x-coordinate
-     * @param y The y-coordinate
+     * @param x          The x-coordinate
+     * @param y          The y-coordinate
      */
     private void createVisualForRemotePlayer(String playerName, int x, int y) {
         logger.info("Creating or updating visual for player: {}", playerName);
@@ -964,13 +992,16 @@ public class Game extends Application {
             Player remotePlayer = otherPlayers.get(playerName);
 
             if (remotePlayer != null) {
-                logger.info("Player {} already exists in map, updating position and ensuring visuals.", playerName);
+                logger.info(
+                    "Player {} already exists in map, updating position and ensuring visuals.",
+                    playerName);
                 remotePlayer.updatePosition(x, y);
 
                 Role pendingRole = pendingRoles.remove(playerName);
                 if (pendingRole != null) {
                     remotePlayer.setRole(pendingRole);
-                    logger.info("Applied pending role {} to existing player {}", pendingRole, playerName);
+                    logger.info("Applied pending role {} to existing player {}", pendingRole,
+                        playerName);
                 }
 
             } else {
@@ -983,10 +1014,13 @@ public class Game extends Application {
                 Role pendingRole = pendingRoles.remove(playerName);
                 if (pendingRole != null) {
                     remotePlayer.setRole(pendingRole);
-                    logger.info("Applied pending role {} to newly created player {}", pendingRole, playerName);
+                    logger.info("Applied pending role {} to newly created player {}", pendingRole,
+                        playerName);
                 } else {
                     if (serverHandler != null && serverHandler.isConnected()) {
-                        logger.info("Requesting roles again as new player {} was created without a pending role.", playerName);
+                        logger.info(
+                            "Requesting roles again as new player {} was created without a pending role.",
+                            playerName);
                         serverHandler.sendMessage("getroles:");
                     }
                 }
@@ -996,6 +1030,7 @@ public class Game extends Application {
 
     /**
      * Calculates the angle of the mouse position relative to the middle of the screen
+     *
      * @return angle in radians
      */
     private double getMouseAngle() {
@@ -1006,19 +1041,19 @@ public class Game extends Application {
     }
 
     /**
-     * Updates the visual elements of the game based on the local player's position.
-     * This includes:
-     * - Updating the fog of war effect around other players
-     * - Clipping special game elements based on visibility
-     * - Updating visual elements for dynamic game objects
+     * Updates the visual elements of the game based on the local player's position. This includes:
+     * - Updating the fog of war effect around other players - Clipping special game elements based
+     * on visibility - Updating visual elements for dynamic game objects
      */
     private void updateVisuals() {
         double centerX;
         double centerY;
 
         if (spectating && spectatingPlayer.getCurrentValue() != null) {
-            centerX = spectatingPlayer.getCurrentValue().getX() + (spectatingPlayer.getCurrentValue().getWidth() / 2.0);
-            centerY = spectatingPlayer.getCurrentValue().getY() + (spectatingPlayer.getCurrentValue().getHeight() / 2.0);
+            centerX = spectatingPlayer.getCurrentValue().getX() + (
+                spectatingPlayer.getCurrentValue().getWidth() / 2.0);
+            centerY = spectatingPlayer.getCurrentValue().getY() + (
+                spectatingPlayer.getCurrentValue().getHeight() / 2.0);
         } else {
             centerX = player.getX() + (player.getWidth() / 2.0);
             centerY = player.getY() + (player.getHeight() / 2.0);
@@ -1030,7 +1065,8 @@ public class Game extends Application {
             Player p = entry.getValue();
             InterpolatedPosition interp = playerPositions.get(name);
             if (interp != null) {
-                double t = Math.min(1.0, (now - interp.lastUpdateTime) / (double)(interp.targetTime - interp.lastUpdateTime));
+                double t = Math.min(1.0, (now - interp.lastUpdateTime) / (double) (interp.targetTime
+                    - interp.lastUpdateTime));
                 double ix = interp.lastX + (interp.targetX - interp.lastX) * t;
                 double iy = interp.lastY + (interp.targetY - interp.lastY) * t;
                 p.updatePosition(ix, iy);
@@ -1042,8 +1078,7 @@ public class Game extends Application {
             if (player.getRole() == Role.GUARD) {
                 visualClip = Camera.getCone(centerX, centerY, 100, getMouseAngle(), false, true);
                 labelClip = Camera.getCone(centerX, centerY, 100, getMouseAngle(), false, true);
-            }
-            else {
+            } else {
                 visualClip = new Circle(centerX, centerY, 100);
                 labelClip = new Circle(centerX, centerY, 100);
             }
@@ -1052,13 +1087,15 @@ public class Game extends Application {
         }
 
         for (Terminal terminal : gameMap.getTerminalList()) {
-            Shape clip = player.getRole() == Role.GUARD ? Camera.getCone(centerX, centerY, 100, getMouseAngle(), false, true)
+            Shape clip = player.getRole() == Role.GUARD ? Camera.getCone(centerX, centerY, 100,
+                getMouseAngle(), false, true)
                 : new Circle(centerX, centerY, 100);
             terminal.setClip(clip);
         }
 
         for (IgoatStation station : gameMap.getStationList()) {
-            Shape clip = player.getRole() == Role.GUARD ? Camera.getCone(centerX, centerY, 100, getMouseAngle(), false, true)
+            Shape clip = player.getRole() == Role.GUARD ? Camera.getCone(centerX, centerY, 100,
+                getMouseAngle(), false, true)
                 : new Circle(centerX, centerY, 100);
             station.setClip(clip);
         }
@@ -1084,13 +1121,9 @@ public class Game extends Application {
     }
 
     /**
-     * Updates the game state based on the elapsed time.
-     * This is the main game loop that handles:
-     * - Player movement based on keyboard input
-     * - Collision detection with walls
-     * - Camera updates
-     * - Position updates to server
-     * - Visual updates
+     * Updates the game state based on the elapsed time. This is the main game loop that handles: -
+     * Player movement based on keyboard input - Collision detection with walls - Camera updates -
+     * Position updates to server - Visual updates
      *
      * @param deltaTime time elapsed since last update in seconds
      */
@@ -1098,7 +1131,9 @@ public class Game extends Application {
         // prevent huge jumps when lagging
         deltaTime = Math.min(deltaTime, 0.4);
 
-        if (player == null || !gameStarted) return;
+        if (player == null || !gameStarted) {
+            return;
+        }
 
         if (!initializedViewport) {
             stage.setFullScreen(SettingsWindow.getInstance().getFullscreen());
@@ -1117,16 +1152,20 @@ public class Game extends Application {
         if (!player.isDown()) {
             SettingsWindow settings = SettingsWindow.getInstance();
 
-            if (activeKeys.contains(settings.getKeyBinding("moveUp")) || activeKeys.contains(KeyCode.UP)) {
+            if (activeKeys.contains(settings.getKeyBinding("moveUp")) || activeKeys.contains(
+                KeyCode.UP)) {
                 direction = direction.add(0, -1);
             }
-            if (activeKeys.contains(settings.getKeyBinding("moveDown")) || activeKeys.contains(KeyCode.DOWN)) {
+            if (activeKeys.contains(settings.getKeyBinding("moveDown")) || activeKeys.contains(
+                KeyCode.DOWN)) {
                 direction = direction.add(0, 1);
             }
-            if (activeKeys.contains(settings.getKeyBinding("moveLeft")) || activeKeys.contains(KeyCode.LEFT)) {
+            if (activeKeys.contains(settings.getKeyBinding("moveLeft")) || activeKeys.contains(
+                KeyCode.LEFT)) {
                 direction = direction.add(-1, 0);
             }
-            if (activeKeys.contains(settings.getKeyBinding("moveRight")) || activeKeys.contains(KeyCode.RIGHT)) {
+            if (activeKeys.contains(settings.getKeyBinding("moveRight")) || activeKeys.contains(
+                KeyCode.RIGHT)) {
                 direction = direction.add(1, 0);
             }
         }
@@ -1134,7 +1173,7 @@ public class Game extends Application {
         if (activeKeys.contains(SettingsWindow.getInstance().getKeyBinding("interact"))) {
             if (!pressedE) {
                 pressedE = true;
-                switch (player.getRole()){
+                switch (player.getRole()) {
                     case Role.GUARD:
                         pressCatch();
                         break;
@@ -1146,8 +1185,7 @@ public class Game extends Application {
                         sound.goat.play();
                 }
             }
-        }
-        else {
+        } else {
             pressedE = false;
         }
 
@@ -1167,7 +1205,7 @@ public class Game extends Application {
         boolean canMoveX = true;
         if (dx != 0) {
             for (Wall wall : gameMap.getCollisionWalls()) {
-                if (player.collidesWithWall((int)potentialX, (int)currentY, wall)) {
+                if (player.collidesWithWall((int) potentialX, (int) currentY, wall)) {
                     canMoveX = false;
                     break;
                 }
@@ -1176,7 +1214,7 @@ public class Game extends Application {
 
         if (dx != 0 && player.getRole() != Role.GOAT) {
             for (Wall wall : gameMap.getWindowCollisions()) {
-                if (player.collidesWithWall((int)potentialX, (int)currentY, wall)) {
+                if (player.collidesWithWall((int) potentialX, (int) currentY, wall)) {
                     canMoveX = false;
                     break;
                 }
@@ -1186,7 +1224,7 @@ public class Game extends Application {
         boolean canMoveY = true;
         if (dy != 0) {
             for (Wall wall : gameMap.getCollisionWalls()) {
-                if (player.collidesWithWall((int)newX, (int)potentialY, wall)) {
+                if (player.collidesWithWall((int) newX, (int) potentialY, wall)) {
                     canMoveY = false;
                     break;
                 }
@@ -1194,7 +1232,7 @@ public class Game extends Application {
         }
         if (dy != 0 && player.getRole() != Role.GOAT) {
             for (Wall wall : gameMap.getWindowCollisions()) {
-                if (player.collidesWithWall((int)newX, (int)potentialY, wall)) {
+                if (player.collidesWithWall((int) newX, (int) potentialY, wall)) {
                     canMoveY = false;
                     break;
                 }
@@ -1222,9 +1260,11 @@ public class Game extends Application {
         if (camera != null) {
             if (spectating) {
                 Player spectating = spectatingPlayer.getCurrentValue();
-                camera.update(spectating.getX() + (spectating.getWidth() / 2.0), spectating.getY() + (spectating.getHeight() / 2.0));
+                camera.update(spectating.getX() + (spectating.getWidth() / 2.0),
+                    spectating.getY() + (spectating.getHeight() / 2.0));
             } else {
-                camera.update(player.getX() + (player.getWidth() / 2.0), player.getY() + (player.getHeight() / 2.0));
+                camera.update(player.getX() + (player.getWidth() / 2.0),
+                    player.getY() + (player.getHeight() / 2.0));
             }
         }
 
@@ -1261,7 +1301,8 @@ public class Game extends Application {
         for (Player target : otherPlayers.values()) {
             double tx = target.getX() + (target.getWidth() / 2.0);
             double ty = target.getY() + (target.getHeight() / 2.0);
-            if (target.isDown() && target.getRole() == Role.IGOAT && sqrt(pow(tx - x, 2) + pow(ty - y, 2)) < 40.0) {
+            if (target.isDown() && target.getRole() == Role.IGOAT
+                && sqrt(pow(tx - x, 2) + pow(ty - y, 2)) < 40.0) {
                 serverHandler.sendMessage("revive:" + target.getUsername());
                 return;
             }
@@ -1288,7 +1329,8 @@ public class Game extends Application {
     }
 
     /**
-     * Sends checks if the player is in range of a terminal to activate. If so, then a message is sent to the server
+     * Sends checks if the player is in range of a terminal to activate. If so, then a message is
+     * sent to the server
      */
     private void pressTerminal() {
         double x = player.getX() + (player.getWidth() / 2.0);
@@ -1306,6 +1348,7 @@ public class Game extends Application {
 
     /**
      * Activates a terminal and displays a banner or shows error banner otherwise
+     *
      * @param id The ID of the terminal
      */
     private void activateTerminal(int id) {
@@ -1322,26 +1365,24 @@ public class Game extends Application {
         for (Terminal terminal : gameMap.getTerminalList()) {
             if (terminal.getTerminalID() == id) {
                 terminal.activate();
-                sound.terminal.play(terminal.getX(), terminal.getY(), player.getX(), player.getY(), 300);
+                sound.terminal.play(terminal.getX(), terminal.getY(), player.getX(), player.getY(),
+                    300);
                 return;
             }
         }
     }
 
     /**
-     * Sends the local player's current position to the server via UDP.
-     * The update includes:
-     * - Player's nickname
-     * - Current lobby code
-     * - X and Y coordinates
-     *
-     * This is called periodically during the game loop when the player moves
-     * or when the position update interval has elapsed.
+     * Sends the local player's current position to the server via UDP. The update includes: -
+     * Player's nickname - Current lobby code - X and Y coordinates
+     * <p>
+     * This is called periodically during the game loop when the player moves or when the position
+     * update interval has elapsed.
      */
     private void sendPlayerPositionUpdate() {
         if (serverHandler != null && serverHandler.isConnected() && player != null) {
-            int x = (int)player.getX();
-            int y = (int)player.getY();
+            int x = (int) player.getX();
+            int y = (int) player.getY();
 
             String confirmedNickname = serverHandler.getConfirmedNickname();
             if (confirmedNickname == null) {
@@ -1349,7 +1390,8 @@ public class Game extends Application {
                 return;
             }
 
-            String updateMessage = String.format("position:%s:%s:%d:%d", confirmedNickname, lobbyCode, x, y);
+            String updateMessage = String.format("position:%s:%s:%d:%d", confirmedNickname,
+                lobbyCode, x, y);
             serverHandler.sendUpdate(updateMessage);
         }
     }
@@ -1365,7 +1407,9 @@ public class Game extends Application {
      * Initializes the chat UI components with proper styling and positioning
      */
     private void initializeChatUI() {
-        if (stage == null) return;
+        if (stage == null) {
+            return;
+        }
         Scene gameScene = stage.getScene();
         if (gameScene == null) {
             logger.error("Cannot initialize chat UI: Scene is null.");
@@ -1411,7 +1455,8 @@ public class Game extends Application {
         chatFlow.getStylesheets().add(style);
 
         chatScrollPane = new ScrollPane(chatFlow);
-        chatScrollPane.setStyle("-fx-background: rgba(0, 0, 0, 0); -fx-background-color: rgba(0, 0, 0, 0.3); -fx-padding: 0;");
+        chatScrollPane.setStyle(
+            "-fx-background: rgba(0, 0, 0, 0); -fx-background-color: rgba(0, 0, 0, 0.3); -fx-padding: 0;");
         chatScrollPane.getStylesheets().add(style);
         chatScrollPane.setFitToWidth(true);
         chatScrollPane.setPrefViewportHeight(250);
@@ -1425,7 +1470,8 @@ public class Game extends Application {
         chatInput.setPromptText(lang.get("game.chatPrompt"));
         chatInput.setPrefRowCount(1);
         chatInput.setWrapText(true);
-        chatInput.setStyle("-fx-control-inner-background: rgba(0, 0, 0, 0.3); -fx-text-fill: white;");
+        chatInput.setStyle(
+            "-fx-control-inner-background: rgba(0, 0, 0, 0.3); -fx-text-fill: white;");
         chatInput.getStylesheets().add(style);
         chatInput.setFont(new Font("Jersey 10", 16));
         chatInput.setMaxHeight(30);
@@ -1455,7 +1501,8 @@ public class Game extends Application {
         uiOverlay.getChildren().add(chatBox);
 
         gameScene.setOnKeyPressed(event -> {
-            if (event.getCode() == SettingsWindow.getInstance().getKeyBinding("chat") && !chatInput.isFocused()) {
+            if (event.getCode() == SettingsWindow.getInstance().getKeyBinding("chat")
+                && !chatInput.isFocused()) {
                 event.consume();
 
                 chatFadeOutTransition.stop();
@@ -1486,11 +1533,13 @@ public class Game extends Application {
                 } else {
                     logger.info("switch to spectator");
                     spectating = true;
-                    while(spectatingPlayer.getCurrentValue() == null) {
+                    while (spectatingPlayer.getCurrentValue() == null) {
                         spectatingPlayer.nextValue();
                     }
                 }
-            } else if (activeKeys.contains(SettingsWindow.getInstance().getKeyBinding("exitSpectator")) && spectating) {
+            } else if (
+                activeKeys.contains(SettingsWindow.getInstance().getKeyBinding("exitSpectator"))
+                    && spectating) {
                 spectating = false;
             }
         });
@@ -1523,14 +1572,14 @@ public class Game extends Application {
     }
 
     /**
-     * Adds a chat message to the chat flow.
-     * Makes the chat box appear instantly without starting the hide timer.
-     * Handles different message types including regular chat, whispers (sent/received).
+     * Adds a chat message to the chat flow. Makes the chat box appear instantly without starting
+     * the hide timer. Handles different message types including regular chat, whispers
+     * (sent/received).
      *
-     * @param sender The sender of the message ("You" for sent whispers).
+     * @param sender    The sender of the message ("You" for sent whispers).
      * @param recipient The recipient of the message ("Target" for sent whispers, null otherwise).
-     * @param message The message content.
-     * @param mode The chat mode (GLOBAL, LOBBY) or null for whispers.
+     * @param message   The message content.
+     * @param mode      The chat mode (GLOBAL, LOBBY) or null for whispers.
      */
     private void addChatMessage(String sender, String recipient, String message, ChatMode mode) {
         final String timeString = String.format("[%02d:%02d] ",
@@ -1624,7 +1673,9 @@ public class Game extends Application {
             return;
         }
 
-        String localSender = serverHandler.getConfirmedNickname() != null ? serverHandler.getConfirmedNickname() : this.username;
+        String localSender =
+            serverHandler.getConfirmedNickname() != null ? serverHandler.getConfirmedNickname()
+                : this.username;
 
         if (text.toLowerCase().startsWith("/whisper ")) {
             String[] parts = text.split(" ", 3);
@@ -1668,28 +1719,29 @@ public class Game extends Application {
      * Cycles through the available chat modes (GLOBAL -> LOBBY)
      */
     private void cycleChatMode() {
-        currentChatMode = ChatMode.values()[(currentChatMode.ordinal() + 1) % ChatMode.values().length];
+        currentChatMode = ChatMode.values()[(currentChatMode.ordinal() + 1)
+            % ChatMode.values().length];
         String modeName = currentChatMode.getDisplayName();
         chatInput.setPromptText(modeName + lang.get("game.chatPrompt"));
         chatModeIndicator.setText(modeName);
     }
 
     /**
-     * The main entry point for launching the Game application *directly*.
-     * This is generally NOT used; Game should be launched via LobbyGUI.
-     * Kept for potential testing purposes.
+     * The main entry point for launching the Game application *directly*. This is generally NOT
+     * used; Game should be launched via LobbyGUI. Kept for potential testing purposes.
      *
      * @param args Command line arguments (not used)
      */
     public static void main(String[] args) {
-        logger.warn("Warning: Launching Game directly via main() requires manual initialization setup.");
+        logger.warn(
+            "Warning: Launching Game directly via main() requires manual initialization setup.");
         launch(args);
     }
 
     @Override
     public void stop() {
-                    if (serverHandler != null) {
-                serverHandler.close();
+        if (serverHandler != null) {
+            serverHandler.close();
         }
         sound.stopAll();
     }

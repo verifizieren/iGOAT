@@ -1,10 +1,14 @@
 package igoat.client;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 /**
  * Helper class to cycle through the player hashmap in a consistent order
  */
 public class HashMapCycler<K, V> {
+
     private final LinkedHashMap<K, V> map;
     private K currentKey = null;
 
