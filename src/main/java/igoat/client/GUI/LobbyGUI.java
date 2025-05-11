@@ -223,14 +223,6 @@ public class LobbyGUI {
 
         toggleChatButton = new SoundButton(lang.get("lobby.switchLobby"));
 
-        SoundButton controllerToggleButton = new SoundButton(lang.get("lobby.toggleController"));
-        controllerToggleButton.setOnAction(e -> {
-            SettingsWindow settings = SettingsWindow.getInstance();
-            settings.setUseController(!settings.getUseController());
-            appendToMessageArea(settings.getUseController() ? lang.get("lobby.controllerEnabled") : lang.get("lobby.controllerDisabled"));
-        });
-        controllerToggleButton.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white;");
-
         setupChatEvents();
         VBox buttonBox = setupButtonActions();
 
@@ -238,7 +230,7 @@ public class LobbyGUI {
         rightPanel.setAlignment(Pos.TOP_CENTER);
         rightPanel.setPadding(new Insets(10));
         rightPanel.getChildren().addAll(
-            buttonBox, chatModeLabel, messageArea, chatInput, sendButton, toggleChatButton, controllerToggleButton
+            buttonBox, chatModeLabel, messageArea, chatInput, sendButton, toggleChatButton
         );
 
         return rightPanel;
