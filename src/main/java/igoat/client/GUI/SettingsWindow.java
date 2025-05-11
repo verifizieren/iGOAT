@@ -16,8 +16,6 @@ import javafx.stage.Popup;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.java.games.input.Controller;
-import net.java.games.input.ControllerEnvironment;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -51,26 +49,17 @@ public class SettingsWindow {
     private boolean fullscreen = false;
     
     private final SortedMap<String, KeyCode> keyBindings;
-    private final SortedMap<String, String> controllerBindings;
-    
+
     private static final SortedMap<String, KeyCode> DEFAULT_KEY_BINDINGS;
-    private static final SortedMap<String, String> DEFAULT_CONTROLLER_BINDINGS;
 
     public static String lastIP;
     public static int lastPort;
-    
-    private boolean useController = true;
-    
-    private String selectedController = null;
-    private ChoiceBox<String> controllerSelector = new ChoiceBox<>();
 
     public static final Map<String, Locale> AVAILABLE_LANGUAGES = Map.of(
         "English", Locale.ENGLISH,
         "Deutsch", Locale.GERMAN,
         "Português", new Locale("pt", "BR")
     );
-
-    private boolean isControllerSupportAvailable = false;
 
     static {
         DEFAULT_KEY_BINDINGS = new TreeMap<>();
@@ -83,23 +72,11 @@ public class SettingsWindow {
         DEFAULT_KEY_BINDINGS.put("settings", KeyCode.ESCAPE);
         DEFAULT_KEY_BINDINGS.put("cycleSpectator", KeyCode.TAB);
         DEFAULT_KEY_BINDINGS.put("exitSpectator", KeyCode.SPACE);
-        
-        DEFAULT_CONTROLLER_BINDINGS = new TreeMap<>();
-        DEFAULT_CONTROLLER_BINDINGS.put("moveUp", "DPad Up");
-        DEFAULT_CONTROLLER_BINDINGS.put("moveDown", "DPad Down");
-        DEFAULT_CONTROLLER_BINDINGS.put("moveLeft", "DPad Left");
-        DEFAULT_CONTROLLER_BINDINGS.put("moveRight", "DPad Right");
-        DEFAULT_CONTROLLER_BINDINGS.put("interact", "Button A");
-        DEFAULT_CONTROLLER_BINDINGS.put("chat", "Button Y");
-        DEFAULT_CONTROLLER_BINDINGS.put("settings", "Start");
     }
 
     private SettingsWindow() {
         keyBindings = new TreeMap<>();
         keyBindings.putAll(DEFAULT_KEY_BINDINGS);
-        
-        controllerBindings = new TreeMap<>();
-        controllerBindings.putAll(DEFAULT_CONTROLLER_BINDINGS);
         
         volumeSlider = new Slider(0, 100, SoundManager.getInstance().getVolume() * 100.0);
         volumeSlider.getStylesheets().add(sliderStyle);
@@ -126,13 +103,7 @@ public class SettingsWindow {
         keyboardScrollPane.setPrefViewportHeight(300);
         keyboardTab.setContent(keyboardScrollPane);
         
-        Tab controllerTab = new Tab("Controller");
-        ScrollPane controllerScrollPane = new ScrollPane(createControllerBindingsPane());
-        controllerScrollPane.setFitToWidth(true);
-        controllerScrollPane.setPrefViewportHeight(300);
-        controllerTab.setContent(controllerScrollPane);
-        
-        tabPane.getTabs().addAll(generalTab, keyboardTab, controllerTab);
+        tabPane.getTabs().addAll(generalTab, keyboardTab);
         
         VBox mainLayout = new VBox(10);
         mainLayout.setPadding(new Insets(10));
@@ -258,81 +229,6 @@ public class SettingsWindow {
     }
     
     /**
-     * Creates the controller bindings pane with controller binding controls
-     */
-    private GridPane createControllerBindingsPane() {
-        GridPane pane = new GridPane();
-        pane.setPadding(new Insets(10));
-        pane.setVgap(10);
-        pane.setHgap(10);
-
-        try {
-            Controller[] controllers = ControllerEnvironment.getDefaultEnvironment().getControllers();
-            isControllerSupportAvailable = true;
-        } catch (UnsatisfiedLinkError | Exception e) {
-            logger.warn("Controller support not available: " + e.getMessage());
-            isControllerSupportAvailable = false;
-        }
-
-        CheckBox useControllerCheckbox = new CheckBox(lang.get("settings.useController"));
-        useControllerCheckbox.setSelected(useController && isControllerSupportAvailable);
-        useControllerCheckbox.setDisable(!isControllerSupportAvailable);
-        useControllerCheckbox.setOnAction(e -> {
-            useController = useControllerCheckbox.isSelected();
-            saveSettings();
-        });
-        pane.add(useControllerCheckbox, 0, 0, 2, 1);
-
-        Label controllerLabel = new Label(lang.get("settings.selectController"));
-        controllerSelector = new ChoiceBox<>();
-        controllerSelector.getItems().add("None");
-        controllerSelector.setDisable(!isControllerSupportAvailable);
-        
-        if (isControllerSupportAvailable) {
-            try {
-                Controller[] controllers = ControllerEnvironment.getDefaultEnvironment().getControllers();
-                for (Controller c : controllers) {
-                    if (c.getType() == Controller.Type.GAMEPAD) {
-                        controllerSelector.getItems().add(c.getName());
-                    }
-                }
-            } catch (Exception e) {
-                logger.error("Failed to enumerate controllers", e);
-            }
-        }
-        
-        controllerSelector.setValue(selectedController != null ? selectedController : "None");
-        
-        controllerSelector.setOnAction(e -> {
-            String selected = controllerSelector.getValue();
-            selectedController = "None".equals(selected) ? null : selected;
-            saveSettings();
-        });
-        
-        pane.add(controllerLabel, 0, 1);
-        pane.add(controllerSelector, 1, 1);
-
-        String instructionsText;
-        if (isControllerSupportAvailable) {
-            instructionsText = "Controls:\n" +
-                "A or X Button - Interact\n" +
-                "Left Stick/D-Pad - Movement\n" +
-                "Right Stick - Flashlight Control (Guard only)";
-        } else {
-            instructionsText = "Controller support is not available.\n" +
-                "This might be because the required native libraries\n" +
-                "(jinput-dx8_64.dll, jinput-raw_64.dll) are missing.\n" +
-                "Please check the game documentation for installation instructions.";
-        }
-
-        Label instructionsLabel = new Label(instructionsText);
-        instructionsLabel.setStyle("-fx-font-family: monospace;");
-        pane.add(instructionsLabel, 0, 2, 2, 1);
-
-        return pane;
-    }
-    
-    /**
      * Formats an action name for display (e.g., "moveUp" -> "Move Up")
      */
     private String formatActionName(String action) {
@@ -363,9 +259,7 @@ public class SettingsWindow {
         if (Files.exists(Paths.get(CONFIG_FILENAME))) {
             try {
                 properties.load(new FileInputStream(CONFIG_FILENAME));
-                
-                useController = Boolean.parseBoolean(properties.getProperty("useController", "true"));
-                selectedController = properties.getProperty("selectedController");
+
                 String language = properties.getProperty("language", String.valueOf(languageChoice.getValue()));
                 languageChoice.setValue(language == null ? "English" : language);
                 
@@ -381,12 +275,6 @@ public class SettingsWindow {
                     } else {
                         keyBindings.put(key, DEFAULT_KEY_BINDINGS.get(key));
                     }
-                }
-                
-                controllerBindings.clear();
-                for (String key : DEFAULT_CONTROLLER_BINDINGS.keySet()) {
-                    String value = properties.getProperty("controller." + key);
-                    controllerBindings.put(key, value != null ? value : DEFAULT_CONTROLLER_BINDINGS.get(key));
                 }
                 
                 volume = Double.parseDouble(properties.getProperty("volume", String.valueOf(volume)));
@@ -410,11 +298,7 @@ public class SettingsWindow {
         
         props.setProperty("volume", String.valueOf(volume));
         props.setProperty("fullscreen", String.valueOf(fullscreen));
-        props.setProperty("useController", String.valueOf(useController));
-        
-        if (selectedController != null && !selectedController.equals("None")) {
-            props.setProperty("selectedController", selectedController);
-        }
+
         props.setProperty("language", languageChoice.getValue() == null ? "English" : languageChoice.getValue());
         
         for (Map.Entry<String, KeyCode> entry : keyBindings.entrySet()) {
@@ -449,13 +333,6 @@ public class SettingsWindow {
      */
     public KeyCode getKeyBinding(String action) {
         return keyBindings.getOrDefault(action, DEFAULT_KEY_BINDINGS.get(action));
-    }
-    
-    /**
-     * Gets the controller binding for a specific action
-     */
-    public String getControllerBinding(String action) {
-        return controllerBindings.getOrDefault(action, DEFAULT_CONTROLLER_BINDINGS.get(action));
     }
     
     /**
@@ -500,59 +377,9 @@ public class SettingsWindow {
         return fullscreen;
     }
 
-    public boolean getUseController() {
-        return useController;
-    }
-
-    public void setUseController(boolean useController) {
-        this.useController = useController;
-    }
-
-    /**
-     * Updates the available controllers list
-     */
-    private void updateAvailableControllers() {
-        if (!isControllerSupportAvailable || controllerSelector == null) return;
-
-        controllerSelector.getItems().clear();
-        controllerSelector.getItems().add("None");
-        
-        try {
-            Controller[] controllers = ControllerEnvironment.getDefaultEnvironment().getControllers();
-            for (Controller controller : controllers) {
-                if (controller.getType() == Controller.Type.GAMEPAD || 
-                    controller.getType() == Controller.Type.STICK) {
-                    controllerSelector.getItems().add(controller.getName());
-                }
-            }
-        } catch (Exception e) {
-            logger.error("Failed to update controller list", e);
-        }
-        
-        if (selectedController == null || !controllerSelector.getItems().contains(selectedController)) {
-            controllerSelector.setValue("None");
-        }
-    }
-
-    public String getSelectedController() {
-        return selectedController;
-    }
-
-    public void setSelectedController(String controller) {
-        this.selectedController = controller;
-        if (controllerSelector != null) {
-            controllerSelector.setValue(controller);
-        }
-        saveSettings();
-    }
-
     private void resetToDefaults() {
         keyBindings.clear();
-        keyBindings.putAll(DEFAULT_KEY_BINDINGS);
-        controllerBindings.clear();
-        controllerBindings.putAll(DEFAULT_CONTROLLER_BINDINGS);
-        useController = true;
-        selectedController = null;
+        keyBindings.putAll(DEFAULT_KEY_BINDINGS);;
         volume = SoundManager.getInstance().getVolume();
         fullscreen = false;
         saveSettings();

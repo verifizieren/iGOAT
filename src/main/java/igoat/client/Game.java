@@ -62,9 +62,6 @@ import javafx.scene.text.TextFlow;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import igoat.client.GameControllerInput;
-import net.java.games.input.Controller;
-import net.java.games.input.ControllerEnvironment;
 
 /**
  * Main game class that handles the core game logic, rendering, and networking.
@@ -96,7 +93,7 @@ public class Game extends Application {
     private long lastPositionUpdate = 0;
     private static final long POSITION_UPDATE_INTERVAL = 100;
     private final SoundManager sound = SoundManager.getInstance();
-    
+
     private Player player;
     private igoat.client.Map gameMap;
     private Camera camera;
@@ -106,9 +103,9 @@ public class Game extends Application {
     private String username;
     private Timer timer = new Timer();
     private String time = "";
-    
+
     private boolean gameStarted = false;
-    
+
     private final LinkedHashMap<String, Player> otherPlayers = new LinkedHashMap<>();
     private final HashMapCycler<String, Player> spectatingPlayer = new HashMapCycler<>(otherPlayers);
     private final Map<String, Role> pendingRoles = new ConcurrentHashMap<>();
@@ -132,8 +129,6 @@ public class Game extends Application {
     }
     private final Map<String, InterpolatedPosition> playerPositions = new ConcurrentHashMap<>();
 
-    private GameControllerInput controllerInput;
-
     /**
      * Enum for defining the chat modes available in the game.
      * This enum provides a way to manage different chat modes within the game. It includes three modes:
@@ -148,7 +143,7 @@ public class Game extends Application {
 
         /**
          * Constructor for ChatMode.
-         * 
+         *
          * @param displayName The display name of the chat mode.
          */
         ChatMode(String displayName) {
@@ -157,7 +152,7 @@ public class Game extends Application {
 
         /**
          * Returns the display name of the chat mode.
-         * 
+         *
          * @return The display name of the chat mode.
          */
         public String getDisplayName() {
@@ -217,27 +212,6 @@ public class Game extends Application {
                 logger.error("Cannot initialize - confirmed nickname is null");
             }
         });
-
-        controllerInput = new GameControllerInput(selectController());
-    }
-
-    /**
-     * Selects the appropriate controller for input.
-     * 
-     * @return The selected controller, or null if no matching controller is found
-     */ 
-    private Controller selectController() {
-        ControllerEnvironment env = ControllerEnvironment.getDefaultEnvironment();
-        Controller[] controllers = env.getControllers();
-        for (Controller c : controllers) {
-            String name = c.getName().toLowerCase();  
-            if (name.contains("controller") || name.contains("dualshock")) {
-                System.out.println("Auto-selected controller: " + c.getName());
-                return c;  
-            }
-        }
-        System.out.println("No matching controller found, using default or none");
-        return null;  
     }
 
     /**
@@ -274,7 +248,7 @@ public class Game extends Application {
 
         // Request role assignment from server
         serverHandler.sendMessage("ready:");
-        
+
         gameMap = new igoat.client.Map(false);
         gamePane = new Pane();
         gamePane.setMinSize(gameMap.getWidth(), gameMap.getHeight());
@@ -289,9 +263,9 @@ public class Game extends Application {
         Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
         double screenWidth = screenBounds.getWidth() * 0.8;
         double screenHeight = screenBounds.getHeight() * 0.8;
-        
+
         double mapAspectRatio = (double)gameMap.getWidth() / gameMap.getHeight();
-        
+
         if (screenWidth / screenHeight > mapAspectRatio) {
             windowHeight = screenHeight;
             windowWidth = screenHeight * mapAspectRatio;
@@ -299,7 +273,7 @@ public class Game extends Application {
             windowWidth = screenWidth;
             windowHeight = screenWidth / mapAspectRatio;
         }
-        
+
         stage.setWidth(windowWidth);
         stage.setHeight(windowHeight);
         stage.setFullScreenExitHint("");
@@ -331,10 +305,10 @@ public class Game extends Application {
             mouseY = event.getSceneY();
             updateVisuals();
         });
-        
+
         String windowTitle = "iGoat - " + lang.get("game.lobby") + " " + lobbyCode + " - " + lang.get("hs.player") + ": " + confirmedNickname;
         primaryStage.setTitle(windowTitle);
-        
+
         primaryStage.setScene(scene);
 
         primaryStage.show();
@@ -358,30 +332,30 @@ public class Game extends Application {
         player = new Player(gamePane, initialX, initialY, confirmedNickname);
 
         camera = new Camera(gamePane, primaryStage.getWidth(), primaryStage.getHeight(), CAMERA_ZOOM, true);
-        
+
         scene.widthProperty().addListener((obs, oldVal, newVal) -> {
             camera.updateViewport(newVal.doubleValue(), scene.getHeight());
             windowWidth = newVal.doubleValue();
             updateVisuals();
         });
-        
+
         scene.heightProperty().addListener((obs, oldVal, newVal) -> {
             camera.updateViewport(scene.getWidth(), newVal.doubleValue());
             windowHeight = newVal.doubleValue();
             updateVisuals();
         });
-        
+
         primaryStage.fullScreenProperty().addListener((obs, oldVal, newVal) -> {
             Platform.runLater(() -> {
                 camera.updateViewport(scene.getWidth(), scene.getHeight());
             });
         });
-        
+
         activeKeys = new HashSet<>();
-        
+
         gamePane.setFocusTraversable(true);
         gamePane.requestFocus();
-        
+
         lastUpdate = System.nanoTime();
         AnimationTimer mainLoop = new AnimationTimer() {
             @Override
@@ -438,7 +412,7 @@ public class Game extends Application {
             alert.showAndWait();
         });
     }
-    
+
     /**
      * Starts a background thread that processes TCP messages from the server.
      * Handles game state updates, chat messages, and player events.
@@ -460,15 +434,15 @@ public class Game extends Application {
                     logger.error("Message processor interrupted.");
                     break;
                 } catch (Exception e) {
-                     logger.error("Error in message processor", e);
-                     break;
-                 }
+                    logger.error("Error in message processor", e);
+                    break;
+                }
             }
         });
         messageProcessor.setDaemon(true);
         messageProcessor.start();
     }
-    
+
     /**
      * Processes TCP messages received from the server.
      * Handles various message types including:
@@ -502,29 +476,29 @@ public class Game extends Application {
         }
 
         BiFunction<String, String, String[]> parseSenderAndContent = (prefix, msg) -> {
-            String data = msg.substring(prefix.length()); 
+            String data = msg.substring(prefix.length());
 
             if (data.startsWith("[") && data.contains("] ")) {
                 int closingBracketIndex = data.indexOf("] ");
-                if (closingBracketIndex > 1) { 
+                if (closingBracketIndex > 1) {
                     String sender = data.substring(1, closingBracketIndex);
                     String content = data.substring(closingBracketIndex + 2);
                     return new String[]{sender, content};
                 }
             }
-            
+
             String[] parts = data.split(":", 2);
             if (parts.length == 2) return parts;
-            
+
             int firstSpaceIndex = data.indexOf(' ');
             if (firstSpaceIndex != -1) {
-                 String sender = data.substring(0, firstSpaceIndex);
-                 String content = data.substring(firstSpaceIndex + 1);
-                 return new String[]{sender, content};
+                String sender = data.substring(0, firstSpaceIndex);
+                String content = data.substring(firstSpaceIndex + 1);
+                return new String[]{sender, content};
             }
-            
+
             logger.warn("Could not parse sender from message using known patterns: {}", msg);
-            return new String[]{ "System", data }; 
+            return new String[]{ "System", data };
         };
 
         if (message.startsWith("error:")) {
@@ -647,7 +621,7 @@ public class Game extends Application {
                             }
                         });
                     } catch (IllegalArgumentException e) {
-                         logger.error("Invalid role value in message: {}", message);
+                        logger.error("Invalid role value in message: {}", message);
                     }
                 } else {
                     logger.error("Invalid role message format: {}", message);
@@ -712,12 +686,12 @@ public class Game extends Application {
                     endGame(parts[1].equals("true"));
                 }
             } else if (mode != null) {
-                 String[] parsed = parseSenderAndContent.apply(prefixString, message);
-                 String sender = parsed[0];
-                 String content = parsed[1];
-                 addChatMessage(sender, null, content, mode);
+                String[] parsed = parseSenderAndContent.apply(prefixString, message);
+                String sender = parsed[0];
+                String content = parsed[1];
+                addChatMessage(sender, null, content, mode);
             } else {
-                 logger.warn("Received message with unknown prefix or format: {}", message);
+                logger.warn("Received message with unknown prefix or format: {}", message);
             }
             return;
         }
@@ -729,8 +703,8 @@ public class Game extends Application {
         String localNickname = serverHandler.getConfirmedNickname();
 
         if (localNickname != null && localNickname.equals(sender)) {
-             logger.debug("Ignoring echo of own message from sender: {}", sender);
-            return; 
+            logger.debug("Ignoring echo of own message from sender: {}", sender);
+            return;
         }
 
         final String whisperMarkerStart = "[WHISPER->";
@@ -786,7 +760,7 @@ public class Game extends Application {
         boolean isGuard = player.getRole() == Role.GUARD;
         boolean localWon = (isGuard && guardWon) || (!isGuard && !guardWon);
 
-        String message = localWon ? lang.get("game.winMSG") : lang.get("game.lostMSG");
+        String message = localWon ? "🎉 " + lang.get("game.winMSG") + " 🎉" : "💀 " + lang.get("game.lostMSG") + " 💀";
         Color color = localWon ? Color.GREEN : Color.RED;
 
         Platform.runLater(() -> {
@@ -877,7 +851,7 @@ public class Game extends Application {
         if (serverHandler == null) return;
 
         sendPlayerPositionUpdate();
-        
+
         Thread updateProcessor = new Thread(() -> {
             while (gameStarted && serverHandler.isConnected()) {
                 try {
@@ -897,7 +871,7 @@ public class Game extends Application {
         updateProcessor.setDaemon(true);
         updateProcessor.start();
     }
-    
+
     /**
      * Processes UDP updates received from the server.
      *
@@ -971,7 +945,7 @@ public class Game extends Application {
             createVisualForRemotePlayer(playerName, x, y);
         }
     }
-    
+
     /**
      * Creates a visual representation for a remote player.
      * If the player object already exists (placeholder from role message), adds visuals.
@@ -1011,8 +985,8 @@ public class Game extends Application {
                     logger.info("Applied pending role {} to newly created player {}", pendingRole, playerName);
                 } else {
                     if (serverHandler != null && serverHandler.isConnected()) {
-                         logger.info("Requesting roles again as new player {} was created without a pending role.", playerName);
-                         serverHandler.sendMessage("getroles:");
+                        logger.info("Requesting roles again as new player {} was created without a pending role.", playerName);
+                        serverHandler.sendMessage("getroles:");
                     }
                 }
             }
@@ -1028,38 +1002,6 @@ public class Game extends Application {
         double y = mouseY - (windowHeight / 2.0);
 
         return Math.atan2(y, x);
-    }
-
-    /**
-     * Calculates the angle of the right stick on the controller
-     * @return angle in radians, or null if stick is in deadzone
-     */
-    private Double getControllerRightStickAngle() {
-        if (controllerInput == null) return null;
-        
-        float rx = controllerInput.getRightStickX();
-        float ry = controllerInput.getRightStickY();
-        
-        double magnitude = Math.sqrt(rx * rx + ry * ry);
-        if (magnitude < 0.15) { 
-            return null;
-        }
-        
-        return Math.atan2(ry, rx);
-    }
-
-    /**
-     * Calculates the angle for vision/flashlight direction
-     * Uses controller right stick if available and outside deadzone,
-     * otherwise falls back to mouse position
-     * @return angle in radians
-     */
-    private double getVisionAngle() {
-        Double controllerAngle = getControllerRightStickAngle();
-        if (controllerAngle != null) {
-            return controllerAngle;
-        }
-        return getMouseAngle();
     }
 
     /**
@@ -1097,8 +1039,8 @@ public class Game extends Application {
             Shape visualClip;
             Shape labelClip;
             if (player.getRole() == Role.GUARD) {
-                visualClip = Camera.getCone(centerX, centerY, 100, getVisionAngle(), false, true);
-                labelClip = Camera.getCone(centerX, centerY, 100, getVisionAngle(), false, true);
+                visualClip = Camera.getCone(centerX, centerY, 100, getMouseAngle(), false, true);
+                labelClip = Camera.getCone(centerX, centerY, 100, getMouseAngle(), false, true);
             }
             else {
                 visualClip = new Circle(centerX, centerY, 100);
@@ -1109,19 +1051,19 @@ public class Game extends Application {
         }
 
         for (Terminal terminal : gameMap.getTerminalList()) {
-            Shape clip = player.getRole() == Role.GUARD ? Camera.getCone(centerX, centerY, 100, getVisionAngle(), false, true)
+            Shape clip = player.getRole() == Role.GUARD ? Camera.getCone(centerX, centerY, 100, getMouseAngle(), false, true)
                 : new Circle(centerX, centerY, 100);
             terminal.setClip(clip);
         }
 
         for (IgoatStation station : gameMap.getStationList()) {
-            Shape clip = player.getRole() == Role.GUARD ? Camera.getCone(centerX, centerY, 100, getVisionAngle(), false, true)
+            Shape clip = player.getRole() == Role.GUARD ? Camera.getCone(centerX, centerY, 100, getMouseAngle(), false, true)
                 : new Circle(centerX, centerY, 100);
             station.setClip(clip);
         }
 
         if (player.getRole() == Role.GUARD) {
-            camera.updateCone(getVisionAngle());
+            camera.updateCone(getMouseAngle());
         }
     }
 
@@ -1136,7 +1078,7 @@ public class Game extends Application {
             logger.info("Ignoring removal of ourselves");
             return;
         }
-        
+
         otherPlayers.get(remotePlayerName).setIdle();
     }
 
@@ -1169,11 +1111,11 @@ public class Game extends Application {
         double newY = currentY;
 
         Point2D direction = new Point2D(0, 0);
-        
+
         // Only process movement if player is not down
         if (!player.isDown()) {
             SettingsWindow settings = SettingsWindow.getInstance();
-            
+
             if (activeKeys.contains(settings.getKeyBinding("moveUp")) || activeKeys.contains(KeyCode.UP)) {
                 direction = direction.add(0, -1);
             }
@@ -1187,17 +1129,11 @@ public class Game extends Application {
                 direction = direction.add(1, 0);
             }
         }
-        
-        boolean keyboardInteract = activeKeys.contains(SettingsWindow.getInstance().getKeyBinding("interact"));
-        boolean controllerInteract = false;
-        if (controllerInput != null) {
-            controllerInteract = controllerInput.isButtonPressed("3");
-        }
 
-        if (keyboardInteract || controllerInteract) {
+        if (activeKeys.contains(SettingsWindow.getInstance().getKeyBinding("interact"))) {
             if (!pressedE) {
                 pressedE = true;
-                switch (player.getRole()) {
+                switch (player.getRole()){
                     case Role.GUARD:
                         pressCatch();
                         break;
@@ -1209,33 +1145,18 @@ public class Game extends Application {
                         sound.goat.play();
                 }
             }
-        } else {
+        }
+        else {
             pressedE = false;
         }
 
         double slow_factor = player.getRole() == Role.GUARD ? 1 : 0.75;
 
-        Point2D controllerDirection = new Point2D(0, 0);
-        if (controllerInput != null) {
-            controllerInput.update(); 
-            SettingsWindow settings = SettingsWindow.getInstance();
-            String moveUpBinding = settings.getControllerBinding("moveUp");
-            String moveDownBinding = settings.getControllerBinding("moveDown");
-            String moveLeftBinding = settings.getControllerBinding("moveLeft");
-            String moveRightBinding = settings.getControllerBinding("moveRight");
-            
-            if (moveUpBinding != null && isControllerButtonPressed(moveUpBinding)) controllerDirection = controllerDirection.add(0, -1);
-            if (moveDownBinding != null && isControllerButtonPressed(moveDownBinding)) controllerDirection = controllerDirection.add(0, 1);
-            if (moveLeftBinding != null && isControllerButtonPressed(moveLeftBinding)) controllerDirection = controllerDirection.add(-1, 0);
-            if (moveRightBinding != null && isControllerButtonPressed(moveRightBinding)) controllerDirection = controllerDirection.add(1, 0);
-        }
-        
-        direction = direction.add(controllerDirection);
         if (!direction.equals(Point2D.ZERO)) {
             direction = direction.normalize();
             direction = direction.multiply(MOVEMENT_SPEED * deltaTime * slow_factor);
         }
-        
+
         double dx = direction.getX();
         double dy = direction.getY();
 
@@ -1412,7 +1333,7 @@ public class Game extends Application {
      * - Player's nickname
      * - Current lobby code
      * - X and Y coordinates
-     * 
+     *
      * This is called periodically during the game loop when the player moves
      * or when the position update interval has elapsed.
      */
@@ -1420,18 +1341,18 @@ public class Game extends Application {
         if (serverHandler != null && serverHandler.isConnected() && player != null) {
             int x = (int)player.getX();
             int y = (int)player.getY();
-            
+
             String confirmedNickname = serverHandler.getConfirmedNickname();
             if (confirmedNickname == null) {
                 logger.error("Cannot send position update - confirmed nickname is null");
                 return;
             }
-            
+
             String updateMessage = String.format("position:%s:%s:%d:%d", confirmedNickname, lobbyCode, x, y);
             serverHandler.sendUpdate(updateMessage);
         }
     }
-    
+
     /**
      * Handles the game started event.
      */
@@ -1472,22 +1393,22 @@ public class Game extends Application {
         chatFadeOutTransition.setToValue(0.0);
         chatFadeOutTransition.setCycleCount(1);
         chatFadeOutTransition.setAutoReverse(false);
-        chatFadeOutTransition.setOnFinished(e -> chatBox.setVisible(false)); 
+        chatFadeOutTransition.setOnFinished(e -> chatBox.setVisible(false));
 
         chatHideTimer = new Timeline(new KeyFrame(
             Duration.seconds(4),
             event -> {
-                if (chatBox.isVisible() && chatBox.getOpacity() == 1.0) { 
+                if (chatBox.isVisible() && chatBox.getOpacity() == 1.0) {
                     chatFadeOutTransition.playFromStart();
                 }
             }
         ));
         chatHideTimer.setCycleCount(1);
-        
+
         chatFlow = new TextFlow();
         chatFlow.setStyle("-fx-background-color: rgba(0, 0, 0, 0);");
         chatFlow.getStylesheets().add(style);
-        
+
         chatScrollPane = new ScrollPane(chatFlow);
         chatScrollPane.setStyle("-fx-background: rgba(0, 0, 0, 0); -fx-background-color: rgba(0, 0, 0, 0.3); -fx-padding: 0;");
         chatScrollPane.getStylesheets().add(style);
@@ -1498,7 +1419,7 @@ public class Game extends Application {
         chatScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         chatScrollPane.setMouseTransparent(false);
         chatScrollPane.setPannable(false);
-        
+
         chatInput = new TextArea();
         chatInput.setPromptText(lang.get("game.chatPrompt"));
         chatInput.setPrefRowCount(1);
@@ -1512,40 +1433,40 @@ public class Game extends Application {
         UnaryOperator<TextFormatter.Change> filter = change -> {
             String newText = change.getText();
             if (newText.contains("\t")) {
-                String correctedText = newText.replace("\t", ""); 
+                String correctedText = newText.replace("\t", "");
                 change.setText(correctedText);
             }
             return change;
         };
         TextFormatter<String> textFormatter = new TextFormatter<>(filter);
         chatInput.setTextFormatter(textFormatter);
-        
+
         chatModeIndicator = new Text(lang.get("game.lobby"));
         chatModeIndicator.setStyle("-fx-fill: white; -fx-font-size: 16px;");
         chatModeIndicator.setFont(new Font("Jersey 10", 16));
-        
+
         HBox modeBox = new HBox(5);
         modeBox.setAlignment(Pos.CENTER_RIGHT);
         modeBox.getChildren().add(chatModeIndicator);
-        
+
         chatBox.getChildren().addAll(modeBox, chatScrollPane, chatInput);
-        
+
         uiOverlay.getChildren().add(chatBox);
 
         gameScene.setOnKeyPressed(event -> {
-            if (event.getCode() == SettingsWindow.getInstance().getKeyBinding("chat") && !chatInput.isFocused()) { 
-                event.consume(); 
-            
-                chatFadeOutTransition.stop(); 
-                chatBox.setOpacity(1.0);      
-                chatBox.setVisible(true);     
-                
+            if (event.getCode() == SettingsWindow.getInstance().getKeyBinding("chat") && !chatInput.isFocused()) {
+                event.consume();
+
+                chatFadeOutTransition.stop();
+                chatBox.setOpacity(1.0);
+                chatBox.setVisible(true);
+
                 chatInput.setVisible(true);
                 chatInput.requestFocus();
-                chatHideTimer.stop(); 
-                return; 
+                chatHideTimer.stop();
+                return;
             }
-            
+
             if (!chatInput.isFocused()) {
                 activeKeys.add(event.getCode());
                 if (event.getCode() == SettingsWindow.getInstance().getKeyBinding("settings")) {
@@ -1578,24 +1499,24 @@ public class Game extends Application {
                 activeKeys.remove(event.getCode());
             }
         });
-        
+
         chatInput.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.TAB) {
-                event.consume(); 
+                event.consume();
                 cycleChatMode();
             } else if (event.getCode() == KeyCode.ENTER && !event.isShiftDown()) {
                 event.consume();
                 sendChatMessage();
                 chatInput.clear();
                 chatInput.setVisible(false);
-                gameScene.getRoot().requestFocus(); 
-                chatHideTimer.playFromStart(); 
+                gameScene.getRoot().requestFocus();
+                chatHideTimer.playFromStart();
             } else if (event.getCode() == KeyCode.ESCAPE) {
                 event.consume();
                 chatInput.setVisible(false);
                 chatInput.clear();
-                gameScene.getRoot().requestFocus(); 
-                chatHideTimer.playFromStart(); 
+                gameScene.getRoot().requestFocus();
+                chatHideTimer.playFromStart();
             }
         });
     }
@@ -1604,16 +1525,16 @@ public class Game extends Application {
      * Adds a chat message to the chat flow.
      * Makes the chat box appear instantly without starting the hide timer.
      * Handles different message types including regular chat, whispers (sent/received).
-     * 
+     *
      * @param sender The sender of the message ("You" for sent whispers).
      * @param recipient The recipient of the message ("Target" for sent whispers, null otherwise).
      * @param message The message content.
      * @param mode The chat mode (GLOBAL, LOBBY) or null for whispers.
      */
     private void addChatMessage(String sender, String recipient, String message, ChatMode mode) {
-        final String timeString = String.format("[%02d:%02d] ", 
-                                LocalTime.now().getHour(),
-                                LocalTime.now().getMinute());
+        final String timeString = String.format("[%02d:%02d] ",
+            LocalTime.now().getHour(),
+            LocalTime.now().getMinute());
         final String prefixDisplay;
         final Color prefixColor;
         final String senderDisplay;
@@ -1631,18 +1552,18 @@ public class Game extends Application {
                     yield Color.ORANGE;
                 }
             };
-             senderDisplay = sender + ":";
-             senderColor = Color.LIGHTBLUE;
-        } else if (recipient != null) { 
-             prefixDisplay = "[To " + recipient + "] ";
-             prefixColor = Color.MAGENTA;
-             senderDisplay = "You:";
-             senderColor = Color.MAGENTA;
-        } else { 
-             prefixDisplay = "[From " + sender + "] ";
-             prefixColor = Color.MAGENTA;
-             senderDisplay = "";
-             senderColor = Color.MAGENTA;
+            senderDisplay = sender + ":";
+            senderColor = Color.LIGHTBLUE;
+        } else if (recipient != null) {
+            prefixDisplay = "[To " + recipient + "] ";
+            prefixColor = Color.MAGENTA;
+            senderDisplay = "You:";
+            senderColor = Color.MAGENTA;
+        } else {
+            prefixDisplay = "[From " + sender + "] ";
+            prefixColor = Color.MAGENTA;
+            senderDisplay = "";
+            senderColor = Color.MAGENTA;
         }
 
         final String messageContent = message + "\n";
@@ -1659,11 +1580,11 @@ public class Game extends Application {
             Text senderText = new Text(senderDisplay);
             senderText.setFill(senderColor);
             senderText.setFont(font);
-            
+
             Text messageText = new Text(messageContent);
             messageText.setFill(Color.WHITE);
             messageText.setFont(font);
-            
+
             chatFlow.getChildren().add(timeText);
             chatFlow.getChildren().add(prefixText);
 
@@ -1675,14 +1596,14 @@ public class Game extends Application {
             }
 
             chatFlow.getChildren().add(messageText);
-            
-            chatScrollPane.setVvalue(1.0); 
-            
-            chatFadeOutTransition.stop(); 
+
+            chatScrollPane.setVvalue(1.0);
+
+            chatFadeOutTransition.stop();
             chatBox.setOpacity(1.0);
             chatBox.setVisible(true);
-            
-            chatHideTimer.playFromStart(); 
+
+            chatHideTimer.playFromStart();
         });
     }
 
@@ -1750,19 +1671,6 @@ public class Game extends Application {
         String modeName = currentChatMode.getDisplayName();
         chatInput.setPromptText(modeName + lang.get("game.chatPrompt"));
         chatModeIndicator.setText(modeName);
-    }
-
-    /**
-     * Checks if a controller button is pressed based on the provided binding string.
-     *
-     * @param binding The controller binding string to check.
-     * @return True if the button is pressed, false otherwise.
-     */
-    private boolean isControllerButtonPressed(String binding) {
-        if (controllerInput != null) {
-            return controllerInput.isButtonPressed(binding);  
-        }
-        return false;  
     }
 
     /**

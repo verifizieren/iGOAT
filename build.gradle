@@ -30,10 +30,12 @@ java {
 
 repositories {
     mavenCentral()
-    maven { url = 'https://jitpack.io' }
-    maven { url = uri("https://repo.maven.apache.org/maven2") }
-    maven { url = uri("https://repo1.maven.org/maven2") }
-    maven { url = uri("https://artifactory.cronapp.io/public-release/") }  // Repository with JInput natives
+    maven {
+        url = uri("https://repo.maven.apache.org/maven2")
+    }
+    maven {
+        url = uri("https://repo1.maven.org/maven2")
+    }
 }
 
 dependencies {
@@ -42,9 +44,10 @@ dependencies {
     implementation 'org.openjfx:javafx-base:21'
     implementation 'org.openjfx:javafx-graphics:21'
     implementation 'io.github.typhon0:AnimateFX:1.2.4'
-    
+
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'ch.qos.logback:logback-classic:1.4.12'
 
     implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
     implementation 'org.apache.logging.log4j:log4j-api:2.20.0'
@@ -53,158 +56,66 @@ dependencies {
     testImplementation platform('org.junit:junit-bom:5.9.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.mockito:mockito-inline:5.2.0'
-
-    implementation("net.java.jinput:jinput:2.0.10")
-    runtimeOnly("net.java.jinput:jinput-platform:2.0.7:natives-windows")
-    runtimeOnly("net.java.jinput:jinput-platform:2.0.7:natives-linux")
-    runtimeOnly("net.java.jinput:jinput-platform:2.0.7:natives-osx")    
 }
 
 test {
     useJUnitPlatform()
 }
 
-task extractNatives {
-    doLast {
-        def nativesDir = file("${buildDir}/natives")
-        nativesDir.mkdirs()
-        configurations.runtimeClasspath.files.each { file ->
-            if (file.name.contains('natives')) {
-                copy {
-                    from zipTree(file)
-                    into nativesDir
-                    include '*.dll'
-                    include '*.so'
-                    include '*.dylib'
-                    include '*.jnilib'
-                    include 'jinput-dx8_64.dll'
-                    include 'jinput-raw_64.dll'
-                    include 'jinput-wintab.dll'
-                }
-            }
-        }
-        println "Native libraries extracted to: ${nativesDir.absolutePath}"
-        nativesDir.listFiles().each { file ->
-            println "Found native file: ${file.name}"
-        }
-    }
-}
-
-tasks.withType(JavaExec) {
-    dependsOn extractNatives
-    
-    doFirst {
-        def nativesDir = file("${buildDir}/natives")
-        println "Setting native library path to: ${nativesDir.absolutePath}"
-        
-        systemProperty "java.library.path", nativesDir.absolutePath
-        systemProperty "net.java.games.input.librarypath", nativesDir.absolutePath
-        
-        if (System.getProperty("os.name").toLowerCase().contains("mac")) {
-            environment "DYLD_LIBRARY_PATH", nativesDir.absolutePath
-        }
-    }
-}
-
-run {
-    dependsOn extractNatives
-    
-    doFirst {
-        def nativesDir = file("${buildDir}/natives")
-        systemProperty "java.library.path", nativesDir.absolutePath
-        systemProperty "net.java.games.input.librarypath", nativesDir.absolutePath
-        
-        if (System.getProperty("os.name").toLowerCase().contains("mac")) {
-            environment "DYLD_LIBRARY_PATH", nativesDir.absolutePath
-        }
-    }
-}
-
 jar {
     manifest {
         attributes(
-            'Main-Class': 'igoat.Main',
-            'Class-Path': configurations.runtimeClasspath.collect { it.name }.join(' '),
-            'Specification-Title': 'iGOAT',
-            'Specification-Version': version,
-            'Implementation-Title': 'iGOAT',
-            'Implementation-Version': version,
-            'Implementation-Vendor': 'iGOAT Team'
+                'Main-Class': 'igoat.Main',
+                'Class-Path': configurations.runtimeClasspath.collect { it.name }.join(' ')
         )
     }
-    
+
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    
+
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
-    
-    into('natives') {
-        from "${buildDir}/natives"
-    }
+}
+/*
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-Xlint:unchecked"
+}*/
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
 }
 
 // Create a task to build a fat/uber jar with all dependencies
 task fatJar(type: Jar) {
-    dependsOn extractNatives
     manifest {
-        attributes(
-            'Main-Class': 'igoat.Main',
-            'Specification-Title': 'iGOAT',
-            'Specification-Version': version,
-            'Implementation-Title': 'iGOAT',
-            'Implementation-Version': version,
-            'Implementation-Vendor': 'iGOAT Team',
-            'Class-Path': '.',
-            'Add-Opens': 'java.base/java.lang=ALL-UNNAMED'
-        )
+        attributes 'Main-Class': 'igoat.Main'
     }
     archiveClassifier = 'fat'
-    
-    from sourceSets.main.output
-    
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
-    
-    into('natives-mac') {
-        from "${buildDir}/natives"
-        include '*.dylib'
-        include '*.jnilib'
-    }
-    
-    into('natives-windows') {
-        from "${buildDir}/natives"
-        include '*.dll'
-        include 'jinput-dx8_64.dll'
-        include 'jinput-raw_64.dll'
-        include 'jinput-wintab.dll'
-    }
-    
-    into('natives-linux') {
-        from "${buildDir}/natives"
-        include '*.so'
-    }
-    
-    exclude 'META-INF/*.RSA'
-    exclude 'META-INF/*.SF'
-    exclude 'META-INF/*.DSA'
-    
+    with jar
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+// Task to run the map test
+task runMapTest(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'igoat.client.MapTest'
+    jvmArgs = [
+            '--module-path', classpath.asPath,
+            '--add-modules', 'javafx.controls,javafx.fxml,javafx.base,javafx.graphics'
+    ]
+}
+
+// Task that combines JavaDoc and JAR generation
 task 'build-cs108' {
     dependsOn javadoc
-    dependsOn fatJar
-    
+    dependsOn jar
+
     doLast {
         println "\nBuild completed successfully!"
         println "JavaDoc: ${javadoc.destinationDir}"
-        println "JAR: ${fatJar.archiveFile.get()}"
-        println "\nTo run: java -jar ${fatJar.archiveFile.get().asFile.name}"
+        println "JAR: ${jar.archiveFile.get()}"
     }
-}
-
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
 }
