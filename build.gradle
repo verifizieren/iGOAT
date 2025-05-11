@@ -15,8 +15,8 @@ javadoc {
     options.addStringOption('Xdoclint:none', '-quiet')
 }
 
-group 'iGOAT'
-version '0.15-ALPHA'
+group = 'iGOAT'
+version = '0.15-ALPHA'
 
 application {
     mainClass = 'igoat.Main'
@@ -54,13 +54,18 @@ dependencies {
     implementation 'org.slf4j:slf4j-api:2.0.9'
     implementation 'ch.qos.logback:logback-classic:1.4.12'
 
-    testImplementation platform('org.junit:junit-bom:5.9.2')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.9.2'
     testImplementation 'org.mockito:mockito-inline:5.2.0'
 }
 
 test {
     useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
 }
 
 jar {

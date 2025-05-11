@@ -22,7 +22,6 @@ public class Map {
     private final boolean noVisuals;
 
     private static final int WALL_THICKNESS = 20;
-    private static final int SPECIAL_ELEMENT_WIDTH = 40;
     private static final int DOOR_WIDTH = 60;
     
     private static final int MAP_WIDTH = 1500;
