@@ -19,6 +19,13 @@ import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javafx.stage.Stage;
+import java.io.*;
+import java.net.URL;
+import java.nio.file.*;
+import java.util.Enumeration;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.lang.reflect.Field;
 
 /**
  * Main entry point for the iGoat application. Handles command-line arguments to start either the
@@ -27,6 +34,64 @@ import javafx.stage.Stage;
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
     private static final String CONFIG_FILENAME = "igoat_settings.properties";
+
+    static {
+        try {
+            loadNativeLibraries();
+        } catch (Exception e) {
+            System.err.println("Failed to load native libraries: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private static void loadNativeLibraries() throws Exception {
+        String osName = System.getProperty("os.name").toLowerCase();
+        String nativesDir;
+        
+        if (osName.contains("mac")) {
+            nativesDir = "natives-mac";
+        } else if (osName.contains("windows")) {
+            nativesDir = "natives-windows";
+        } else {
+            nativesDir = "natives-linux";
+        }
+
+        Path tempDir = Files.createTempDirectory("igoat-natives");
+        tempDir.toFile().deleteOnExit();
+
+        URL jarUrl = Main.class.getProtectionDomain().getCodeSource().getLocation();
+        String jarPath = jarUrl.getPath();
+        if (jarPath.startsWith("/") && osName.contains("windows")) {
+            jarPath = jarPath.substring(1);
+        }
+
+        if (jarPath.endsWith(".jar")) {
+            try (JarFile jar = new JarFile(jarPath)) {
+                Enumeration<JarEntry> entries = jar.entries();
+                while (entries.hasMoreElements()) {
+                    JarEntry entry = entries.nextElement();
+                    if (entry.getName().startsWith(nativesDir + "/") && !entry.isDirectory()) {
+                        String fileName = new File(entry.getName()).getName();
+                        Path targetPath = tempDir.resolve(fileName);
+                        
+                        try (InputStream in = jar.getInputStream(entry)) {
+                            Files.copy(in, targetPath, StandardCopyOption.REPLACE_EXISTING);
+                        }
+                    }
+                }
+            }
+        }
+
+        System.setProperty("java.library.path", tempDir.toString());
+        System.setProperty("net.java.games.input.librarypath", tempDir.toString());
+        
+        try {
+            Field field = ClassLoader.class.getDeclaredField("sys_paths");
+            field.setAccessible(true);
+            field.set(null, null);
+        } catch (Exception e) {
+        }
+    }
 
     /**
      * Main entry point that processes command-line arguments and launches appropriate mode.

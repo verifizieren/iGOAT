@@ -152,31 +152,42 @@ task fatJar(type: Jar) {
             'Specification-Version': version,
             'Implementation-Title': 'iGOAT',
             'Implementation-Version': version,
-            'Implementation-Vendor': 'iGOAT Team'
+            'Implementation-Vendor': 'iGOAT Team',
+            'Class-Path': '.',
+            'Add-Opens': 'java.base/java.lang=ALL-UNNAMED'
         )
     }
     archiveClassifier = 'fat'
-    from { 
+    
+    from sourceSets.main.output
+    
+    from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
-    into('natives') {
+    
+    into('natives-mac') {
         from "${buildDir}/natives"
+        include '*.dylib'
+        include '*.jnilib'
     }
-    with jar
+    
+    into('natives-windows') {
+        from "${buildDir}/natives"
+        include '*.dll'
+    }
+    
+    into('natives-linux') {
+        from "${buildDir}/natives"
+        include '*.so'
+    }
+    
+    exclude 'META-INF/*.RSA'
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-// Task to run the map test
-task runMapTest(type: JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'igoat.client.MapTest'
-    jvmArgs = [
-        '--module-path', classpath.asPath,
-        '--add-modules', 'javafx.controls,javafx.fxml,javafx.base,javafx.graphics'
-    ]
-}
-
-// Task that combines JavaDoc and JAR generation
 task 'build-cs108' {
     dependsOn javadoc
     dependsOn fatJar
@@ -184,7 +195,8 @@ task 'build-cs108' {
     doLast {
         println "\nBuild completed successfully!"
         println "JavaDoc: ${javadoc.destinationDir}"
-        println "JAR: ${jar.archiveFile.get()}"
+        println "JAR: ${fatJar.archiveFile.get()}"
+        println "\nTo run: java -jar ${fatJar.archiveFile.get().asFile.name}"
     }
 }
 
