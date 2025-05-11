@@ -16,7 +16,7 @@ javadoc {
 }
 
 group = 'iGOAT'
-version = '0.15-ALPHA'
+version = '1.0'
 
 application {
     mainClass = 'igoat.Main'
