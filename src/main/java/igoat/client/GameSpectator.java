@@ -24,6 +24,7 @@ import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -132,7 +133,7 @@ public class GameSpectator extends Application {
         stage.setFullScreen(false);
         settings.setGameStage(stage);
         if (serverHandler == null || lobbyCode == null) {
-            showError("Initialization Error", "Spectator cannot start without server connection details.");
+            showAlert(Alert.AlertType.ERROR, translations.getString("game.noConnectionError"));
             returnToLobby();
             return;
         }
@@ -421,18 +422,17 @@ public class GameSpectator extends Application {
         lobby.exit();
     }
 
-    /**
-     * Shows an error dialog to the user.
-     * @param title The dialog title
-     * @param content The error message
-     */
-    private void showError(String title, String content) {
+    private void showAlert(Alert.AlertType type, String content) {
         Platform.runLater(() -> {
-            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
-            alert.setTitle(title);
+            logger.error("Error in spectator mode: {}", content);
+            Alert alert = new Alert(type);
+            alert.setTitle(translations.getString("game.initError"));
             alert.setHeaderText(null);
             alert.setContentText(content);
             alert.showAndWait();
+            if (type == Alert.AlertType.ERROR) {
+                returnToLobby();
+            }
         });
     }
 
@@ -469,6 +469,15 @@ public class GameSpectator extends Application {
      * @param message The message from the server
      */
     private void processServerMessage(String message) {
+        if (message.startsWith("error:")) {
+            String errorMsg = message.substring(6);
+            if (errorMsg.equals("server.inProgressError")) {
+                showAlert(Alert.AlertType.ERROR, translations.getString("server.inProgressError"));
+            } else {
+                showAlert(Alert.AlertType.ERROR, translations.getString(errorMsg));
+            }
+            return;
+        }
         if (message.startsWith("timer:")) {
             String[] parts = message.split(":");
             if (parts.length == 3) {
