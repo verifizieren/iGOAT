@@ -95,6 +95,10 @@ src
 - Gradle als Build-System
 - JUnit für Tests
 
+## Copyright
+- Sämtliche Grafik wurde vom Team selbst erstellt.
+- Alle Sounds wurden unter der Creative Commons License erworben
+
 ## Team
 - Jonas
 - Max
