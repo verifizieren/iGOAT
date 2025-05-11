@@ -23,12 +23,17 @@ before_script:
 build:
   stage: build
   script:
-    - ./gradlew --no-daemon --build-cache build-cs108
+    - ./gradlew --no-daemon clean build-cs108
+  artifacts:
+    paths:
+      - build/libs/*.jar
+      - build/docs/javadoc/
+    expire_in: 1 week
 
 test:
   stage: test
   script:
-    - ./gradlew --no-daemon --build-cache check
+    - ./gradlew --no-daemon check
   artifacts:
     when: always
     reports:
