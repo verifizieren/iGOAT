@@ -4,7 +4,6 @@ import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 
 import igoat.Role;
-import igoat.Timer;
 import igoat.client.LanguageManager;
 import igoat.client.Map;
 import igoat.client.Wall;
@@ -1102,13 +1101,6 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     * Processes a logout command from the client.
-     */
-    private void handleLogout() {
-        running = false;
-    }
-
-    /**
      * Disconnects the client. Sends appropriate broadcast messages and closes resources.
      */
     private void disconnect() {
@@ -1330,7 +1322,6 @@ public class ClientHandler implements Runnable {
             broadcastGetLobbiesToAll();
             currentLobby.broadcastToAll("gameover:" + result);
             long gameTime = currentLobby.getTimer().getTime();
-            double[] endTime = Timer.convertToMinSec(gameTime);
             logger.info("Game time: {} ms", gameTime);
             logger.info("Game finished in {}", currentLobby.getTimer().toString());
             

@@ -46,7 +46,6 @@ import org.slf4j.LoggerFactory;
 public class GameSpectator extends Application {
     private static final Logger logger = LoggerFactory.getLogger(GameSpectator.class);
     private static final double CAMERA_ZOOM = 3;
-    private static final double VISION_RADIUS = 1000000000;
     private final String style = getClass().getResource("/CSS/UI.css").toExternalForm();
     private ResourceBundle translations;
 
@@ -64,7 +63,6 @@ public class GameSpectator extends Application {
     private final LinkedHashMap<String, Player> otherPlayers = new LinkedHashMap<>();
     private final HashMapCycler<String, Player> spectatingPlayer = new HashMapCycler<>(otherPlayers);
     private final Map<String, Role> pendingRoles = new ConcurrentHashMap<>();
-    private boolean initializedViewport = false;
     private Timer timer = new Timer();
     private String time = "";
     private Text timeText;
@@ -119,7 +117,8 @@ public class GameSpectator extends Application {
      * Sets up the UI overlays, camera, and event handlers.
      * @param primaryStage The primary stage for this spectator window.
      */
-    @Override
+    @SuppressWarnings("incomplete-switch")
+	@Override
     public void start(Stage primaryStage) {
         try {
             sound.playSoundtrack();

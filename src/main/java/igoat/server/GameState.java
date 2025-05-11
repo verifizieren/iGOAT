@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 public class GameState {
     private static final Logger logger = LoggerFactory.getLogger(GameState.class);
 
-    private Lobby lobby;
     private boolean[] terminals;
     private boolean[] stations = new boolean[]{false, false};
     private int[] ids;
@@ -25,8 +24,8 @@ public class GameState {
     public GameState(int maxTerminals, int[] ids, List<ClientHandler> players) {
         this.players = players;
         terminals = new boolean[maxTerminals];
-        for (boolean terminal : terminals) {
-            terminal = false;
+        for (int i = 0; i < terminals.length; i++) {
+            terminals[i] = false;
         }
 
         eventLog = new ArrayList<>();

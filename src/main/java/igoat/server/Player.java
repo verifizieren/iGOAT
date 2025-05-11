@@ -2,14 +2,11 @@ package igoat.server;
 
 import igoat.Role;
 import igoat.Timer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The serverside Player class stores all information related to the in-game player.
  */
 public class Player {
-    private static final Logger logger = LoggerFactory.getLogger(Player.class);
 
     private double x;
     private double y;

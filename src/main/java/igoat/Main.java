@@ -1,6 +1,5 @@
 package igoat;
 
-import igoat.client.GUI.MainMenuGUI;
 import igoat.client.GUI.SettingsWindow;
 import igoat.client.GUI.SplashScreen;
 import igoat.client.LanguageManager;
@@ -19,14 +18,12 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javafx.stage.Stage;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.*;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.lang.reflect.Field;
 
 /**
  * Main entry point for the iGoat application. Handles command-line arguments to start either the

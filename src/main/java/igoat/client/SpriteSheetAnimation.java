@@ -6,15 +6,12 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Handles sprite sheet animation for an ImageView using a Timeline.
  * Allows playing and stopping frame-based animation from a sprite sheet image.
  */
 public class SpriteSheetAnimation {
-    private static final Logger logger = LoggerFactory.getLogger(SpriteSheetAnimation.class);
 
     private final ImageView imageView;
     private final Timeline timeline;

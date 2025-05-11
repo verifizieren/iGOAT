@@ -2,7 +2,6 @@ package igoat.client;
 
 import igoat.Role;
 import javafx.scene.Group;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -28,7 +27,6 @@ public class Player {
     private ImageView idle;
     private ImageView down;
     private final Text usernameLabel;
-    private boolean isBeingSpectated;
     private String username;
     private Role role = null;
     private boolean isDown;

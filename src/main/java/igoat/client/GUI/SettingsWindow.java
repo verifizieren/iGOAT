@@ -63,9 +63,9 @@ public class SettingsWindow {
     public static final Map<String, Locale> AVAILABLE_LANGUAGES = Map.of(
         "English", Locale.ENGLISH,
         "Deutsch", Locale.GERMAN,
-        "Português", new Locale("pt", "BR"),
+        "Português", new Locale.Builder().setLanguage("pt").setRegion("BR").build(),
         "日本語", Locale.JAPANESE,
-        "Español", new Locale("es", "ES"),
+        "Español", new Locale.Builder().setLanguage("es").setRegion("ES").build(),
         "Italiano", Locale.ITALIAN,
         "汉语", Locale.CHINESE
     );

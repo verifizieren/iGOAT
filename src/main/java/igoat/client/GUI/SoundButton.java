@@ -7,14 +7,11 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.input.MouseEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A JavaFX button that plays a sound when pressed
  */
 public class SoundButton extends Button {
-    private static final Logger logger = LoggerFactory.getLogger(SoundButton.class);
     private static final SoundManager sound = SoundManager.getInstance();
 
     public SoundButton(String text) {
