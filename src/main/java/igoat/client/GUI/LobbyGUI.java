@@ -1183,19 +1183,19 @@ public class LobbyGUI {
             if (line.contains("===") || line.contains("---") || line.trim().isEmpty()) {
                 continue;
             }
-            
+
             if (line.matches("\\d+\\..*")) {
                 try {
                     String rank = line.substring(0, line.indexOf(".") + 1);
-                    
+
                     String remaining = line.substring(line.indexOf(".") + 2);
                     String name = remaining.substring(0, remaining.indexOf(" - "));
-                    
-                    remaining = remaining.substring(remaining.indexOf(lang.get("hs.time") + ": ") + 6);
+
+                    remaining = remaining.substring(remaining.indexOf("Time: ") + 6);
                     String time = remaining.substring(0, remaining.indexOf(" - "));
-                    
-                    String date = remaining.substring(remaining.indexOf(lang.get("hs.date") + ": ") + 6);
-                    
+
+                    String date = remaining.substring(remaining.indexOf("Date: ") + 6);
+
                     entries.add(new HighscoreEntry(rank, name, time, date));
                 } catch (Exception e) {
                     logger.warn("Could not parse highscore line: {}", line);
@@ -1267,24 +1267,25 @@ public class LobbyGUI {
             if (line.contains("===") || line.contains("---")) {
                 continue;
             }
-            
+
             if (line.matches("\\d+\\..*")) {
                 try {
                     String rank = line.substring(0, line.indexOf(".") + 1);
-                    
+
                     String remaining = line.substring(line.indexOf(".") + 2);
                     String name = remaining.substring(0, remaining.indexOf(" - "));
-                    
-                    remaining = remaining.substring(remaining.indexOf(lang.get("hs.time") + ": ") + 6);
+
+                    remaining = remaining.substring(remaining.indexOf("Time: ") + 6);
                     String time = remaining.substring(0, remaining.indexOf(" - "));
-                    
-                    String date = remaining.substring(remaining.indexOf(lang.get("hs.date") + ": ") + 6);
-                    
+
+                    String date = remaining.substring(remaining.indexOf("Date: ") + 6);
+
                     entries.add(new HighscoreEntry(rank, name, time, date));
                 } catch (Exception e) {
                     logger.warn("Could not parse highscore line: {}", line);
                 }
             }
+
         }
         
         table.setItems(FXCollections.observableArrayList(entries));
