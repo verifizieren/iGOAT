@@ -9,6 +9,8 @@ Ein Multiplayer Spiel Projekt für das Programmierprojekt an der Universität Ba
   - Benutzer: `guest`
   - Passwort: `password1234`
 
+- [Webseite](https://igoat.mendes.dev/)
+
 ## Schnellstart
 
 ### Voraussetzungen
