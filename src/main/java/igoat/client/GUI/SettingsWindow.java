@@ -43,6 +43,8 @@ public class SettingsWindow {
     private ChoiceBox<String> languageChoice = new ChoiceBox<>();
     private TabPane tabPane;
     private GridPane generalSettingsPane;
+    private ScrollPane keyboardScrollPane;
+    private Tab keyboardTab;
 
     private Stage gameStage;
     private double volume = SoundManager.getInstance().getVolume();
@@ -97,8 +99,8 @@ public class SettingsWindow {
         generalSettingsPane = createGeneralSettingsPane();
         generalTab.setContent(generalSettingsPane);
         
-        Tab keyboardTab = new Tab("Keyboard");
-        ScrollPane keyboardScrollPane = new ScrollPane(createKeyboardBindingsPane());
+        keyboardTab = new Tab("Keyboard");
+        keyboardScrollPane = new ScrollPane(createKeyboardBindingsPane());
         keyboardScrollPane.setFitToWidth(true);
         keyboardScrollPane.setPrefViewportHeight(300);
         keyboardTab.setContent(keyboardScrollPane);
@@ -350,8 +352,11 @@ public class SettingsWindow {
      * Opens the settings window
      */
     public void open(Stage parentStage) {
+        loadSettings();
         volumeSlider.setValue(volume * 100.0);
         windowModeChoice.setValue(fullscreen ? lang.get("settings.fullscreen") : lang.get("settings.windowed"));
+        keyboardScrollPane = new ScrollPane(createKeyboardBindingsPane());
+        keyboardTab.setContent(keyboardScrollPane);
         popup.show(parentStage);
     }
 
