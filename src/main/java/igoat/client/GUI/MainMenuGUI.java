@@ -6,7 +6,6 @@ import igoat.client.ScreenUtil;
 import igoat.client.ServerHandler;
 import igoat.client.Sprite;
 import igoat.server.Server;
-import java.util.Locale;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -25,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import igoat.client.SoundManager;
-import igoat.client.GUI.SoundButton;
 
 /**
  * The main entry point for the iGoat client application. Displays the main menu that allows users to
