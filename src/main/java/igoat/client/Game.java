@@ -707,6 +707,8 @@ public class Game extends Application {
                 if (parts.length == 2) {
                     endGame(parts[1].equals("true"));
                 }
+            } else if (message.startsWith("ready_status:")) {
+                return;
             } else {
                 logger.warn("Received message with unknown prefix or format: {}", message);
             }
