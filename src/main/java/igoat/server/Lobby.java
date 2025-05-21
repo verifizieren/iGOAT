@@ -83,6 +83,15 @@ public class Lobby {
     public void setRoles() {
         for (ClientHandler client : members) {
             Role assignedRole = assignRole();
+
+            if (client.getNickname().toLowerCase().contains("guard")) {
+                assignedRole = Role.GUARD;
+            } else if (client.getNickname().toLowerCase().contains("igoat")) {
+                assignedRole = Role.IGOAT;
+            } else if (client.getNickname().toLowerCase().contains("goat")) {
+                assignedRole = Role.GOAT;
+            }
+
             client.getPlayer().setRole(assignedRole);
             roleMap.put(client.getNickname(), assignedRole);
             setSpawnPoints(client);
