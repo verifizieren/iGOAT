@@ -198,7 +198,7 @@ public class Lobby {
         while (state != LobbyState.FINISHED) {
             timer.update();
             broadcastToAll("timer:" + code + ":" + timer.getTime());
-            if (timer.getTime() >= GAME_OVER_TIME) {
+            if (/*timer.getTime() >= GAME_OVER_TIME*/false) {
                 members.getFirst().endGame(true);
                 logger.info("Time limit reached - game over");
                 break;
