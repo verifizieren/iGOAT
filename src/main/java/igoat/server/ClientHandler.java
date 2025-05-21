@@ -56,7 +56,7 @@ public class ClientHandler implements Runnable {
     private volatile boolean running = true;
     private long lastPongTime;
     private static final long PING_INTERVAL = 2000; // 2 seconds
-    private static final long TIMEOUT = 3000; // 3 seconds
+    private static final long TIMEOUT = 5000; // 5 seconds
     private int udpPort = -1; // Port the client is listening on for UDP updates
 
     protected static final List<ClientHandler> clientList = new CopyOnWriteArrayList<>();

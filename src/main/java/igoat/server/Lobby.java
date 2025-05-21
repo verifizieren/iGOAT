@@ -289,7 +289,7 @@ public class Lobby {
     public void startGame() {
         // new gamestate
         cheatLocked = false;
-        gameState = new GameState(map.getTerminalList().size(), generateRandomTerminalIDs(),
+        gameState = new GameState(map.getTerminalList().size(), new int[]{1, 3, 5}/*generateRandomTerminalIDs()*/,
             members);
         for (ClientHandler client : members) {
             Player player = new Player(200, 80, client.getNickname(), this);
